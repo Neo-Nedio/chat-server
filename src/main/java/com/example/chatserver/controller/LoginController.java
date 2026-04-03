@@ -1,7 +1,7 @@
 package com.example.chatserver.controller;
 
 import com.example.chatserver.annotation.UrlFree;
-import com.example.chatserver.login.LoginVo;
+import com.example.chatserver.vo.LoginVo;
 import com.example.chatserver.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;

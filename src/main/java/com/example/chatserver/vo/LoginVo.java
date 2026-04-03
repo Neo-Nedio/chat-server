@@ -1,4 +1,4 @@
-package com.example.chatserver.login;
+package com.example.chatserver.vo;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
