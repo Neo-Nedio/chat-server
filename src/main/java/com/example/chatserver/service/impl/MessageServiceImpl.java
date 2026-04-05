@@ -58,7 +58,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         boolean isSave = save(message); //保存信息
         if (isSave) {
             //发送消息
-            webSocketService.sendToUser(message, toUserId);
+            webSocketService.sendMsgToUser(message, toUserId);
             //更新聊天列表
             chatListService.updateChatList(toUserId, userId, msgContent);
             return message;

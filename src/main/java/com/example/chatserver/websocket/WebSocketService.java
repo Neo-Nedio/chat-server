@@ -2,11 +2,13 @@ package com.example.chatserver.websocket;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.example.chatserver.constant.WsContentType;
 import com.example.chatserver.utils.JwtUtil;
 import com.example.chatserver.utils.ResultUtil;
 import io.jsonwebtoken.Claims;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 //WebSocket连接使用的方法
 @Service
 public class WebSocketService {
+
+    @Data
+    public static class WsContent {
+        private String type;
+        private Object content;
+    }
 
     //核心数据结构（在线用户存储）
     public static final ConcurrentHashMap<String, Channel> Online_User = new ConcurrentHashMap<>();
@@ -27,7 +35,7 @@ public class WebSocketService {
             Online_User.put(userId, channel);
             Online_Channel.put(channel, userId);
         } catch (Exception e) {
-            sendMsg(channel, ResultUtil.Fail("连接错误"));
+            sendMsg(channel, ResultUtil.Fail("连接错误"), WsContentType.Msg);
             channel.close();
         }
     }
@@ -42,17 +50,20 @@ public class WebSocketService {
     }
 
     //发送消息（私有）
-    private void sendMsg(Channel channel, Object msg) {
+    private void sendMsg(Channel channel, Object msg, String type) {
         //writeAndFlush	Netty方法  立即将数据写入网络缓冲区并刷出（发送给客户端）
         //TextWebSocketFrame	Netty的WebSocket文本帧类型  将普通字符串包装成 WebSocket 协议规定的文本帧格式
-        channel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(msg)));
+        WsContent wsContent = new WsContent();
+        wsContent.setType(type);
+        wsContent.setContent(msg);
+        channel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(wsContent)));
     }
 
     //发送给指定用户
-    public void sendToUser(Object msg, String userId) {
+    public void sendMsgToUser(Object msg, String userId) {
         Channel channel = Online_User.get(userId);
         if (channel != null) {
-            sendMsg(channel, msg);
+            sendMsg(channel, msg, WsContentType.Msg);
         }
     }
 
@@ -61,7 +72,22 @@ public class WebSocketService {
         //channel：遍历出来的每个连接的 Channel 对象
         //ext：与该 Channel 绑定的用户ID（扩展信息）
         Online_Channel.forEach((channel, ext) -> {
-            sendMsg(channel, msg);
+            sendMsg(channel, msg, WsContentType.Msg);
+        });
+    }
+
+    //发送通知给某个用户
+    public void sendNotifyToUser(Object msg, String userId) {
+        Channel channel = Online_User.get(userId);
+        if (channel != null) {
+            sendMsg(channel, msg, WsContentType.Notify);
+        }
+    }
+
+    //发送通知给全体用户
+    public void sendNotifyAll(Object msg) {
+        Online_Channel.forEach((channel, ext) -> {
+            sendMsg(channel, msg, WsContentType.Notify);
         });
     }
 

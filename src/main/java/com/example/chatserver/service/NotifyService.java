@@ -1,0 +1,22 @@
+package com.example.chatserver.service;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.chatserver.dto.FriendNotifyDto;
+import com.example.chatserver.entity.Notify;
+import com.example.chatserver.vo.notify.FriendApplyNotifyVo;
+import com.example.chatserver.vo.notify.ReadNotifyVo;
+
+
+import java.util.List;
+
+
+public interface NotifyService extends IService<Notify> {
+
+    boolean friendApplyNotify(String userId, FriendApplyNotifyVo friendApplyNotifyVo);
+
+    List<FriendNotifyDto> friendListNotify(String userId);
+
+    int unread(String userId);
+
+    boolean readNotify(String userId, ReadNotifyVo readNotifyVo);
+}
