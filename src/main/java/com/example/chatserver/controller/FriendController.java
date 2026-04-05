@@ -7,11 +7,9 @@ import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.utils.ResultUtil;
+import com.example.chatserver.vo.friend.SearchFriendsVo;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -39,6 +37,15 @@ public class FriendController {
     public JSONObject getFriendDetails(@Userid String userId, @PathVariable String friendId) {
         FriendDetailsDto friendDetailsDto = friendService.getFriendDetails(userId, friendId);
         return ResultUtil.Succeed(friendDetailsDto);
+    }
+
+    /**
+     * 搜索好友
+     */
+    @PostMapping("/search")
+    public JSONObject searchFriends(@Userid String userId, @RequestBody SearchFriendsVo searchFriendsVo) {
+        List<FriendDetailsDto> result = friendService.searchFriends(userId, searchFriendsVo);
+        return ResultUtil.Succeed(result);
     }
 }
 

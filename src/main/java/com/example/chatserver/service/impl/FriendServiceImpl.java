@@ -10,6 +10,7 @@ import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.FriendMapper;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.GroupService;
+import com.example.chatserver.vo.friend.SearchFriendsVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -67,5 +68,10 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
             throw new BaseException("双方非好友");
         }
         return friendMapper.getFriendDetails(userId, friendId);
+    }
+
+    @Override
+    public List<FriendDetailsDto> searchFriends(String userId, SearchFriendsVo searchFriendsVo) {
+        return friendMapper.searchFriends(userId, "%" + searchFriendsVo.getFriendInfo() + "%");
     }
 }
