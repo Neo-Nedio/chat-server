@@ -6,8 +6,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.dto.ChatListDto;
 import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.ext.MsgContent;
+import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.ChatListMapper;
 import com.example.chatserver.service.ChatListService;
+import com.example.chatserver.service.FriendService;
+import com.example.chatserver.vo.chatlist.CreateChatListVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +22,9 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
 
     @Resource
     ChatListMapper chatListMapper;
+
+    @Resource
+    FriendService friendService;
 
 
     //获取聊天记录
@@ -41,7 +47,7 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
                 .eq(ChatList::getFromId, fromUserId); // 聊天对象（发送者）
         ChatList chatList = getOne(queryWrapper);
         if (null == chatList) {
-            //新建
+            //新建会话
             chatList = new ChatList();
             chatList.setId(IdUtil.randomUUID());
             chatList.setIsTop(false);
@@ -51,10 +57,30 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
             chatList.setLastMsgContent(msgContent);
             save(chatList);
         } else {
-            //更新
-            chatList.setUnreadNum(chatList.getUnreadNum() + 1);
+            //更新会话
+            chatList.setUnreadNum(chatList.getUnreadNum() + 1); //未读消息数加一
             chatList.setLastMsgContent(msgContent);
             updateById(chatList);
         }
+    }
+
+    //新建会话
+    @Override
+    public boolean createChatList(String userId, CreateChatListVo createChatListVo) {
+        boolean isFriend = friendService.isFriend(userId, createChatListVo.getUserId());
+        if (!isFriend) {
+            throw new BaseException("双方非好友");
+        }
+        //查询是否有会话,没有则新建
+        LambdaQueryWrapper<ChatList> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatList::getUserId, userId).eq(ChatList::getFromId, createChatListVo.getUserId());
+        if (count(queryWrapper) > 0) return true;
+        //新建
+        ChatList chatList = new ChatList();
+        chatList.setId(IdUtil.randomUUID());
+        chatList.setUserId(userId);
+        chatList.setFromId(createChatListVo.getUserId());
+        chatList.setUnreadNum(0);
+        return save(chatList);
     }
 }
