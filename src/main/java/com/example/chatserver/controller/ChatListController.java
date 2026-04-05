@@ -4,6 +4,7 @@ package com.example.chatserver.controller;
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.ChatListDto;
+import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.chatlist.CreateChatListVo;
@@ -31,8 +32,26 @@ public class ChatListController {
      */
     @PostMapping("/create")
     public JSONObject createChatList(@Userid String userId, @RequestBody CreateChatListVo createChatListVo) {
-        boolean result = chatListService.createChatList(userId, createChatListVo);
+        ChatList result = chatListService.createChatList(userId, createChatListVo);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 消息已读
+     */
+    @GetMapping("/read/{targetId}")
+    public JSONObject messageRead(@Userid String userId, @PathVariable String targetId) {
+        boolean result = chatListService.messageRead(userId, targetId);
         return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
+     * 获取详细信息
+     */
+    @GetMapping("/detail/{targetId}")
+    public JSONObject detailChartList(@Userid String userId, @PathVariable String targetId) {
+        ChatList result = chatListService.detailChatList(userId, targetId);
+        return ResultUtil.Succeed(result);
     }
 }
 

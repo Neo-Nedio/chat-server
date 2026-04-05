@@ -33,6 +33,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userinfo.set("userId", user.getId());
         userinfo.set("account", user.getAccount());
         userinfo.set("username", user.getName());
+        userinfo.set("portrait", user.getPortrait());
         userinfo.set("phone", user.getPhone());
         userinfo.set("email", user.getEmail());
         //生成用户token

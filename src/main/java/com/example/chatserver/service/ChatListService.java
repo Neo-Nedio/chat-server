@@ -13,5 +13,9 @@ public interface ChatListService extends IService<ChatList> {
 
     void updateChatList(String toUserId, String fromUserId, MsgContent msgContent);
 
-    boolean createChatList(String userId, CreateChatListVo createChatListVo);
+    ChatList createChatList(String userId, CreateChatListVo createChatListVo);
+
+    boolean messageRead(String userId, String targetId);
+
+    ChatList detailChatList(String userId, String targetId);
 }
