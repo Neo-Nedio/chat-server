@@ -15,6 +15,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.util.Map;
 
 //当控制器方法参数带有 @UserInfo 或 @Userid 注解时，自动从 request 的 userinfo 属性中获取用户信息，无需手动解析
+//用户信息在过滤器解析token放入
 public class UserInfoArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
