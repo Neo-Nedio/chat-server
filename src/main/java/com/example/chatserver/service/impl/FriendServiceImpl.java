@@ -2,6 +2,7 @@ package com.example.chatserver.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.constant.FriendApplyStatus;
 import com.example.chatserver.constant.NotifyType;
@@ -52,6 +53,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
             FriendListDto ungroupFriendListDto = new FriendListDto();
             ungroupFriendListDto.setName("未分组");
             ungroupFriendListDto.setFriends(ungroupFriends);
+            ungroupFriendListDto.setCustom(false);
             friendListDtoS.add(ungroupFriendListDto);
         }
         //查询用户当前分组
@@ -63,6 +65,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
             friendListDto.setGroupId(group.getId());
             friendListDto.setName(group.getName());
             friendListDto.setFriends(friends);
+            friendListDto.setCustom(true);
             friendListDtoS.add(friendListDto);
         });
         return friendListDtoS;
@@ -129,5 +132,14 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
         //发送通知
         webSocketService.sendNotifyToUser(notify, notify.getFromId());
         return true;
+    }
+
+    @Override
+    public boolean updateGroupId(String userId, String oldGroupId, String newGroupId) {
+        LambdaUpdateWrapper<Friend> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(Friend::getGroupId, newGroupId)
+                .eq(Friend::getGroupId, oldGroupId)
+                .eq(Friend::getUserId, userId);
+        return update(updateWrapper);
     }
 }
