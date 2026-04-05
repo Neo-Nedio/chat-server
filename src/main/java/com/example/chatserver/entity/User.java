@@ -1,5 +1,6 @@
 package com.example.chatserver.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -11,6 +12,7 @@ import lombok.experimental.Accessors;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 
 @Data
@@ -71,9 +73,8 @@ public class User implements Serializable {
      * 最后操作时间
      */
     //格式化日期时间在序列化（Java → JSON）和反序列化（JSON → Java）时的格式。
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField("last_opt_time")
-    private LocalDateTime lastOptTime;
+    private Date lastOptTime;
 
     /**
      * 用户状态
@@ -84,18 +85,14 @@ public class User implements Serializable {
     /**
      * 创建时间
      */
-    //格式化日期时间在序列化（Java → JSON）和反序列化（JSON → Java）时的格式。
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @TableField("create_time")
-    private LocalDateTime createTime;
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private Date createTime;
 
     /**
      * 更新时间
      */
-    //格式化日期时间在序列化（Java → JSON）和反序列化（JSON → Java）时的格式。
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @TableField("update_time")
-    private LocalDateTime updateTime;
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private Date updateTime;
 
 
 }

@@ -1,5 +1,6 @@
 package com.example.chatserver.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -10,6 +11,7 @@ import lombok.experimental.Accessors;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -44,14 +46,14 @@ public class Group implements Serializable {
     /**
      * 创建时间
      */
-    @TableField("create_time")
-    private LocalDateTime createTime;
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private Date createTime;
 
     /**
      * 更新时间
      */
-    @TableField("update_time")
-    private LocalDateTime updateTime;
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private Date updateTime;
 
 
 }
