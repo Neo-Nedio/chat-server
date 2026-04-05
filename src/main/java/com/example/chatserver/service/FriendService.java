@@ -6,6 +6,7 @@ import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.entity.Friend;
 import com.example.chatserver.vo.friend.AgreeFriendApplyVo;
 import com.example.chatserver.vo.friend.SearchFriendsVo;
+import com.example.chatserver.vo.friend.SetRemarkVo;
 
 import java.util.List;
 
@@ -22,4 +23,6 @@ public interface FriendService extends IService<Friend> {
     boolean agreeFriendApply(String userId, AgreeFriendApplyVo agreeFriendApplyVo);
 
     boolean updateGroupId(String userId, String oldGroupId, String newGroupId);
+
+    boolean setRemark(String userId, SetRemarkVo setRemarkVo);
 }

@@ -18,6 +18,7 @@ import com.example.chatserver.service.GroupService;
 import com.example.chatserver.service.NotifyService;
 import com.example.chatserver.vo.friend.AgreeFriendApplyVo;
 import com.example.chatserver.vo.friend.SearchFriendsVo;
+import com.example.chatserver.vo.friend.SetRemarkVo;
 import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -139,6 +140,15 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
         LambdaUpdateWrapper<Friend> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(Friend::getGroupId, newGroupId)
                 .eq(Friend::getGroupId, oldGroupId)
+                .eq(Friend::getUserId, userId);
+        return update(updateWrapper);
+    }
+
+    @Override
+    public boolean setRemark(String userId, SetRemarkVo setRemarkVo) {
+        LambdaUpdateWrapper<Friend> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(Friend::getRemark, setRemarkVo.getRemark())
+                .eq(Friend::getFriendId, setRemarkVo.getFriendId())
                 .eq(Friend::getUserId, userId);
         return update(updateWrapper);
     }

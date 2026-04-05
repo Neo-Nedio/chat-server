@@ -9,6 +9,7 @@ import com.example.chatserver.service.FriendService;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.friend.AgreeFriendApplyVo;
 import com.example.chatserver.vo.friend.SearchFriendsVo;
+import com.example.chatserver.vo.friend.SetRemarkVo;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,6 +56,15 @@ public class FriendController {
     @PostMapping("/agree")
     public JSONObject agreeFriendApply(@Userid String userId, @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
         boolean result = friendService.agreeFriendApply(userId, agreeFriendApplyVo);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 设置好友备注
+     */
+    @PostMapping("/set/remark")
+    public JSONObject setRemark(@Userid String userId, @RequestBody SetRemarkVo setRemarkVo) {
+        boolean result = friendService.setRemark(userId, setRemarkVo);
         return ResultUtil.Succeed(result);
     }
 }
