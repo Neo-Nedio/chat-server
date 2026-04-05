@@ -3,7 +3,7 @@ package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.Userid;
-import com.example.chatserver.dto.FriendList;
+import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.utils.ResultUtil;
 import jakarta.annotation.Resource;
@@ -26,8 +26,8 @@ public class FriendController {
      */
     @GetMapping("/list")
     public JSONObject getFriendList(@Userid String userId) {
-        List<FriendList> friendList = friendService.getFriendList(userId);
-        return ResultUtil.Succeed(friendList);
+        List<FriendListDto> friendListDto = friendService.getFriendList(userId);
+        return ResultUtil.Succeed(friendListDto);
     }
 }
 
