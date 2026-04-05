@@ -13,10 +13,11 @@ import com.example.chatserver.mapper.ChatListMapper;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.vo.chatlist.CreateChatListVo;
+import com.example.chatserver.vo.chatlist.DeleteChatListVo;
+import com.example.chatserver.vo.chatlist.TopChatListVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 
 @Service
@@ -105,5 +106,22 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
     @Override
     public ChatList detailChatList(String userId, String targetId) {
         return chatListMapper.detailChatList(userId, targetId);
+    }
+
+    @Override
+    public boolean deleteChatList(String userId, DeleteChatListVo deleteChatListVo) {
+        LambdaQueryWrapper<ChatList> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatList::getId, deleteChatListVo.getChatListId())
+                .eq(ChatList::getUserId, userId);
+        return remove(queryWrapper);
+    }
+
+    @Override
+    public boolean topChatList(String userId, TopChatListVo topChatListVo) {
+        LambdaUpdateWrapper<ChatList> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(ChatList::getIsTop, topChatListVo.isTop())
+                .eq(ChatList::getId, topChatListVo.getChatListId())
+                .eq(ChatList::getUserId, userId);
+        return update(new ChatList(), updateWrapper);
     }
 }

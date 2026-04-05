@@ -8,6 +8,8 @@ import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.chatlist.CreateChatListVo;
+import com.example.chatserver.vo.chatlist.DeleteChatListVo;
+import com.example.chatserver.vo.chatlist.TopChatListVo;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +36,25 @@ public class ChatListController {
     public JSONObject createChatList(@Userid String userId, @RequestBody CreateChatListVo createChatListVo) {
         ChatList result = chatListService.createChatList(userId, createChatListVo);
         return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 删除会话
+     */
+    @PostMapping("/delete")
+    public JSONObject deleteChatList(@Userid String userId, @RequestBody DeleteChatListVo deleteChatListVo) {
+        boolean result = chatListService.deleteChatList(userId, deleteChatListVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+
+    /**
+     * 设置置顶会话
+     */
+    @PostMapping("/top")
+    public JSONObject topChatList(@Userid String userId, @RequestBody TopChatListVo topChatListVo) {
+        boolean result = chatListService.topChatList(userId, topChatListVo);
+        return ResultUtil.ResultByFlag(result);
     }
 
     /**

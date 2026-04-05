@@ -5,6 +5,8 @@ import com.example.chatserver.dto.ChatListDto;
 import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.vo.chatlist.CreateChatListVo;
+import com.example.chatserver.vo.chatlist.DeleteChatListVo;
+import com.example.chatserver.vo.chatlist.TopChatListVo;
 
 
 public interface ChatListService extends IService<ChatList> {
@@ -18,4 +20,8 @@ public interface ChatListService extends IService<ChatList> {
     boolean messageRead(String userId, String targetId);
 
     ChatList detailChatList(String userId, String targetId);
+
+    boolean deleteChatList(String userId, DeleteChatListVo deleteChatListVo);
+
+    boolean topChatList(String userId, TopChatListVo topChatListVo);
 }
