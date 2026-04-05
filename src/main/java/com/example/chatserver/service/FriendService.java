@@ -1,6 +1,7 @@
 package com.example.chatserver.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.entity.Friend;
 
@@ -11,4 +12,6 @@ public interface FriendService extends IService<Friend> {
     List<FriendListDto> getFriendList(String userId);
 
     boolean isFriend(String userId, String friendId);
+
+    FriendDetailsDto getFriendDetails(String userId, String friendId);
 }

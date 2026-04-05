@@ -2,9 +2,11 @@ package com.example.chatserver.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.entity.Friend;
 import com.example.chatserver.entity.Group;
+import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.FriendMapper;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.GroupService;
@@ -56,5 +58,14 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
         LambdaQueryWrapper<Friend> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Friend::getUserId, userId).eq(Friend::getFriendId, friendId);
         return count(queryWrapper) > 0;
+    }
+
+    @Override
+    public FriendDetailsDto getFriendDetails(String userId, String friendId) {
+        boolean isFriend = isFriend(userId, friendId);
+        if (!isFriend) {
+            throw new BaseException("双方非好友");
+        }
+        return friendMapper.getFriendDetails(userId, friendId);
     }
 }

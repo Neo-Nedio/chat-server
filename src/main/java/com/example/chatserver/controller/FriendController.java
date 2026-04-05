@@ -3,11 +3,13 @@ package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.Userid;
+import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.utils.ResultUtil;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,6 +30,15 @@ public class FriendController {
     public JSONObject getFriendList(@Userid String userId) {
         List<FriendListDto> friendListDto = friendService.getFriendList(userId);
         return ResultUtil.Succeed(friendListDto);
+    }
+
+    /**
+     * 获取好友详情
+     */
+    @GetMapping("/details/{friendId}")
+    public JSONObject getFriendDetails(@Userid String userId, @PathVariable String friendId) {
+        FriendDetailsDto friendDetailsDto = friendService.getFriendDetails(userId, friendId);
+        return ResultUtil.Succeed(friendDetailsDto);
     }
 }
 
