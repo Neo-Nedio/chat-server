@@ -1,8 +1,9 @@
-package com.example.chatserver.service;
+package com.example.chatserver.websocket;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.example.chatserver.utils.JwtUtil;
+import com.example.chatserver.utils.ResultUtil;
 import io.jsonwebtoken.Claims;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
@@ -26,7 +27,8 @@ public class WebSocketService {
             Online_User.put(userId, channel);
             Online_Channel.put(channel, userId);
         } catch (Exception e) {
-            sendMsg(channel, "连接错误");
+            sendMsg(channel, ResultUtil.Fail("连接错误"));
+            channel.close();
         }
     }
 

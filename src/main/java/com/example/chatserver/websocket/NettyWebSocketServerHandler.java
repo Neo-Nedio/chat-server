@@ -1,7 +1,6 @@
 package com.example.chatserver.websocket;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.example.chatserver.service.WebSocketService;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -90,7 +89,6 @@ public class NettyWebSocketServerHandler extends SimpleChannelInboundHandler<Tex
     //消息接收
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
-        System.out.println(msg.text());
         //只发送消息,不接受消息
     }
 }

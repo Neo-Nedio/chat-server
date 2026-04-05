@@ -9,7 +9,7 @@ import com.example.chatserver.mapper.MessageMapper;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.MessageService;
-import com.example.chatserver.service.WebSocketService;
+import com.example.chatserver.websocket.WebSocketService;
 import com.example.chatserver.vo.message.SendMsgToUserVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
