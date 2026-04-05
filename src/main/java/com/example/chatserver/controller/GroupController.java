@@ -3,16 +3,16 @@ package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.Userid;
+import com.example.chatserver.dto.GroupListDto;
 import com.example.chatserver.service.GroupService;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.group.CreateGroupVo;
 import com.example.chatserver.vo.group.DeleteGroupVo;
 import com.example.chatserver.vo.group.UpdateGroupVo;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -37,6 +37,15 @@ public class GroupController {
     public JSONObject deleteGroup(@Userid String userId, @RequestBody DeleteGroupVo deleteGroupVo) {
         boolean flag = groupService.deleteGroup(userId, deleteGroupVo);
         return ResultUtil.ResultByFlag(flag);
+    }
+
+    /**
+     * 获取用户分组
+     */
+    @GetMapping("/list")
+    public JSONObject getList(@Userid String userId) {
+        List<GroupListDto> result = groupService.getList(userId);
+        return ResultUtil.Succeed(result);
     }
 }
 

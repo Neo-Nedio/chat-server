@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.dto.GroupListDto;
 import com.example.chatserver.entity.Group;
 import com.example.chatserver.mapper.GroupMapper;
 import com.example.chatserver.service.FriendService;
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,6 +26,9 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     @Lazy
     @Resource
     FriendService friendService;
+
+    @Resource
+    GroupMapper groupMapper;
 
     @Override
     //查询相应用户的所有分组
@@ -62,5 +67,31 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         queryWrapper.eq(Group::getId, deleteGroupVo.getGroupId())
                 .eq(Group::getUserId, userId);
         return remove(queryWrapper);
+    }
+
+    @Override
+    public List<GroupListDto> getList(String userId) {
+        List<GroupListDto> list = groupMapper.getList(userId);
+        if (list == null)
+            list = new ArrayList<>();
+        //未分组
+        GroupListDto groupListDto = new GroupListDto();
+        groupListDto.setLabel("未分组");
+        groupListDto.setValue("0");
+        list.add(groupListDto);
+        return list;
+    }
+
+    @Override
+    //查看分组是否存在
+    public boolean IsExistGroupByUserId(String userId, String GroupId) {
+        //未分组一定存在
+        if ("0".equals(GroupId)) {
+            return true;
+        }
+
+        LambdaQueryWrapper<Group> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Group::getUserId, userId).eq(Group::getId, GroupId);
+        return count(queryWrapper) > 0;
     }
 }
