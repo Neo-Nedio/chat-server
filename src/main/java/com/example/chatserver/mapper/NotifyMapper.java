@@ -21,7 +21,7 @@ public interface NotifyMapper extends BaseMapper<Notify> {
     List<FriendNotifyDto> friendListNotify(String userId, String type);
 
     @Select("SELECT COUNT(*) FROM `notify`" +
-            "WHERE `to_id` = #{userId} AND `unread_id` = #{userId}")
+            "WHERE (`to_id` = #{userId} OR `from_id` = #{userId}) AND `unread_id` = #{userId}")
     //获取所有未读通知
-    int unreadByUserId(String userId);
+    Integer unreadByUserId(String userId);
 }
