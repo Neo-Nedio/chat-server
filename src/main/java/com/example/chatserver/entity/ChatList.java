@@ -1,8 +1,11 @@
 package com.example.chatserver.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.example.chatserver.entity.ext.MsgContent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -10,6 +13,7 @@ import lombok.experimental.Accessors;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -42,10 +46,18 @@ public class ChatList implements Serializable {
     private Boolean isTop;
 
     /**
+     * 最后消息内容
+     */
+    @TableField(value = "last_msg_content", typeHandler = JacksonTypeHandler.class)
+    private MsgContent lastMsgContent;
+
+
+
+    /**
      * 未读消息数
      */
     @TableField("unread_num")
-    private Boolean unreadNum;
+    private Integer unreadNum;
 
 
     /**
@@ -57,14 +69,20 @@ public class ChatList implements Serializable {
     /**
      * 创建时间
      */
-    @TableField("create_time")
-    private LocalDateTime createTime;
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private Date createTime;
 
     /**
      * 更新时间
      */
-    @TableField("update_time")
-    private LocalDateTime updateTime;
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private Date updateTime;
+
+    @TableField(exist = false)
+    private String name;
+
+    @TableField(exist = false)
+    private String remark;
 
 
 }
