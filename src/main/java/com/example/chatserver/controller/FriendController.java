@@ -7,6 +7,7 @@ import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.utils.ResultUtil;
+import com.example.chatserver.vo.friend.AgreeFriendApplyVo;
 import com.example.chatserver.vo.friend.SearchFriendsVo;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +46,15 @@ public class FriendController {
     @PostMapping("/search")
     public JSONObject searchFriends(@Userid String userId, @RequestBody SearchFriendsVo searchFriendsVo) {
         List<FriendDetailsDto> result = friendService.searchFriends(userId, searchFriendsVo);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 同意好友请求
+     */
+    @PostMapping("/agree")
+    public JSONObject agreeFriendApply(@Userid String userId, @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
+        boolean result = friendService.agreeFriendApply(userId, agreeFriendApplyVo);
         return ResultUtil.Succeed(result);
     }
 }
