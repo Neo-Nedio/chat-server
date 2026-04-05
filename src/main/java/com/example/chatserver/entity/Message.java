@@ -1,5 +1,6 @@
 package com.example.chatserver.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -13,11 +14,12 @@ import lombok.experimental.Accessors;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = false) //只比较当前类的字段，不比较父类的字段
 @Accessors(chain = true) //让 Lombok 生成的 setter 方法返回 this（当前对象），实现链式调用。
-@TableName("message")
+@TableName(value = "message", autoResultMap = true)
 public class Message implements Serializable {
 
     @Serial
@@ -41,7 +43,7 @@ public class Message implements Serializable {
     /**
      * 消息类型
      */
-    @TableField("type")
+    @TableField("`type`") //反引号告诉 MySQL 这是列名
     private String type;
 
     /**
@@ -52,6 +54,12 @@ public class Message implements Serializable {
     private MsgContent msgContent;
 
     /**
+     * 是否显示时间
+     */
+    @TableField("is_show_time")
+    private Boolean isShowTime;
+
+    /**
      * 消息状态
      */
     @TableField("status")
@@ -60,18 +68,15 @@ public class Message implements Serializable {
     /**
      * 创建时间
      */
-    //格式化日期时间在序列化（Java → JSON）和反序列化（JSON → Java）时的格式。
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @TableField("create_time")
-    private LocalDateTime createTime;
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private Date createTime;
 
     /**
      * 更新时间
      */
     //格式化日期时间在序列化（Java → JSON）和反序列化（JSON → Java）时的格式。
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @TableField("update_time")
-    private LocalDateTime updateTime;
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private Date updateTime;
 
 
 }

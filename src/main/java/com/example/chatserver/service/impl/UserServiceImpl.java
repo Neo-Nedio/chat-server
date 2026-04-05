@@ -4,7 +4,7 @@ import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.entity.User;
-import com.example.chatserver.vo.LoginVo;
+import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.mapper.UserMapper;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.JwtUtil;
