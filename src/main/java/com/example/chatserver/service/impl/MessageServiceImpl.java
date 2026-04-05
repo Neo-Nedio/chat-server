@@ -9,10 +9,13 @@ import com.example.chatserver.mapper.MessageMapper;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.MessageService;
+import com.example.chatserver.vo.message.MessageRecordVo;
 import com.example.chatserver.websocket.WebSocketService;
 import com.example.chatserver.vo.message.SendMsgToUserVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
@@ -25,6 +28,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Resource
     ChatListService chatListService;
+
+    @Resource
+    MessageMapper messageMapper;
 
     @Override
     public Message sendMessageToUser(String userId, SendMsgToUserVo sendMsgToUserVo) {
@@ -52,5 +58,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             return message;
         }
         return null;
+    }
+
+    @Override
+    public List<Message> messageRecord(String userId, MessageRecordVo messageRecordVo) {
+        return messageMapper.messageRecord(userId, messageRecordVo.getTargetId(),
+                messageRecordVo.getIndex(), messageRecordVo.getNum());
     }
 }
