@@ -4,15 +4,28 @@ import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.entity.User;
+import com.example.chatserver.service.ChatListService;
+import com.example.chatserver.service.NotifyService;
 import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.mapper.UserMapper;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.JwtUtil;
 import com.example.chatserver.utils.ResultUtil;
+import com.example.chatserver.vo.user.SearchUserVo;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+
+    @Resource
+    ChatListService chatListService;
+
+    @Resource
+    NotifyService notifyService;
 
 
     @Override
@@ -39,5 +52,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //生成用户token
         userinfo.set("token", JwtUtil.createToken(userinfo));
         return ResultUtil.Succeed(userinfo);
+    }
+
+    @Override
+    //搜索用户
+    public List<User> searchUser(SearchUserVo searchUserVo) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getAccount, searchUserVo.getUserInfo())
+                .or().eq(User::getPhone, searchUserVo.getUserInfo())
+                .or().eq(User::getEmail, searchUserVo.getUserInfo());
+        return list(queryWrapper);
+    }
+
+    @Override
+    //获取用户所有未读通知
+    public HashMap<String, Integer> unreadInfo(String userId) {
+        HashMap<String, Integer> unreadInfo = new HashMap<>();
+        //获取消息未读数
+        int msgNum = chatListService.unread(userId);
+        //获取通知未读数
+        int notifyNum = notifyService.unread(userId);
+        unreadInfo.put("chat", msgNum);
+        unreadInfo.put("notify", notifyNum);
+        return unreadInfo;
     }
 }
