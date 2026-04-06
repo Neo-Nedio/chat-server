@@ -35,7 +35,7 @@ public class FriendController {
      * 获取好友列表
      */
     @GetMapping("/list/flat")
-    public JSONObject getFriendListFlat(@Userid String userId, @RequestParam String friendInfo) {
+    public JSONObject getFriendListFlat(@Userid String userId, @RequestParam(defaultValue = "") String friendInfo) {
         List<Friend> friendListDto = friendService.getFriendListFlat(userId, friendInfo);
         return ResultUtil.Succeed(friendListDto);
     }
