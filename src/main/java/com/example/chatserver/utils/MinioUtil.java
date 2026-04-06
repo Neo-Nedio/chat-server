@@ -10,6 +10,7 @@ import io.minio.messages.Item;
 import jakarta.annotation.Resource;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -153,6 +154,21 @@ public class MinioUtil {
         }
         return minioConfig.getEndpoint() + "/" + minioConfig.getBucketName() + "/" + fileName;
     }
+    public String uploadFile(InputStream in, String fileName, long size) {
+        try {
+            PutObjectArgs objectArgs = PutObjectArgs.builder().bucket(minioConfig.getFileBucketName()).object(fileName)
+                    .stream(in, size, -1).build();
+            minioClient.putObject(objectArgs);
+        } catch (Exception e) {
+            log.error("文件上传失败", e);
+            return null;
+        }
+        return minioConfig.getEndpoint() + "/" + minioConfig.getFileBucketName() + "/" + fileName;
+    }
+
+    public String getUrl(String fileName) {
+        return minioConfig.getEndpoint() + "/" + minioConfig.getFileBucketName() + "/" + fileName;
+    }
 
 
     /**
@@ -172,7 +188,7 @@ public class MinioUtil {
     }
 
     /**
-     * 文件下载
+     * 下载
      */
     public void download(String fileName, HttpServletResponse res) {
         GetObjectArgs objectArgs = GetObjectArgs.builder().bucket(minioConfig.getBucketName())
@@ -200,6 +216,43 @@ public class MinioUtil {
         } catch (Exception e) {
             log.error("文件下载失败, fileName: {}", fileName, e);
         }
+    }
+
+    /**
+     * 文件下载
+     */
+    public void downloadFile(String fileName, HttpServletResponse res) {
+        GetObjectArgs objectArgs = GetObjectArgs.builder().bucket(minioConfig.getFileBucketName())
+                .object(fileName).build();
+        try (GetObjectResponse response = minioClient.getObject(objectArgs)) {
+            byte[] buf = new byte[1024];
+            int len;
+            try (FastByteArrayOutputStream os = new FastByteArrayOutputStream()) {
+                while ((len = response.read(buf)) != -1) {
+                    os.write(buf, 0, len);
+                }
+                os.flush();
+                byte[] bytes = os.toByteArray();
+                res.setCharacterEncoding("utf-8");
+                // 设置强制下载不打开
+                res.setContentType("application/force-download");
+                res.addHeader("Content-Disposition", "attachment;fileName=" + fileName);
+                try (ServletOutputStream stream = res.getOutputStream()) {
+                    stream.write(bytes);
+                    stream.flush();
+                }
+            }
+        } catch (Exception e) {
+            log.error("文件下载失败, fileName: {}", fileName, e);
+        }
+    }
+
+    /**
+     * 获取文件流
+     */
+    @SneakyThrows(Exception.class)
+    public InputStream getObject(String objectName) {
+        return minioClient.getObject(GetObjectArgs.builder().bucket(minioConfig.getFileBucketName()).object(objectName).build());
     }
 
     /**
@@ -244,6 +297,25 @@ public class MinioUtil {
             return false;
         }
         return true;
+    }
+
+    /**
+     * 重命名
+     */
+    public void renameObject(String oldObjectName, String newObjectName) throws Exception {
+        // 复制旧对象到新对象名
+        minioClient.copyObject(
+                CopyObjectArgs.builder()
+                        .bucket(minioConfig.getBucketName())
+                        .object(newObjectName)
+                        .source(CopySource.builder()
+                                .bucket(minioConfig.getBucketName())
+                                .object(oldObjectName)
+                                .build())
+                        .build()
+        );
+        // 删除旧对象
+        remove(oldObjectName);
     }
 
 }

@@ -15,6 +15,7 @@ public class MinioConfig {
     private String accessKey; //访问密钥
     private String secretKey; //秘密密钥
     private String bucketName; //默认存储桶名称
+    private String fileBucketName;
 
     @Bean
     public MinioClient minioClient() {
