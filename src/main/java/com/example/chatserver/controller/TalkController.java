@@ -11,6 +11,7 @@ import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.talk.CreateTalkVo;
 import com.example.chatserver.vo.talk.DeleteTalkVo;
+import com.example.chatserver.vo.talk.DetailsTalkVo;
 import com.example.chatserver.vo.talk.TalkListVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +33,12 @@ public class TalkController {
     @PostMapping("/list")
     public JSONObject talkList(@Userid String userId, @RequestBody TalkListVo talkListVo) {
         List<TalkListDto> result = talkService.talkList(userId, talkListVo);
+        return ResultUtil.Succeed(result);
+    }
+
+    @PostMapping("/details")
+    public JSONObject detailsTalk(@Userid String userId, @RequestBody DetailsTalkVo detailsTalkVo) {
+        TalkListDto result = talkService.detailsTalk(userId, detailsTalkVo);
         return ResultUtil.Succeed(result);
     }
 

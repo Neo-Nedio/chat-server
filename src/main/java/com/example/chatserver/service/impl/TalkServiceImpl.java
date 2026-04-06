@@ -12,6 +12,7 @@ import com.example.chatserver.service.TalkPermissionService;
 import com.example.chatserver.service.TalkService;
 import com.example.chatserver.vo.talk.CreateTalkVo;
 import com.example.chatserver.vo.talk.DeleteTalkVo;
+import com.example.chatserver.vo.talk.DetailsTalkVo;
 import com.example.chatserver.vo.talk.TalkListVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -93,5 +94,10 @@ public class TalkServiceImpl extends ServiceImpl<TalkMapper, Talk> implements Ta
         LambdaQueryWrapper<Talk> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Talk::getId, deleteTalkVo.getTalkId()).eq(Talk::getUserId, userId);
         return remove(queryWrapper);
+    }
+
+    @Override
+    public TalkListDto detailsTalk(String userId, DetailsTalkVo detailsTalkVo) {
+        return talkMapper.detailsTalk(userId, detailsTalkVo.getTalkId());
     }
 }
