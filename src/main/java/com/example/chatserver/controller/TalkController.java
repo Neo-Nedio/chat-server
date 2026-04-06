@@ -10,6 +10,7 @@ import com.example.chatserver.service.TalkService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.talk.CreateTalkVo;
+import com.example.chatserver.vo.talk.DeleteTalkVo;
 import com.example.chatserver.vo.talk.TalkListVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,6 +54,12 @@ public class TalkController {
         minioUtil.uploadFile(request.getInputStream(), imgPath, size);
         Talk talk = talkService.updateTalkImg(userId, talkId, imgName);
         return ResultUtil.Succeed(talk);
+    }
+
+    @PostMapping("/delete")
+    public JSONObject deleteTalk(@Userid String userId, @RequestBody DeleteTalkVo deleteTalkVo) {
+        boolean result = talkService.deleteTalk(userId, deleteTalkVo);
+        return ResultUtil.ResultByFlag(result);
     }
 }
 
