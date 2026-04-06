@@ -2,6 +2,7 @@ package com.example.chatserver.service.impl;
 
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
@@ -13,6 +14,7 @@ import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.JwtUtil;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.user.SearchUserVo;
+import com.example.chatserver.vo.user.UpdateVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -80,5 +82,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public UserDto info(String userId) {
         return userMapper.info(userId);
+    }
+
+    @Override
+    public boolean updateUserInfo(String userId, UpdateVo updateVo) {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(User::getName, updateVo.getName())
+                .set(User::getPortrait, updateVo.getPortrait())
+                .set(User::getSex, updateVo.getSex())
+                .set(User::getBirthday, updateVo.getBirthday())
+                .set(User::getSignature, updateVo.getSignature())
+                .eq(User::getId, userId);
+        return update(updateWrapper);
     }
 }

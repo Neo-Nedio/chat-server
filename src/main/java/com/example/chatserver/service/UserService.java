@@ -6,6 +6,7 @@ import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.vo.user.SearchUserVo;
+import com.example.chatserver.vo.user.UpdateVo;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,4 +19,6 @@ public interface UserService extends IService<User> {
     HashMap<String, Integer> unreadInfo(String userId);
 
     UserDto info(String userId);
+
+    boolean updateUserInfo(String userId, UpdateVo updateVo);
 }
