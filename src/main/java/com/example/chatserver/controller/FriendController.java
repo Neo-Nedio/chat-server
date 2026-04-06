@@ -7,10 +7,7 @@ import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.utils.ResultUtil;
-import com.example.chatserver.vo.friend.AgreeFriendApplyVo;
-import com.example.chatserver.vo.friend.SearchFriendsVo;
-import com.example.chatserver.vo.friend.SetGroupVo;
-import com.example.chatserver.vo.friend.SetRemarkVo;
+import com.example.chatserver.vo.friend.*;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,6 +73,33 @@ public class FriendController {
     public JSONObject setGroup(@Userid String userId, @RequestBody SetGroupVo setGroupVo) {
         boolean result = friendService.setGroup(userId, setGroupVo);
         return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 删除好友
+     */
+    @PostMapping("/delete")
+    public JSONObject deleteFriend(@Userid String userId, @RequestBody DeleteFriendVo deleteFriendVo) {
+        boolean result = friendService.deleteFriend(userId, deleteFriendVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
+     * 特别关心
+     */
+    @PostMapping("/carefor")
+    public JSONObject careForFriend(@Userid String userId, @RequestBody CareForFriendVo careForFriendVo) {
+        boolean result = friendService.careForFriend(userId, careForFriendVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
+     * 特别关心
+     */
+    @PostMapping("/uncarefor")
+    public JSONObject unCareForFriend(@Userid String userId, @RequestBody UnCareForFriendVo unCareForFriendVo) {
+        boolean result = friendService.unCareForFriend(userId, unCareForFriendVo);
+        return ResultUtil.ResultByFlag(result);
     }
 }
 

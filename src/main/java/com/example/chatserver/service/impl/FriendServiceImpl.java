@@ -16,10 +16,7 @@ import com.example.chatserver.mapper.FriendMapper;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.GroupService;
 import com.example.chatserver.service.NotifyService;
-import com.example.chatserver.vo.friend.AgreeFriendApplyVo;
-import com.example.chatserver.vo.friend.SearchFriendsVo;
-import com.example.chatserver.vo.friend.SetGroupVo;
-import com.example.chatserver.vo.friend.SetRemarkVo;
+import com.example.chatserver.vo.friend.*;
 import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -164,6 +161,41 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
         updateWrapper.set(Friend::getGroupId, setGroupVo.getGroupId())
                 .eq(Friend::getFriendId, setGroupVo.getFriendId())
                 .eq(Friend::getUserId, userId);
+        return update(updateWrapper);
+    }
+
+    @Override
+    public boolean deleteFriend(String userId, DeleteFriendVo deleteFriendVo) {
+        //同时删除两个方向的好友记录
+        LambdaQueryWrapper<Friend> queryWrapper = new LambdaQueryWrapper<>();
+        // 条件1：userId 是当前用户，friendId 是要删除的好友
+        queryWrapper.or((q) -> {
+                    q.eq(Friend::getUserId, userId)
+                            .eq(Friend::getFriendId, deleteFriendVo.getFriendId());
+                })
+                // 条件2：userId 是要删除的好友，friendId 是当前用户
+                .or((q) -> {
+                    q.eq(Friend::getFriendId, userId)
+                            .eq(Friend::getUserId, deleteFriendVo.getFriendId());
+                });
+        return remove(queryWrapper);
+    }
+
+    @Override
+    public boolean careForFriend(String userId, CareForFriendVo careForFriendVo) {
+        LambdaUpdateWrapper<Friend> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(Friend::getIsConcern, true)
+                .eq(Friend::getUserId, userId)
+                .eq(Friend::getFriendId, careForFriendVo.getFriendId());
+        return update(updateWrapper);
+    }
+
+    @Override
+    public boolean unCareForFriend(String userId, UnCareForFriendVo unCareForFriendVo) {
+        LambdaUpdateWrapper<Friend> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(Friend::getIsConcern, false)
+                .eq(Friend::getUserId, userId)
+                .eq(Friend::getFriendId, unCareForFriendVo.getFriendId());
         return update(updateWrapper);
     }
 }

@@ -58,6 +58,7 @@ public class MessageController {
     /**
      * 发送文件
      */
+    //todo 文件处理
     @PostMapping("/send/file")
     public JSONObject sendFile(HttpServletRequest request,
                                @Userid String userId,
@@ -71,6 +72,7 @@ public class MessageController {
     /**
      * 获取文件
      */
+    //todo 文件处理
     @GetMapping("/get/file")
     public ResponseEntity<InputStreamResource> getFile(HttpServletResponse response,
                                                        @Userid String userId,

@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.entity.Friend;
-import com.example.chatserver.vo.friend.AgreeFriendApplyVo;
-import com.example.chatserver.vo.friend.SearchFriendsVo;
-import com.example.chatserver.vo.friend.SetGroupVo;
-import com.example.chatserver.vo.friend.SetRemarkVo;
+import com.example.chatserver.vo.friend.*;
 
 import java.util.List;
 
@@ -28,4 +25,10 @@ public interface FriendService extends IService<Friend> {
     boolean setRemark(String userId, SetRemarkVo setRemarkVo);
 
     boolean setGroup(String userId, SetGroupVo setGroupVo);
+
+    boolean deleteFriend(String userId, DeleteFriendVo deleteFriendVo);
+
+    boolean careForFriend(String userId, CareForFriendVo careForFriendVo);
+
+    boolean unCareForFriend(String userId, UnCareForFriendVo unCareForFriendVo);
 }
