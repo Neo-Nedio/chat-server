@@ -176,9 +176,26 @@ public class MinioUtil {
      * 生成文件临时访问链接，用于在前端预览图片或下载文件
      */
     public String preview(String fileName) {
+        int expiry = 60 * 60; //临时访问链接的过期时间，用于控制生成的 URL 的有效时长
         // 查看文件地址
         GetPresignedObjectUrlArgs build = new GetPresignedObjectUrlArgs().builder()
-                .bucket(minioConfig.getBucketName()).object(fileName).method(Method.GET).build();
+                .bucket(minioConfig.getBucketName()).object(fileName).expiry(expiry).method(Method.GET).build();
+        try {
+            return minioClient.getPresignedObjectUrl(build);
+        } catch (Exception e) {
+            log.error("生成预览链接失败, fileName: {}", fileName, e);
+        }
+        return null;
+    }
+
+    /**
+     * 预览文件
+     */
+    public String previewFile(String fileName) {
+        int expiry = 60 * 60; //临时访问链接的过期时间，用于控制生成的 URL 的有效时长
+        // 查看文件地址
+        GetPresignedObjectUrlArgs build = new GetPresignedObjectUrlArgs().builder()
+                .bucket(minioConfig.getFileBucketName()).object(fileName).expiry(expiry).method(Method.GET).build();
         try {
             return minioClient.getPresignedObjectUrl(build);
         } catch (Exception e) {

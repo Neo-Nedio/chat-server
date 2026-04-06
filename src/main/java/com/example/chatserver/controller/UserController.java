@@ -7,12 +7,14 @@ import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.MinioUtil;
+import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -37,6 +39,9 @@ public class UserController {
 
     @Resource
     MinioUtil minioUtil;
+
+    @Resource
+    RedisUtils redisUtils;
 
     /**
      * 用户查询
@@ -91,9 +96,9 @@ public class UserController {
     }
 
     /**
-     * 获取图片内容
+     * 获取文件
      */
-    @GetMapping("/get/img")
+    @GetMapping("/get/file")
     public ResponseEntity<InputStreamResource> getFile(@Userid String userId,
                                                        @RequestHeader("targetId") String targetId,
                                                        @RequestHeader("fileName") String fileName) {
@@ -106,5 +111,25 @@ public class UserController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(new InputStreamResource(inputStream));
+    }
+
+    /**
+     * 获取图片内容
+     */
+    @GetMapping("/get/img")
+    public JSONObject getImg(@Userid String userId,
+                             @RequestParam("targetId") String targetId,
+                             @RequestParam("fileName") String fileName) {
+        boolean isFriend = friendService.isFriend(userId, targetId);
+        if (!isFriend && !userId.equals(targetId)) {
+            throw new BaseException("双方非好友");
+        }
+        String name = targetId + "/img/" + fileName;
+        String url = (String) redisUtils.get(name);
+        if (StringUtils.isBlank(url)) {
+            url = minioUtil.previewFile(name);
+            redisUtils.set(name, url, 60 * 60);
+        }
+        return ResultUtil.Succeed(url);
     }
 }

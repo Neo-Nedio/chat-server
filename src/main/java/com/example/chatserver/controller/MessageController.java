@@ -7,6 +7,7 @@ import com.example.chatserver.entity.Message;
 import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.service.MessageService;
 import com.example.chatserver.utils.MinioUtil;
+import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.message.MessageRecordVo;
 import com.example.chatserver.vo.message.SendMsgToUserVo;
@@ -14,6 +15,7 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -35,6 +37,9 @@ public class MessageController {
 
     @Resource
     MinioUtil minioUtil;
+
+    @Resource
+    RedisUtils redisUtils;
 
     /**
      * 发送消息给用户
@@ -86,6 +91,22 @@ public class MessageController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileInfo.get("name").toString() + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(new InputStreamResource(inputStream));
+    }
+
+    /**
+     * 获取图片
+     */
+    @GetMapping("/get/img")
+    public JSONObject getImg(@Userid String userId, @RequestParam("msgId") String msgId) {
+        MsgContent msgContent = messageService.getFileMsgContent(userId, msgId);
+        JSONObject fileInfo = JSONUtil.parseObj(msgContent.getContent());
+        String fileName = fileInfo.get("fileName").toString();
+        String url = (String) redisUtils.get(fileName);
+        if (StringUtils.isBlank(url)) {
+            url = minioUtil.previewFile(fileName);
+            redisUtils.set(fileName, url, 30 * 60 * 1000);
+        }
+        return ResultUtil.Succeed(url);
     }
 
 }
