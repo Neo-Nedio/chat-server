@@ -3,6 +3,7 @@ package com.example.chatserver.service.impl;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.service.NotifyService;
@@ -26,6 +27,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     NotifyService notifyService;
+
+    @Resource
+    UserMapper userMapper;
 
 
     @Override
@@ -56,12 +60,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     //搜索用户
-    public List<User> searchUser(SearchUserVo searchUserVo) {
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getAccount, searchUserVo.getUserInfo())
-                .or().eq(User::getPhone, searchUserVo.getUserInfo())
-                .or().eq(User::getEmail, searchUserVo.getUserInfo());
-        return list(queryWrapper);
+    public List<UserDto> searchUser(SearchUserVo searchUserVo) {
+        return userMapper.findUserByInfo(searchUserVo.getUserInfo());
     }
 
     @Override
@@ -75,5 +75,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         unreadInfo.put("chat", msgNum);
         unreadInfo.put("notify", notifyNum);
         return unreadInfo;
+    }
+
+    @Override
+    public UserDto info(String userId) {
+        return userMapper.info(userId);
     }
 }
