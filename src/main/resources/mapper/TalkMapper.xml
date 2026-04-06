@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.chatserver.mapper.TalkMapper">
+
+    <!-- 定义查询结果的映射规则 -->
+    <resultMap id="TalkListDtoResultMap" type="com.example.chatserver.dto.TalkListDto">
+        <!-- 普通字段映射 -->
+        <result property="name" column="name"/>
+        <result property="portrait" column="portrait"/>
+        <result property="remark" column="remark"/>
+        <result property="talkId" column="talk_id"/>
+        <result property="time" column="time"/>
+        <result property="userId" column="user_id"/>
+
+        <!-- 使用 TypeHandler 的字段映射 -->
+        <result property="content" column="content"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+
+        <result property="latestComment" column="latest_comment"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+
+        <!-- 普通数字字段 -->
+        <result property="likeNum" column="like_num"/>
+        <result property="commentNum" column="comment_num"/>
+    </resultMap>
+
+</mapper>
