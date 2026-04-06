@@ -46,6 +46,15 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     //获得好友所有分组和相应分组下的好友
     public List<FriendListDto> getFriendList(String userId) {
         List<FriendListDto> friendListDtoS = new ArrayList<>();
+        //特别关心
+        List<Friend> concernFriends = friendMapper.getConcernFriendByUser(userId);
+        if (null != concernFriends && !concernFriends.isEmpty()) {
+            FriendListDto concernFriendListDto = new FriendListDto();
+            concernFriendListDto.setName("特别关心");
+            concernFriendListDto.setFriends(concernFriends);
+            concernFriendListDto.setCustom(false);
+            friendListDtoS.add(concernFriendListDto);
+        }
         //将没有分组的好像添加到未分组中
         List<Friend> ungroupFriends = friendMapper.getFriendByUserIdAndGroupId(userId, "0");
         if (null != ungroupFriends && !ungroupFriends.isEmpty()) {
@@ -197,5 +206,10 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
                 .eq(Friend::getUserId, userId)
                 .eq(Friend::getFriendId, unCareForFriendVo.getFriendId());
         return update(updateWrapper);
+    }
+
+    @Override
+    public List<Friend> getFriendListFlat(String userId, String friendInfo) {
+        return friendMapper.getFriendListFlat(userId, friendInfo);
     }
 }

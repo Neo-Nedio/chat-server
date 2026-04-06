@@ -5,6 +5,7 @@ import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
+import com.example.chatserver.entity.Friend;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.friend.*;
@@ -27,6 +28,15 @@ public class FriendController {
     @GetMapping("/list")
     public JSONObject getFriendList(@Userid String userId) {
         List<FriendListDto> friendListDto = friendService.getFriendList(userId);
+        return ResultUtil.Succeed(friendListDto);
+    }
+
+    /**
+     * 获取好友列表
+     */
+    @GetMapping("/list/flat")
+    public JSONObject getFriendListFlat(@Userid String userId, @RequestParam String friendInfo) {
+        List<Friend> friendListDto = friendService.getFriendListFlat(userId, friendInfo);
         return ResultUtil.Succeed(friendListDto);
     }
 
