@@ -57,6 +57,7 @@ public interface TalkMapper extends BaseMapper<Talk> {
             "    t.`latest_comment`, " +
             "    t.`create_time` AS `time`, " +
             "    t.content, " +
+            "    t.like_num, " +
             "    t.comment_num " +
             "FROM  " +
             "    talk AS t " +
