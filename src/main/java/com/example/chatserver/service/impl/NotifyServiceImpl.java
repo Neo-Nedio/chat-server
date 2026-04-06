@@ -1,7 +1,6 @@
 package com.example.chatserver.service.impl;
 
 import cn.hutool.core.util.IdUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.constant.FriendApplyStatus;
@@ -40,13 +39,6 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
         boolean isFriend = friendService.isFriend(userId, friendApplyNotifyVo.getUserId());
         if (isFriend) {
             throw new BaseException("ta已是您的好友");
-        }
-        LambdaQueryWrapper<Notify> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Notify::getFromId, userId)
-                .eq(Notify::getToId, friendApplyNotifyVo.getUserId())
-                .eq(Notify::getType, NotifyType.Friend_Apply);
-        if (count(queryWrapper) > 0) {
-            throw new BaseException("请勿重复申请");
         }
 
         Notify notify = new Notify();
