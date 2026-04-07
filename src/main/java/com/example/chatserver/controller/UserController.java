@@ -1,6 +1,7 @@
 package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
+import com.example.chatserver.annotation.UrlFree;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.exception.BaseException;
@@ -9,6 +10,7 @@ import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
+import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
 import jakarta.annotation.Resource;
@@ -42,6 +44,16 @@ public class UserController {
 
     @Resource
     RedisUtils redisUtils;
+
+    /**
+     * 用户注册
+     */
+    @UrlFree
+    @PostMapping("/register")
+    public JSONObject register(@RequestBody RegisterVo registerVo) {
+        boolean result = userService.register(registerVo);
+        return ResultUtil.ResultByFlag(result);
+    }
 
     /**
      * 用户查询

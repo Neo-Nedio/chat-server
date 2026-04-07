@@ -1,11 +1,14 @@
 package com.example.chatserver.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.config.MinioConfig;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
+import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.service.NotifyService;
 import com.example.chatserver.vo.login.LoginVo;
@@ -13,11 +16,13 @@ import com.example.chatserver.mapper.UserMapper;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.JwtUtil;
 import com.example.chatserver.utils.ResultUtil;
+import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -32,6 +37,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     UserMapper userMapper;
+
+    @Resource
+    MinioConfig minioConfig;
+
+    @Override
+    public boolean register(RegisterVo registerVo) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getAccount, registerVo.getAccount());
+        if (count(queryWrapper) > 0) {
+            throw new BaseException("账号已存在~");
+        }
+
+        queryWrapper.clear();
+        queryWrapper.eq(User::getEmail, registerVo.getEmail());
+        if (count(queryWrapper) > 0) {
+            throw new BaseException("邮箱已存在~");
+        }
+
+        User user = new User();
+        user.setId(IdUtil.randomUUID());
+        user.setName(registerVo.getUsername());
+        user.setAccount(registerVo.getAccount());
+        user.setPassword(registerVo.getPassword());
+        user.setBirthday(new Date());
+        user.setSex("男");
+        user.setPortrait(minioConfig.getEndpoint() + "/" + minioConfig.getBucketName() + "/default-portrait.jpg");
+        return save(user);
+    }
 
 
     @Override

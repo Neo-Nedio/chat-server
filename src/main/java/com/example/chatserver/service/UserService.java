@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.vo.login.LoginVo;
+import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
 
@@ -12,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public interface UserService extends IService<User> {
+    boolean register(RegisterVo registerVo);
+
     JSONObject validateLogin(LoginVo loginVo);
 
     List<UserDto> searchUser(SearchUserVo searchUserVo);
