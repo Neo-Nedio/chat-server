@@ -26,4 +26,6 @@ public interface ChatListService extends IService<ChatList> {
     boolean topChatList(String userId, TopChatListVo topChatListVo);
 
     int unread(String userId);
+
+    ChatList getChatListByUserIdAndFromId(String userId, String fromId);
 }
