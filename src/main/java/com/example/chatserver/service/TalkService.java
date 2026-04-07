@@ -1,6 +1,7 @@
 package com.example.chatserver.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.chatserver.dto.TalkContentDto;
 import com.example.chatserver.dto.TalkListDto;
 import com.example.chatserver.entity.Talk;
 import com.example.chatserver.vo.talk.CreateTalkVo;
@@ -22,4 +23,6 @@ public interface TalkService extends IService<Talk> {
     boolean deleteTalk(String userId, DeleteTalkVo deleteTalkVo);
 
     TalkListDto detailsTalk(String userId, DetailsTalkVo detailsTalkVo);
+
+    TalkContentDto getFriendLatestTalkContent(String userId, String friendId);
 }
