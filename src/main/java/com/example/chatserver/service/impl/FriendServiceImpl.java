@@ -8,6 +8,7 @@ import com.example.chatserver.constant.FriendApplyStatus;
 import com.example.chatserver.constant.NotifyType;
 import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
+import com.example.chatserver.dto.TalkContentDto;
 import com.example.chatserver.entity.Friend;
 import com.example.chatserver.entity.Group;
 import com.example.chatserver.entity.Notify;
@@ -16,6 +17,7 @@ import com.example.chatserver.mapper.FriendMapper;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.GroupService;
 import com.example.chatserver.service.NotifyService;
+import com.example.chatserver.service.TalkService;
 import com.example.chatserver.vo.friend.*;
 import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
@@ -37,6 +39,9 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
 
     @Resource
     NotifyService notifyService;
+
+    @Resource
+    TalkService talkService;
 
     @Resource
     WebSocketService webSocketService;
@@ -92,7 +97,10 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
-        return friendMapper.getFriendDetails(userId, friendId);
+        FriendDetailsDto friendDetailsDto = friendMapper.getFriendDetails(userId, friendId);
+        TalkContentDto talkContentDto = talkService.getFriendLatestTalkContent(userId, friendId);
+        friendDetailsDto.setTalkContent(talkContentDto);
+        return friendDetailsDto;
     }
 
     @Override
