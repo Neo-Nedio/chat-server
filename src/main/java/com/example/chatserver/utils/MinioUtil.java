@@ -178,9 +178,9 @@ public class MinioUtil {
     public String preview(String fileName) {
         int expiry = 24 * 60 * 60; //临时访问链接的过期时间，用于控制生成的 URL 的有效时长
         // 查看文件地址
-        GetPresignedObjectUrlArgs build = new GetPresignedObjectUrlArgs().builder()
-                .bucket(minioConfig.getBucketName()).object(fileName).expiry(expiry).method(Method.GET).build();
         try {
+            GetPresignedObjectUrlArgs build = new GetPresignedObjectUrlArgs().builder()
+                    .bucket(minioConfig.getBucketName()).object(fileName).expiry(expiry).method(Method.GET).build();
             return minioClient.getPresignedObjectUrl(build);
         } catch (Exception e) {
             log.error("生成预览链接失败, fileName: {}", fileName, e);

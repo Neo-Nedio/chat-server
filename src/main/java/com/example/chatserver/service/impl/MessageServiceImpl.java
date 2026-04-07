@@ -72,7 +72,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setIsShowTime(DateUtil.between(new Date(), previousMessage.getUpdateTime(), DateUnit.MINUTE) > 5);
         //设置内容
         msgContent.setFromUserId(userId);
-        if (MessageContentType.File.equals(msgContent.getType()) || MessageContentType.Img.equals(msgContent.getType())) {
+        if (!MessageContentType.Text.equals(msgContent.getType())) {
             JSONObject content = JSONUtil.parseObj(msgContent.getContent());
 
             String name = (String) content.get("name");
@@ -81,6 +81,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
             content.set("fileName", fileName);
             content.set("url", minioUtil.getUrl(fileName));
+            content.set("type", type);
             msgContent.setContent(content.toJSONString(0));
         }
         message.setMsgContent(msgContent);
