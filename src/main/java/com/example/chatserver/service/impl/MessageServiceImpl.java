@@ -69,7 +69,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setFromId(userId);
         message.setToId(toUserId);
         //超过五分钟显示时间
-        message.setIsShowTime(DateUtil.between(new Date(), previousMessage.getUpdateTime(), DateUnit.MINUTE) > 5);
+        if (null == previousMessage) {
+            message.setIsShowTime(true);
+        } else {
+            message.setIsShowTime(DateUtil.between(new Date(), previousMessage.getUpdateTime(), DateUnit.MINUTE) > 5);
+        }
         //设置内容
         msgContent.setFromUserId(userId);
         if (!MessageContentType.Text.equals(msgContent.getType())) {

@@ -28,4 +28,6 @@ public interface ChatListService extends IService<ChatList> {
     int unread(String userId);
 
     ChatList getChatListByUserIdAndFromId(String userId, String fromId);
+
+    boolean messageReadAll(String userId);
 }
