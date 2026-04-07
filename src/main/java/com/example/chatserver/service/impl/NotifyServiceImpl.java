@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.constant.FriendApplyStatus;
 import com.example.chatserver.constant.NotifyType;
 import com.example.chatserver.dto.FriendNotifyDto;
+import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.entity.Notify;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.NotifyMapper;
@@ -74,5 +75,10 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
                 .eq(Notify::getUnreadId, userId)
                 .eq(Notify::getType, readNotifyVo.getNotifyType());
         return update(updateWrapper);
+    }
+
+    @Override
+    public List<SystemNotifyDto> SystemListNotify(String userId) {
+        return notifyMapper.SystemListNotify();
     }
 }

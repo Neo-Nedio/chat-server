@@ -2,6 +2,7 @@ package com.example.chatserver.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.chatserver.dto.FriendNotifyDto;
+import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.entity.Notify;
 import com.example.chatserver.vo.notify.FriendApplyNotifyVo;
 import com.example.chatserver.vo.notify.ReadNotifyVo;
@@ -19,4 +20,6 @@ public interface NotifyService extends IService<Notify> {
     int unread(String userId);
 
     boolean readNotify(String userId, ReadNotifyVo readNotifyVo);
+
+    List<SystemNotifyDto> SystemListNotify(String userId);
 }

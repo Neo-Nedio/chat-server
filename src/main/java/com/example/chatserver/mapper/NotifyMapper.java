@@ -2,6 +2,7 @@ package com.example.chatserver.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.chatserver.dto.FriendNotifyDto;
+import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.entity.Notify;
 import org.apache.ibatis.annotations.Select;
 
@@ -24,4 +25,9 @@ public interface NotifyMapper extends BaseMapper<Notify> {
             "WHERE (`to_id` = #{userId} OR `from_id` = #{userId}) AND `unread_id` = #{userId}")
     //获取所有未读通知
     Integer unreadByUserId(String userId);
+
+    @Select("SELECT * FROM `notify`" +
+            "WHERE `type` = 'system' " +
+            "ORDER BY `create_time` DESC")
+    List<SystemNotifyDto> SystemListNotify();
 }
