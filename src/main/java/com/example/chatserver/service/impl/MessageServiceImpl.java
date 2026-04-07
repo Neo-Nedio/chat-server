@@ -60,10 +60,13 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setIsShowTime(DateUtil.between(new Date(), previousMessage.getUpdateTime(), DateUnit.MINUTE) > 5);
         //设置内容
         msgContent.setFromUserId(userId);
-        //todo 文件处理
         if (MessageType.File.equals(msgContent.getType()) || MessageType.Img.equals(msgContent.getType())) {
             JSONObject content = JSONUtil.parseObj(msgContent.getContent());
-            String fileName = userId + "/" + toUserId + "/" + content.get("name");
+
+            String name = (String) content.get("name");
+            String type = name.substring(name.lastIndexOf(".") + 1);
+            String fileName = userId + "/" + toUserId + "/" + IdUtil.randomUUID() + "." + type;
+
             content.set("fileName", fileName);
             content.set("url", minioUtil.getUrl(fileName));
             msgContent.setContent(content.toJSONString(0));

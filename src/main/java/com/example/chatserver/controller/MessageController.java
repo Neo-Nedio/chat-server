@@ -63,7 +63,6 @@ public class MessageController {
     /**
      * 发送文件
      */
-    //todo 文件处理
     @PostMapping("/send/file")
     public JSONObject sendFile(HttpServletRequest request,
                                @Userid String userId,
@@ -75,9 +74,21 @@ public class MessageController {
     }
 
     /**
+     * 发送图片
+     */
+    @PostMapping(value = "/send/Img")
+    public JSONObject sendImg(HttpServletRequest request,
+                              @Userid String userId,
+                              @RequestHeader("msgId") String msgId) throws IOException {
+        MsgContent msgContent = messageService.getFileMsgContent(userId, msgId);
+        JSONObject fileInfo = JSONUtil.parseObj(msgContent.getContent());
+        String url = minioUtil.uploadFile(request.getInputStream(), fileInfo.get("fileName").toString(), fileInfo.getLong("size"));
+        return ResultUtil.Succeed(url);
+    }
+
+    /**
      * 获取文件
      */
-    //todo 文件处理
     @GetMapping("/get/file")
     public ResponseEntity<InputStreamResource> getFile(HttpServletResponse response,
                                                        @Userid String userId,
@@ -104,7 +115,7 @@ public class MessageController {
         String url = (String) redisUtils.get(fileName);
         if (StringUtils.isBlank(url)) {
             url = minioUtil.previewFile(fileName);
-            redisUtils.set(fileName, url, 30 * 60 * 1000);
+            redisUtils.set(fileName, url, 59);
         }
         return ResultUtil.Succeed(url);
     }
