@@ -5,23 +5,32 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.chatserver.constant.MessageType;
+import com.example.chatserver.constant.MessageContentType;
+import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.Message;
+import com.example.chatserver.entity.MessageRetraction;
 import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.MessageMapper;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.service.FriendService;
+import com.example.chatserver.service.MessageRetractionService;
 import com.example.chatserver.service.MessageService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.vo.message.MessageRecordVo;
+import com.example.chatserver.vo.message.ReeditMsgVo;
+import com.example.chatserver.vo.message.RetractionMsgVo;
 import com.example.chatserver.websocket.WebSocketService;
 import com.example.chatserver.vo.message.SendMsgToUserVo;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -39,6 +48,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Resource
     MessageMapper messageMapper;
+
+    @Resource
+    MessageRetractionService messageRetractionService;
 
     @Resource
     MinioUtil minioUtil;
@@ -60,7 +72,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setIsShowTime(DateUtil.between(new Date(), previousMessage.getUpdateTime(), DateUnit.MINUTE) > 5);
         //设置内容
         msgContent.setFromUserId(userId);
-        if (MessageType.File.equals(msgContent.getType()) || MessageType.Img.equals(msgContent.getType())) {
+        if (MessageContentType.File.equals(msgContent.getType()) || MessageContentType.Img.equals(msgContent.getType())) {
             JSONObject content = JSONUtil.parseObj(msgContent.getContent());
 
             String name = (String) content.get("name");
@@ -98,7 +110,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     public Message sendFileMessageToUser(String userId, String toUserId, JSONObject fileInfo) {
         MsgContent msgContent = new MsgContent();
         msgContent.setContent(fileInfo.toJSONString(0));
-        msgContent.setType(MessageType.File);
+        msgContent.setType(MessageContentType.File);
         return sendMessage(userId, toUserId, msgContent);
     }
 
@@ -121,5 +133,59 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         updateWrapper.set(Message::getMsgContent, msgContent)
                 .eq(Message::getId, msgId);
         return update(updateWrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public Message retractionMsg(String userId, RetractionMsgVo retractionMsgVo) {
+        Message message = getById(retractionMsgVo.getMsgId());
+        if (null == message)
+            throw new BaseException("消息不存在");
+        MsgContent msgContent = message.getMsgContent();
+
+        //设置type为撤销前的类型
+        message.setType(msgContent.getType());
+
+        //只有文本才保存，之前的消息内容
+        if (MessageContentType.Text.equals(msgContent.getType())) {
+            MessageRetraction messageRetraction = new MessageRetraction();
+            messageRetraction.setMsgId(IdUtil.randomUUID());
+            messageRetraction.setMsgId(message.getId());
+            messageRetraction.setMsgContent(msgContent);
+            messageRetractionService.save(messageRetraction);
+
+        }
+
+        //把信息内容设置为撤销
+        msgContent.setType(MessageContentType.Retraction);
+        msgContent.setContent("");
+        updateById(message);
+
+        //把最后消息设置为撤回
+        ChatList userIdchatList = chatListService.getChatListByUserIdAndFromId(userId, message.getToId());
+        userIdchatList.setLastMsgContent(msgContent);
+        chatListService.updateById(userIdchatList);
+        ChatList toIdchatList = chatListService.getChatListByUserIdAndFromId(message.getToId(), userId);
+        toIdchatList.setLastMsgContent(msgContent);
+        chatListService.updateById(toIdchatList);
+
+        //发送
+        webSocketService.sendMsgToUser(message, message.getToId());
+        return message;
+    }
+
+    @Override
+    //获取撤销前的内容
+    public MessageRetraction reeditMsg(String userId, ReeditMsgVo reeditMsgVo) {
+        LambdaQueryWrapper<MessageRetraction> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MessageRetraction::getMsgId, reeditMsgVo.getMsgId());
+        return messageRetractionService.getOne(queryWrapper);
+    }
+
+    @Override
+    public String sendFileOrImg(String userId, String msgId, HttpServletRequest request) throws IOException {
+        MsgContent msgContent = getFileMsgContent(userId, msgId);
+        JSONObject fileInfo = JSONUtil.parseObj(msgContent.getContent());
+        return minioUtil.uploadFile(request.getInputStream(), fileInfo.get("fileName").toString(), fileInfo.getLong("size"));
     }
 }
