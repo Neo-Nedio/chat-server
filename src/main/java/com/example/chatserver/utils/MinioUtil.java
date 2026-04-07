@@ -304,6 +304,20 @@ public class MinioUtil {
     }
 
     /**
+     * 判断文件是否存在
+     */
+    public boolean isObjectExist(String objectName) {
+        boolean exist = true;
+        try {
+            minioClient.statObject(StatObjectArgs.builder().bucket(minioConfig.getBucketName()).object(objectName).build());
+        } catch (Exception e) {
+            exist = false;
+        }
+        return exist;
+    }
+
+
+    /**
      * 删除
      */
     public boolean remove(String fileName) {
