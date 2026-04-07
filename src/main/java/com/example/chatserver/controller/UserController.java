@@ -128,7 +128,7 @@ public class UserController {
         String url = (String) redisUtils.get(name);
         if (StringUtils.isBlank(url)) {
             url = minioUtil.previewFile(name);
-            redisUtils.set(name, url, 59);
+            redisUtils.set(fileName, url, 24 * 60);
         }
         return ResultUtil.Succeed(url);
     }
