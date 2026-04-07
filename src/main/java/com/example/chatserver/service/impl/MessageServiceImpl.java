@@ -76,7 +76,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         }
         //设置内容
         msgContent.setFromUserId(userId);
-        if (!MessageContentType.Text.equals(msgContent.getType())) {
+        if (!MessageContentType.Img.equals(msgContent.getType()) ||
+                MessageContentType.File.equals(msgContent.getType()) ||
+                MessageContentType.Voice.equals(msgContent.getType())) {
             JSONObject content = JSONUtil.parseObj(msgContent.getContent());
 
             String name = (String) content.get("name");
