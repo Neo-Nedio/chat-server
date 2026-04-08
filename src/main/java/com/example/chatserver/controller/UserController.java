@@ -10,6 +10,7 @@ import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
+import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
@@ -51,6 +52,9 @@ public class UserController {
     @UrlFree
     @PostMapping("/register")
     public JSONObject register(@RequestBody RegisterVo registerVo) {
+        //RSA 解密
+        String decryptedPassword = SecurityUtil.decryptPassword(registerVo.getPassword());
+        registerVo.setPassword(decryptedPassword);
         boolean result = userService.register(registerVo);
         return ResultUtil.ResultByFlag(result);
     }

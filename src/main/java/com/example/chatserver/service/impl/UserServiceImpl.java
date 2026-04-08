@@ -11,6 +11,7 @@ import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.service.NotifyService;
+import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.mapper.UserMapper;
 import com.example.chatserver.service.UserService;
@@ -77,7 +78,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (null == user) {
             return ResultUtil.Fail("用户名或密码错误");
         }
-        if (!user.getPassword().equals(loginVo.getPassword())) {
+        if (!SecurityUtil.verifyPassword(loginVo.getPassword(), user.getPassword())) {
             return ResultUtil.Fail("用户名或密码错误");
         }
 
