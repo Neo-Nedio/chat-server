@@ -3,6 +3,8 @@ package com.example.chatserver.runner;
 import com.example.chatserver.annotation.UrlFree;
 import com.example.chatserver.utils.UrlPermitUtil;
 import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,8 @@ import java.util.Set;
 //启动时自动扫描并加载免验证 URL 的运行器，会在 Spring 启动完成后自动执行。
 @Component
 public class UrlPassRunner implements ApplicationRunner {
+
+    private static final Logger logger = LoggerFactory.getLogger(UrlPassRunner.class);
 
     @Resource
     private UrlPermitUtil urlPermitUtil;  // 免验证 URL 工具类
@@ -51,6 +55,6 @@ public class UrlPassRunner implements ApplicationRunner {
         }
         //将所有收集到的免验证 URL 添加到 UrlPermitUtil 中，供过滤器使用。
         urlPermitUtil.addUrls(urlList);
-        System.out.println("-----not verify that the url is successfully loaded-----");
+        logger.info("-----not verify that the url is successfully loaded-----");
     }
 }
