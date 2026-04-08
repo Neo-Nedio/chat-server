@@ -16,10 +16,7 @@ import com.example.chatserver.entity.MessageRetraction;
 import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.MessageMapper;
-import com.example.chatserver.service.ChatListService;
-import com.example.chatserver.service.FriendService;
-import com.example.chatserver.service.MessageRetractionService;
-import com.example.chatserver.service.MessageService;
+import com.example.chatserver.service.*;
 import com.example.chatserver.utils.FileUtil;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.vo.message.MessageRecordVo;
@@ -63,6 +60,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Resource
     MessageRetractionService messageRetractionService;
+
+    @Resource
+    MQProducerService mqProducerService;
 
     @Resource
     MinioUtil minioUtil;
@@ -111,8 +111,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setMsgContent(msgContent);
         boolean isSave = save(message); //保存信息
         if (isSave) {
-            //发送消息
-            webSocketService.sendMsgToUser(message, toUserId);
+            try {
+                mqProducerService.sendMsg(message);
+            } catch (Exception e) {
+                //发送消息
+                webSocketService.sendMsgToUser(message, toUserId);
+            }
             //更新聊天列表
             chatListService.updateChatList(toUserId, userId, msgContent);
             return message;
