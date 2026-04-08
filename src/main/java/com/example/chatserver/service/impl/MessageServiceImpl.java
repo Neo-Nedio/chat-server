@@ -132,6 +132,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     @Override
+    public List<Message> messageRecordDesc(String userId, MessageRecordVo messageRecordVo) {
+        return messageMapper.messageRecordDesc(userId, messageRecordVo.getTargetId(),
+                messageRecordVo.getIndex(), messageRecordVo.getNum());
+    }
+
+    @Override
     public Message sendFileMessageToUser(String userId, String toUserId, JSONObject fileInfo) {
         MsgContent msgContent = new MsgContent();
         msgContent.setContent(fileInfo.toJSONString(0));

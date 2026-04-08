@@ -82,6 +82,15 @@ public class MessageController {
     }
 
     /**
+     * 聊天记录（降序）
+     */
+    @PostMapping("/record/desc")
+    public JSONObject messageRecordDesc(@Userid String userId, @RequestBody MessageRecordVo messageRecordVo) {
+        List<Message> result = messageService.messageRecordDesc(userId, messageRecordVo);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
      * 发送文件
      */
     @PostMapping("/send/file")
