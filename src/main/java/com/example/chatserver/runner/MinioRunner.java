@@ -29,6 +29,8 @@ public class MinioRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         try {
+            //minio初始化 创建桶,设置桶策略
+            minioUtil.init();
             //获取资源路径
             org.springframework.core.io.Resource[] resources = new PathMatchingResourcePatternResolver().getResources("classpath*:minio/**");
             if (resources.length > 0) {
