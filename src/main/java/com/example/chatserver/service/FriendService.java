@@ -33,4 +33,6 @@ public interface FriendService extends IService<Friend> {
     boolean unCareForFriend(String userId, UnCareForFriendVo unCareForFriendVo);
 
     List<Friend> getFriendListFlat(String userId, String friendInfo);
+
+    List<Friend> getFriendListFlatUnread(String userId, String friendInfo);
 }
