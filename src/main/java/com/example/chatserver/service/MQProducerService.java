@@ -42,14 +42,19 @@ public class MQProducerService {
         rocketMQTemplate.send(topic, MessageBuilder.withPayload(obj).build());
     }
 
-    /**
-     * 发送同步消息
-     */
-    public SendResult sendMsg(Message msgBody) {
+    public SendResult sendMsgToUser(Message msgBody) {
         if (!enabled)
             return null;
-        return rocketMQTemplate
-                .syncSend(topic + ":msg", MessageBuilder.withPayload(msgBody).build());
+        return rocketMQTemplate.syncSend(topic + ":user", MessageBuilder.withPayload(msgBody).build());
+    }
+
+    /**
+     * 发送同步消息(群)
+     */
+    public SendResult sendMsgToGroup(Message msgBody) {
+        if (!enabled)
+            return null;
+        return rocketMQTemplate.syncSend(topic + ":group", MessageBuilder.withPayload(msgBody).build());
     }
 
     /**

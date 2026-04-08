@@ -14,10 +14,7 @@ import com.example.chatserver.entity.Group;
 import com.example.chatserver.entity.Notify;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.FriendMapper;
-import com.example.chatserver.service.FriendService;
-import com.example.chatserver.service.GroupService;
-import com.example.chatserver.service.NotifyService;
-import com.example.chatserver.service.TalkService;
+import com.example.chatserver.service.*;
 import com.example.chatserver.vo.friend.*;
 import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
@@ -42,6 +39,9 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
 
     @Resource
     TalkService talkService;
+
+    @Resource
+    ChatListService chatListService;
 
     @Resource
     WebSocketService webSocketService;
@@ -195,6 +195,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
                     q.eq(Friend::getFriendId, userId)
                             .eq(Friend::getUserId, deleteFriendVo.getFriendId());
                 });
+        chatListService.removeByUserId(userId, deleteFriendVo.getFriendId());
         return remove(queryWrapper);
     }
 

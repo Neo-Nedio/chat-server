@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.config.VoiceConfig;
 import com.example.chatserver.constant.MessageContentType;
+import com.example.chatserver.constant.MsgSource;
 import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.Message;
 import com.example.chatserver.entity.MessageRetraction;
@@ -23,7 +24,7 @@ import com.example.chatserver.vo.message.MessageRecordVo;
 import com.example.chatserver.vo.message.ReeditMsgVo;
 import com.example.chatserver.vo.message.RetractionMsgVo;
 import com.example.chatserver.websocket.WebSocketService;
-import com.example.chatserver.vo.message.SendMsgToUserVo;
+import com.example.chatserver.vo.message.SendMsgVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
@@ -73,18 +74,14 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Resource
     VoiceConfig voiceConfig;
 
-    public Message sendMessage(String userId, String toUserId, MsgContent msgContent) {
-        //验证是否是好友
-        boolean isFriend = friendService.isFriend(userId, toUserId);
-        if (!isFriend) {
-            throw new BaseException("双方非好友");
-        }
+    public Message sendMessage(String userId, String toUserId, MsgContent msgContent, String source) {
         //获取上一条显示时间的消息
         Message previousMessage = messageMapper.getPreviousShowTimeMsg(userId, toUserId);
         //存入数据库
         Message message = new Message();
         message.setId(IdUtil.randomUUID());
         message.setFromId(userId);
+        message.setSource(source);
         message.setToId(toUserId);
         //超过五分钟显示时间
         if (null == previousMessage) {
@@ -94,15 +91,13 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         }
         //设置内容
         msgContent.setFromUserId(userId);
-        if (!MessageContentType.Img.equals(msgContent.getType()) ||
+        if (MessageContentType.Img.equals(msgContent.getType()) ||
                 MessageContentType.File.equals(msgContent.getType()) ||
                 MessageContentType.Voice.equals(msgContent.getType())) {
             JSONObject content = JSONUtil.parseObj(msgContent.getContent());
-
             String name = (String) content.get("name");
             String type = name.substring(name.lastIndexOf(".") + 1);
             String fileName = userId + "/" + toUserId + "/" + IdUtil.randomUUID() + "." + type;
-
             content.set("fileName", fileName);
             content.set("url", minioUtil.getUrl(fileName));
             content.set("type", type);
@@ -111,22 +106,54 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setMsgContent(msgContent);
         boolean isSave = save(message); //保存信息
         if (isSave) {
-            try {
-                mqProducerService.sendMsg(message);
-            } catch (Exception e) {
-                //发送消息
-                webSocketService.sendMsgToUser(message, toUserId);
-            }
-            //更新聊天列表
-            chatListService.updateChatList(toUserId, userId, msgContent);
             return message;
         }
         return null;
     }
 
+    //给用户发送消息
+    public Message sendMessageToUser(String userId, SendMsgVo sendMsgVo) {
+        //验证是否是好友
+        boolean isFriend = friendService.isFriend(userId, sendMsgVo.getToUserId());
+        if (!isFriend) {
+            throw new BaseException("双方非好友");
+        }
+        Message message = sendMessage(userId, sendMsgVo.getToUserId(), sendMsgVo.getMsgContent(), MsgSource.User);
+        //更新聊天列表
+        chatListService.updateChatList(message.getToId(), userId, message.getMsgContent(), MsgSource.User);
+        try {
+            //发送消息
+            mqProducerService.sendMsgToUser(message);
+        } catch (Exception e) {
+            //发送消息
+            webSocketService.sendMsgToUser(message, message.getToId());
+        }
+        return message;
+
+    }
+
+    //给群聊发送消息
+    public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo) {
+        Message message = sendMessage(userId, sendMsgVo.getToUserId(), sendMsgVo.getMsgContent(), MsgSource.Group);
+        //更新聊天列表
+        chatListService.updateChatListGroup(message.getToId(), message.getMsgContent());
+        try {
+            mqProducerService.sendMsgToGroup(message);
+        } catch (Exception e) {
+            //发送消息
+            webSocketService.sendMsgToGroup(message, message.getToId());
+        }
+        return message;
+    }
+
+    //根据发送目标选择用户还是群聊
     @Override
-    public Message sendMessageToUser(String userId, SendMsgToUserVo sendMsgToUserVo) {
-        return sendMessage(userId, sendMsgToUserVo.getToUserId(), sendMsgToUserVo.getMsgContent());
+    public Message sendMessage(String userId, SendMsgVo sendMsgVo) {
+        if (MsgSource.Group.equals(sendMsgVo.getSource())) {
+            return sendMessageToGroup(userId, sendMsgVo);
+        } else {
+            return sendMessageToUser(userId, sendMsgVo);
+        }
     }
 
     @Override
@@ -146,7 +173,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         MsgContent msgContent = new MsgContent();
         msgContent.setContent(fileInfo.toJSONString(0));
         msgContent.setType(MessageContentType.File);
-        return sendMessage(userId, toUserId, msgContent);
+        return sendMessage(userId, toUserId, msgContent, MsgSource.User);
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.chatlist.CreateChatListVo;
 import com.example.chatserver.vo.chatlist.DeleteChatListVo;
+import com.example.chatserver.vo.chatlist.DetailChatListVo;
 import com.example.chatserver.vo.chatlist.TopChatListVo;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
@@ -78,9 +79,9 @@ public class ChatListController {
     /**
      * 获取详细信息
      */
-    @GetMapping("/detail/{targetId}")
-    public JSONObject detailChartList(@Userid String userId, @PathVariable String targetId) {
-        ChatList result = chatListService.detailChatList(userId, targetId);
+    @PostMapping("/detail")
+    public JSONObject detailChatList(@Userid String userId, @RequestBody DetailChatListVo detailChatListVo) {
+        ChatList result = chatListService.detailChatList(userId, detailChatListVo);
         return ResultUtil.Succeed(result);
     }
 }

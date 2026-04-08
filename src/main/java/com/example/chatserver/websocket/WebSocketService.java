@@ -3,6 +3,9 @@ package com.example.chatserver.websocket;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.example.chatserver.constant.WsContentType;
+import com.example.chatserver.entity.ChatGroupMember;
+import com.example.chatserver.entity.Message;
+import com.example.chatserver.service.ChatGroupMemberService;
 import com.example.chatserver.utils.JwtUtil;
 import com.example.chatserver.utils.ResultUtil;
 import io.jsonwebtoken.Claims;
@@ -11,6 +14,8 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 //WebSocket连接使用的方法
@@ -22,6 +27,9 @@ public class WebSocketService {
         private String type;
         private Object content;
     }
+
+    @Resource
+    ChatGroupMemberService chatGroupMemberService;
 
     //核心数据结构（在线用户存储）
     public static final ConcurrentHashMap<String, Channel> Online_User = new ConcurrentHashMap<>();
@@ -64,6 +72,16 @@ public class WebSocketService {
         Channel channel = Online_User.get(userId);
         if (channel != null) {
             sendMsg(channel, msg, WsContentType.Msg);
+        }
+    }
+
+    //发送给群聊用户
+    public void sendMsgToGroup(Message message, String groupId) {
+        List<ChatGroupMember> list = chatGroupMemberService.getGroupMember(groupId);
+        for (ChatGroupMember member : list) {
+            if (!message.getFromId().equals(member.getUserId())) {
+                sendMsgToUser(message, member.getUserId());
+            }
         }
     }
 

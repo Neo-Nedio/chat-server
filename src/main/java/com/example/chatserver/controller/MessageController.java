@@ -13,7 +13,7 @@ import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.message.MessageRecordVo;
 import com.example.chatserver.vo.message.ReeditMsgVo;
 import com.example.chatserver.vo.message.RetractionMsgVo;
-import com.example.chatserver.vo.message.SendMsgToUserVo;
+import com.example.chatserver.vo.message.SendMsgVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,11 +45,11 @@ public class MessageController {
     RedisUtils redisUtils;
 
     /**
-     * 发送消息给用户
+     * 发送消息
      */
-    @PostMapping("/send/to/user")
-    public JSONObject sendMessageToUser(@Userid String userId, @RequestBody SendMsgToUserVo sendMsgToUserVo) {
-        Message result = messageService.sendMessageToUser(userId, sendMsgToUserVo);
+    @PostMapping("/send")
+    public JSONObject sendMessage(@Userid String userId, @RequestBody SendMsgVo sendMsgVo) {
+        Message result = messageService.sendMessage(userId, sendMsgVo);
         return ResultUtil.Succeed(result);
     }
 

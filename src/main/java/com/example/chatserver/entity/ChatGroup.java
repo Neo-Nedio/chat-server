@@ -4,22 +4,19 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import com.example.chatserver.entity.ext.MsgContent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("chat_list")
-public class ChatList implements Serializable {
+@TableName("chat_group")
+public class ChatGroup implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -28,49 +25,40 @@ public class ChatList implements Serializable {
     private String id;
 
     /**
-     * 用户id
+     * 创建用户id
      */
     @TableField("user_id")
     private String userId;
 
     /**
-     * 会话目标id
+     * 群主id
      */
-    @TableField("from_id")
-    private String fromId;
+    @TableField("owner_user_id")
+    private String ownerUserId;
 
     /**
-     * 是否置顶
+     * 群头像
      */
-    @TableField("is_top")
-    private Boolean isTop;
+    @TableField("portrait")
+    private String portrait;
 
     /**
-     * 最后消息内容
+     * 群名名称
      */
-    @TableField(value = "last_msg_content", typeHandler = JacksonTypeHandler.class)
-    private MsgContent lastMsgContent;
-
-
+    @TableField("name")
+    private String name;
 
     /**
-     * 未读消息数
+     * 群公告
      */
-    @TableField("unread_num")
-    private Integer unreadNum;
-
-
-    /**
-     * 状态
-     */
-    @TableField("status")
-    private String status;
+    @TableField("notice")
+    private String notice;
 
     /**
-     * 类型
+     * 成员数
      */
-    @TableField("`type`")
-    private String type;
+    @TableField("member_num")
+    private Integer memberNum;
 
     /**
      * 创建时间
@@ -85,11 +73,5 @@ public class ChatList implements Serializable {
     private Date updateTime;
 
     @TableField(exist = false)
-    private String name;
-
-    @TableField(exist = false)
-    private String remark;
-
-    @TableField(exist = false)
-    private String portrait;
+    private String groupRemark;
 }

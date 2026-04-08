@@ -16,6 +16,7 @@ public interface MessageMapper extends BaseMapper<Message> {
             "      FROM `message` " +
             "      WHERE (`from_id` = #{userId} AND `to_id` = #{targetId}) " +
             "         OR (`from_id` = #{targetId} AND `to_id` = #{userId}) " +
+            "         OR (`source` = 'group' AND `to_id` = #{targetId}) " +
             "      ORDER BY `create_time` DESC LIMIT #{index}, #{num}) AS subquery " +
             "ORDER BY `create_time` ASC")
     //内层倒序取最新N条，外层正序排列，这样既拿到了最新的消息，展示顺序又是正确的（早在上，晚在下）。
@@ -31,6 +32,7 @@ public interface MessageMapper extends BaseMapper<Message> {
             "      FROM `message` " +
             "      WHERE (`from_id` = #{userId} AND `to_id` = #{targetId}) " +
             "         OR (`from_id` = #{targetId} AND `to_id` = #{userId}) " +
+            "         OR (`source` = 'group' AND `to_id` = #{targetId}) " +
             "      ORDER BY `create_time` DESC LIMIT #{index}, #{num}) AS subquery ")
     @ResultMap("mybatis-plus_Message")
     //用于加载更多，倒叙获取对应数量的聊天消息

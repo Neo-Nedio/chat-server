@@ -8,7 +8,7 @@ import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.vo.message.MessageRecordVo;
 import com.example.chatserver.vo.message.ReeditMsgVo;
 import com.example.chatserver.vo.message.RetractionMsgVo;
-import com.example.chatserver.vo.message.SendMsgToUserVo;
+import com.example.chatserver.vo.message.SendMsgVo;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.util.List;
 
 public interface MessageService extends IService<Message> {
 
-    Message sendMessageToUser(String userId, SendMsgToUserVo sendMsgToUserVo);
+    Message sendMessage(String userId, SendMsgVo sendMsgVo);
 
     List<Message> messageRecord(String userId, MessageRecordVo messageRecordVo);
 
