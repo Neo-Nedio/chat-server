@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.config.VoiceConfig;
 import com.example.chatserver.constant.MessageContentType;
 import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.Message;
@@ -19,6 +20,7 @@ import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.MessageRetractionService;
 import com.example.chatserver.service.MessageService;
+import com.example.chatserver.utils.FileUtil;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.vo.message.MessageRecordVo;
 import com.example.chatserver.vo.message.ReeditMsgVo;
@@ -27,10 +29,20 @@ import com.example.chatserver.websocket.WebSocketService;
 import com.example.chatserver.vo.message.SendMsgToUserVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -54,6 +66,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Resource
     MinioUtil minioUtil;
+
+    @Resource
+    RestTemplate restTemplate;
+
+    @Resource
+    VoiceConfig voiceConfig;
 
     public Message sendMessage(String userId, String toUserId, MsgContent msgContent) {
         //验证是否是好友
@@ -194,5 +212,61 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         MsgContent msgContent = getFileMsgContent(userId, msgId);
         JSONObject fileInfo = JSONUtil.parseObj(msgContent.getContent());
         return minioUtil.uploadFile(request.getInputStream(), fileInfo.get("fileName").toString(), fileInfo.getLong("size"));
+    }
+
+    @Override
+    public Message voiceToText(String userId, String msgId) {
+        Message message = getById(msgId);
+        if (null == message || !MessageContentType.Voice.equals(message.getMsgContent().getType())) {
+            throw new BaseException("这不是一条语音~");
+        }
+        //两个都不满足，说明既不是发送方也不是接收方，抛出异常
+        if (!message.getToId().equals(userId) && !message.getFromId().equals(userId)) {
+            throw new BaseException("不能查看其他~");
+        }
+        //检查是否已转换过
+        JSONObject voice = JSONUtil.parseObj(message.getMsgContent().getContent());
+        if (voice.containsKey("text")) {
+            return message;
+        }
+        //获取语音的路径
+        String fileName = voice.get("fileName").toString();
+        try {
+            // 从 MinIO 获取文件
+            InputStream inputStream = minioUtil.getObject(fileName);
+            byte[] content = IOUtils.toByteArray(inputStream);
+            //包装成带文件名的 ByteArrayResource
+            ByteArrayResource fileResource = FileUtil.createByteArrayResource(content, fileName);
+
+            //构建 HTTP 请求
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA); //内容类型，用于文件上传
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>(); //可以存储多个值（文件 + 模型参数）
+            body.add("file", fileResource); //添加文件参数
+            body.add("model", voiceConfig.getModel()); //添加模型参数
+
+            //包装请求体和请求头
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+            //调用语音识别 API
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                    voiceConfig.getTransitionApi(),
+                    requestEntity,
+                    String.class);
+
+            //处理响应并保存结果
+            JSONObject result = JSONUtil.parseObj(response.getBody());
+            if (result.containsKey("text")) {
+                String text = result.get("text").toString();
+                voice.set("text", text);
+                message.getMsgContent().setContent(voice.toJSONString(0));
+                updateById(message);
+                return message;
+            } else {
+                throw new BaseException("语音转换错误~");
+            }
+        } catch (Exception e) {
+            log.error("voiceToText:" + e.getMessage());
+            throw new BaseException("语音转换错误~");
+        }
     }
 }

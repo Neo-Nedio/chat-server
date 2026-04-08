@@ -137,4 +137,13 @@ public class MessageController {
         return ResultUtil.Succeed(url);
     }
 
+    /**
+     * 语音消息转文字
+     */
+    @GetMapping("/voice/to/text")
+    public JSONObject voiceToText(@Userid String userId, @RequestParam("msgId") String msgId) {
+        Message result = messageService.voiceToText(userId, msgId);
+        return ResultUtil.Succeed(result);
+    }
+
 }
