@@ -15,6 +15,7 @@ import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.ChatListService;
 import com.example.chatserver.service.NotifyService;
+import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.mapper.UserMapper;
@@ -47,8 +48,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     MinioConfig minioConfig;
 
+    @Resource
+    RedisUtils redisUtils;
+
     @Override
     public boolean register(RegisterVo registerVo) {
+        //验证码校验
+        String code = (String) redisUtils.get(registerVo.getEmail());
+        if (code == null || !code.equals(registerVo.getCode())) {
+            throw new BaseException("验证码错误或者已失效~");
+        }
+        redisUtils.del(registerVo.getEmail());
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getAccount, registerVo.getAccount());
         if (count(queryWrapper) > 0) {

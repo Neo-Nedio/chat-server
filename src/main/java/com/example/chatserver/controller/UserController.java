@@ -7,10 +7,12 @@ import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.UserService;
+import com.example.chatserver.service.VerificationCodeService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.utils.SecurityUtil;
+import com.example.chatserver.vo.user.EmailVerifyVo;
 import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
@@ -39,6 +41,9 @@ public class UserController {
 
     @Resource
     FriendService friendService;
+
+    @Resource
+    VerificationCodeService verificationCodeService;
 
     @Resource
     MinioUtil minioUtil;
@@ -75,6 +80,16 @@ public class UserController {
     public JSONObject unreadInfo(@Userid String userId) {
         HashMap<String, Integer> result = userService.unreadInfo(userId);
         return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 邮箱验证码
+     */
+    @PostMapping("/email/verify")
+    @UrlFree
+    public JSONObject emailVerify(@RequestBody EmailVerifyVo emailVerifyVo) {
+        verificationCodeService.emailVerificationCode(emailVerifyVo.getEmail());
+        return ResultUtil.Succeed();
     }
 
     /**
