@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.admin.vo.UserListVo;
 import com.example.chatserver.config.MinioConfig;
 import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.constant.UserStatus;
@@ -24,6 +25,7 @@ import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -79,15 +81,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.eq(User::getAccount, loginVo.getAccount()); //添加条件
         User user = getOne(queryWrapper); //执行查询，返回匹配的第一个用户
 
-        if (isAdmin && !UserRole.Admin.equals(user.getRole())) {
-            return ResultUtil.Fail("您非管理员~");
-        }
-
         if (null == user) {
             return ResultUtil.Fail("用户名或密码错误~");
         }
         if (!SecurityUtil.verifyPassword(loginVo.getPassword(), user.getPassword())) {
             return ResultUtil.Fail("用户名或密码错误~");
+        }
+
+        if (isAdmin && !UserRole.Admin.equals(user.getRole())) {
+            return ResultUtil.Fail("您非管理员~");
         }
 
         JSONObject userinfo = new JSONObject();
@@ -145,6 +147,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         updateWrapper.set(User::getPortrait, portrait)
                 .eq(User::getId, userId);
         return update(updateWrapper);
+    }
+
+    @Override
+    public Page<User> userList(UserListVo userListVo) {
+        Page<User> page = new Page<>(userListVo.getCurrentPage(), userListVo.getPageSize());
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.isNotBlank(userListVo.getKeyword())) {
+            queryWrapper.and(query -> {
+                query.like(User::getName, userListVo.getKeyword())
+                        .or()
+                        .like(User::getAccount, userListVo.getKeyword())
+                        .or()
+                        .like(User::getEmail, userListVo.getKeyword())
+                        .or()
+                        .like(User::getPhone, userListVo.getKeyword());
+            });
+        }
+        if (StringUtils.isNotBlank(userListVo.getOnlineStatus())) {
+            if (userListVo.getOnlineStatus().equals("online")) {
+                queryWrapper.eq(User::getIsOnline, true);
+            }
+            if (userListVo.getOnlineStatus().equals("offline")) {
+                queryWrapper.eq(User::getIsOnline, false);
+            }
+        }
+        queryWrapper.orderByDesc(User::getCreateTime);
+        return this.page(page, queryWrapper);
     }
 
     @Override

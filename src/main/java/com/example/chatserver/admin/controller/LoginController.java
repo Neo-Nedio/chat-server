@@ -1,4 +1,4 @@
-package com.example.chatserver.admin;
+package com.example.chatserver.admin.controller;
 
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.UrlFree;
