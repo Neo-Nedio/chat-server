@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -16,8 +15,8 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName(value = "chat_group", autoResultMap = true)
-public class ChatGroup implements Serializable {
+@TableName("chat_group_notice")
+public class ChatGroupNotice implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -26,40 +25,22 @@ public class ChatGroup implements Serializable {
     private String id;
 
     /**
-     * 创建用户id
+     * 聊天群id
+     */
+    @TableField("chat_group_id")
+    private String chatGroupId;
+
+    /**
+     * 成员id
      */
     @TableField("user_id")
     private String userId;
 
     /**
-     * 群主id
+     * 公告内容
      */
-    @TableField("owner_user_id")
-    private String ownerUserId;
-
-    /**
-     * 群头像
-     */
-    @TableField("portrait")
-    private String portrait;
-
-    /**
-     * 群名名称
-     */
-    @TableField("name")
-    private String name;
-
-    /**
-     * 群公告
-     */
-    @TableField(value = "notice", typeHandler = JacksonTypeHandler.class)
-    private ChatGroupNotice notice;
-
-    /**
-     * 成员数
-     */
-    @TableField("member_num")
-    private Integer memberNum;
+    @TableField("notice_content")
+    private String noticeContent;
 
     /**
      * 创建时间
@@ -74,5 +55,8 @@ public class ChatGroup implements Serializable {
     private Date updateTime;
 
     @TableField(exist = false)
-    private String groupRemark;
+    private String name;
+
+    @TableField(exist = false)
+    private String portrait;
 }

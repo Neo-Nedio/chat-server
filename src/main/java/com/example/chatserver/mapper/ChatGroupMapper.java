@@ -3,6 +3,7 @@ package com.example.chatserver.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.chatserver.dto.ChatGroupDetailsDto;
 import com.example.chatserver.entity.ChatGroup;
+import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -19,5 +20,6 @@ public interface ChatGroupMapper extends BaseMapper<ChatGroup> {
     @Select("SELECT cg.*,cgm.`group_name`,cgm.`group_remark` from `chat_group` as cg " +
             "LEFT JOIN `chat_group_member` as cgm on cg.`id` = cgm.`chat_group_id` " +
             "where cg.`id` = #{chatGroupId} AND cgm.`user_id`=#{userId} ")
+    @ResultMap("ChatGroupDetailsDtoResultMap")
     ChatGroupDetailsDto detailsChatGroup(String userId, String chatGroupId);
 }

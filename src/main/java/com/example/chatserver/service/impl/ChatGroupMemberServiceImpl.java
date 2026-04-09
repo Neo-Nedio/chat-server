@@ -38,4 +38,12 @@ public class ChatGroupMemberServiceImpl extends ServiceImpl<ChatGroupMemberMappe
     public List<MemberListDto> memberListPage(String userId, MemberListVo memberListVo) {
         return chatGroupMemberMapper.memberListPage(userId, memberListVo);
     }
+
+    @Override
+    public boolean isMemberExists(String groupId, String userId) {
+        LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatGroupMember::getUserId, userId)
+                .eq(ChatGroupMember::getChatGroupId, groupId);
+        return count(queryWrapper) > 0;
+    }
 }
