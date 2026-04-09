@@ -1,16 +1,21 @@
 package com.example.chatserver.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.config.MinioConfig;
 import com.example.chatserver.dto.ChatGroupDetailsDto;
 import com.example.chatserver.entity.ChatGroup;
 import com.example.chatserver.entity.ChatGroupMember;
+import com.example.chatserver.entity.ChatList;
+import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.ChatGroupMapper;
 import com.example.chatserver.service.ChatGroupMemberService;
 import com.example.chatserver.service.ChatGroupService;
-import com.example.chatserver.vo.chatGroup.CreateChatGroupVo;
-import com.example.chatserver.vo.chatGroup.DetailsChatGroupVo;
+import com.example.chatserver.service.ChatListService;
+import com.example.chatserver.vo.chatGroup.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +30,9 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
 
     @Resource
     ChatGroupMemberService chatGroupMemberService;
+
+    @Resource
+    ChatListService chatListService;
 
     @Resource
     ChatGroupMapper chatGroupMapper;
@@ -73,5 +81,79 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     @Override
     public ChatGroupDetailsDto detailsChatGroup(String userId, DetailsChatGroupVo detailsChatGroupVo) {
         return chatGroupMapper.detailsChatGroup(userId, detailsChatGroupVo.getChatGroupId());
+    }
+
+    @Override
+    public boolean isOwner(String groupId, String userId) {
+        ChatGroup group = getById(groupId);
+        return group.getOwnerUserId().equals(userId);
+    }
+
+    @Override
+    public boolean updateGroupPortrait(String groupId, String url) {
+        LambdaUpdateWrapper<ChatGroup> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(ChatGroup::getPortrait, url)
+                .eq(ChatGroup::getId, groupId);
+        return update(updateWrapper);
+    }
+
+    @Override
+    public boolean updateChatGroupName(String userId, UpdateChatGroupNameVo updateChatGroupNameVo) {
+        if (!isOwner(updateChatGroupNameVo.getGroupId(), userId))
+            throw new BaseException("您不是群主~");
+        LambdaUpdateWrapper<ChatGroup> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(ChatGroup::getName, updateChatGroupNameVo.getName())
+                .eq(ChatGroup::getId, updateChatGroupNameVo.getGroupId());
+        return update(updateWrapper);
+    }
+
+    @Override
+    public boolean updateChatGroup(String userId, UpdateChatGroupVo updateChatGroupVo) {
+        UpdateWrapper<ChatGroupMember> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set(updateChatGroupVo.getUpdateKey(), updateChatGroupVo.getUpdateValue())
+                .eq("chat_group_id", updateChatGroupVo.getGroupId())
+                .eq("user_id", userId);
+        return chatGroupMemberService.update(updateWrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public boolean inviteMember(String userId, InviteMemberVo inviteMemberVo) {
+        List<ChatGroupMember> members = new ArrayList<>();
+        for (String userid : inviteMemberVo.getUserIds()) {
+            ChatGroupMember member = new ChatGroupMember();
+            member.setId(IdUtil.randomUUID());
+            member.setUserId(userid);
+            member.setChatGroupId(inviteMemberVo.getGroupId());
+            members.add(member);
+        }
+        if (!members.isEmpty()) {
+            ChatGroup chatGroup = getById(inviteMemberVo.getGroupId());
+            chatGroup.setMemberNum(chatGroup.getMemberNum() + members.size());
+            updateById(chatGroup);
+            return chatGroupMemberService.saveBatch(members);
+        }
+        return false;
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public boolean quitChatGroup(String userId, QuitChatGroupVo quitChatGroupVo) {
+        //从群聊中移出
+        LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatGroupMember::getUserId, userId)
+                .eq(ChatGroupMember::getChatGroupId, quitChatGroupVo.getGroupId());
+        chatGroupMemberService.remove(queryWrapper);
+
+        //删除会话
+        LambdaQueryWrapper<ChatList> chatListLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatListLambdaQueryWrapper.eq(ChatList::getUserId, userId)
+                .eq(ChatList::getFromId, quitChatGroupVo.getGroupId());
+        chatListService.remove(chatListLambdaQueryWrapper);
+
+        //群聊更新
+        ChatGroup chatGroup = getById(quitChatGroupVo.getGroupId());
+        chatGroup.setMemberNum(chatGroup.getMemberNum() - 1);
+        return updateById(chatGroup);
     }
 }

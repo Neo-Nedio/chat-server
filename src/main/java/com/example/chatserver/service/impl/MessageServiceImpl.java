@@ -14,6 +14,7 @@ import com.example.chatserver.constant.MsgSource;
 import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.Message;
 import com.example.chatserver.entity.MessageRetraction;
+import com.example.chatserver.entity.User;
 import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.MessageMapper;
@@ -61,6 +62,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Resource
     MessageRetractionService messageRetractionService;
+
+    @Resource
+    UserService userService;
 
     @Resource
     MQProducerService mqProducerService;
@@ -134,7 +138,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     //给群聊发送消息
     public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo) {
-        Message message = sendMessage(userId, sendMsgVo.getToUserId(), sendMsgVo.getMsgContent(), MsgSource.Group);
+        //获取发送方用户信息
+        User user = userService.getById(userId);
+        MsgContent msgContent = sendMsgVo.getMsgContent();
+        msgContent.setFromUserName(user.getName());
+        msgContent.setFromUserPortrait(user.getPortrait());
+        Message message = sendMessage(userId, sendMsgVo.getToUserId(), msgContent, MsgSource.Group);
         //更新聊天列表
         chatListService.updateChatListGroup(message.getToId(), message.getMsgContent());
         try {
