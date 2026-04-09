@@ -1,6 +1,7 @@
 package com.example.chatserver.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -10,6 +11,7 @@ import com.example.chatserver.constant.MessageContentType;
 import com.example.chatserver.constant.MsgSource;
 import com.example.chatserver.constant.MsgType;
 import com.example.chatserver.dto.ChatGroupDetailsDto;
+import com.example.chatserver.dto.SystemMsgDto;
 import com.example.chatserver.entity.ChatGroup;
 import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.entity.ChatList;
@@ -129,12 +131,36 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     @Transactional(rollbackFor = RuntimeException.class)
     public boolean inviteMember(String userId, InviteMemberVo inviteMemberVo) {
         List<ChatGroupMember> members = new ArrayList<>();
-        for (String userid : inviteMemberVo.getUserIds()) {
+        for (String inviteUserid : inviteMemberVo.getUserIds()) {
+            //邀请
+            if (chatGroupMemberService.isMemberExists(inviteMemberVo.getGroupId(), inviteUserid)) {
+                continue;
+            }
             ChatGroupMember member = new ChatGroupMember();
             member.setId(IdUtil.randomUUID());
-            member.setUserId(userid);
+            member.setUserId(inviteUserid);
             member.setChatGroupId(inviteMemberVo.getGroupId());
             members.add(member);
+
+            //发送群消息系统消息
+            SendMsgVo sendMsgVo = new SendMsgVo();
+            sendMsgVo.setSource(MsgSource.Group);
+            sendMsgVo.setToUserId(inviteMemberVo.getGroupId());
+            MsgContent msgContent = new MsgContent();
+            msgContent.setType(MessageContentType.System);
+            User user = userService.getById(userId);
+            User inviteUser = userService.getById(inviteUserid);
+            //设置系统消息
+            SystemMsgDto systemMsgDto = new SystemMsgDto();
+            systemMsgDto.addEmphasizeContent(user.getName())
+                    .addContent("邀请了")
+                    .addEmphasizeContent(inviteUser.getName())
+                    .addContent("加入了该群");
+            msgContent.setContent(JSONUtil.toJsonStr(systemMsgDto.getContents()));
+            msgContent.setFromUserId(userId);
+            msgContent.setExt(userId);
+            sendMsgVo.setMsgContent(msgContent);
+            messageService.sendMessage(userId, sendMsgVo, MsgType.System);
         }
         if (!members.isEmpty()) {
             ChatGroup chatGroup = getById(inviteMemberVo.getGroupId());
