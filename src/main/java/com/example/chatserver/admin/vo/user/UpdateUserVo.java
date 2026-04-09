@@ -4,11 +4,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-
 @Data
-public class CreateUserVo {
-    @NotNull(message = "账号不能为空")
-    private String account;
+public class UpdateUserVo {
+    @NotNull(message = "用户不能为空")
+    private String id;
     @NotNull(message = "用户名不能为空")
     private String name;
     @Email(message = "邮箱格式有误")

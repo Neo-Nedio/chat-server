@@ -170,6 +170,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public Page<User> userList(UserListVo userListVo) {
         Page<User> page = new Page<>(userListVo.getCurrentPage(), userListVo.getPageSize());
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        //只查询需要的字段，排除敏感字段（如密码）
+        queryWrapper.select(User::getId, User::getAccount, User::getName, User::getPortrait,
+                User::getSex, User::getBirthday, User::getSignature, User::getPhone,
+                User::getEmail, User::getLastOptTime, User::getStatus, User::getIsOnline,
+                User::getRole, User::getCreateTime, User::getUpdateTime);
         if (StringUtils.isNotBlank(userListVo.getKeyword())) {
             queryWrapper.and(query -> {
                 query.like(User::getName, userListVo.getKeyword())
@@ -225,7 +230,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //创建用户
         User user = new User();
         user.setId(IdUtil.randomUUID());
-        user.setName(createUserVo.getUsername());
+        user.setName(createUserVo.getName());
         user.setAccount(createUserVo.getAccount());
         String password = RandomUtil.randomString(8);
         String passwordHash = SecurityUtil.hashPassword(password);
@@ -239,7 +244,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //密码发送邮件
         if (save(user)) {
             Context context = new Context();
-            context.setVariable("username", createUserVo.getUsername());
+            context.setVariable("username", createUserVo.getName());
             context.setVariable("account", createUserVo.getAccount());
             context.setVariable("password", password);
             try {
@@ -285,6 +290,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(User::getStatus, UserStatus.Normal)
                 .eq(User::getId, unDisableUserVo.getUserId());
+        return update(updateWrapper);
+    }
+
+    @Override
+    public boolean updateUser(UpdateUserVo updateUserVo) {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(User::getName, updateUserVo.getName())
+                .set(User::getEmail, updateUserVo.getEmail())
+                .set(User::getPhone, updateUserVo.getPhone())
+                .eq(User::getId, updateUserVo.getId());
         return update(updateWrapper);
     }
 }
