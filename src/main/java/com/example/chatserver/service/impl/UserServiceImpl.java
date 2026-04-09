@@ -1,11 +1,13 @@
 package com.example.chatserver.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.admin.vo.CreateUserVo;
 import com.example.chatserver.admin.vo.UserListVo;
 import com.example.chatserver.config.MinioConfig;
 import com.example.chatserver.constant.UserRole;
@@ -14,6 +16,7 @@ import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.ChatListService;
+import com.example.chatserver.service.EmailService;
 import com.example.chatserver.service.NotifyService;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.SecurityUtil;
@@ -26,8 +29,10 @@ import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
 import jakarta.annotation.Resource;
+import jakarta.mail.MessagingException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -41,6 +46,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     NotifyService notifyService;
+
+    @Resource
+    EmailService emailService;
 
     @Resource
     UserMapper userMapper;
@@ -200,5 +208,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         updateWrapper.set(User::getIsOnline, true)
                 .eq(User::getId, userId);
         update(updateWrapper);
+    }
+
+    @Override
+    public boolean createUser(CreateUserVo createUserVo) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getAccount, createUserVo.getAccount());
+        if (count(queryWrapper) > 0) {
+            throw new BaseException("账号已存在~");
+        }
+        queryWrapper.clear();
+        queryWrapper.eq(User::getEmail, createUserVo.getEmail());
+        if (count(queryWrapper) > 0) {
+            throw new BaseException("邮箱已存在~");
+        }
+
+        //创建用户
+        User user = new User();
+        user.setId(IdUtil.randomUUID());
+        user.setName(createUserVo.getUsername());
+        user.setAccount(createUserVo.getAccount());
+        String password = RandomUtil.randomString(8);
+        String passwordHash = SecurityUtil.hashPassword(password);
+        user.setStatus(UserStatus.Normal);
+        user.setPassword(passwordHash);
+        user.setBirthday(new Date());
+        user.setSex("男");
+        user.setEmail(createUserVo.getEmail());
+        user.setPortrait(minioConfig.getEndpoint() + "/" + minioConfig.getBucketName() + "/default-portrait.jpg");
+
+        //密码发送邮件
+        if (save(user)) {
+            Context context = new Context();
+            context.setVariable("username", createUserVo.getUsername());
+            context.setVariable("account", createUserVo.getAccount());
+            context.setVariable("password", password);
+            try {
+                //发送邮件
+                emailService.sendHtmlMessage(createUserVo.getEmail(), "用户密码", "email_password_template.html", context);
+            } catch (MessagingException e) {
+                log.error(e.getMessage());
+            }
+        }
+
+        return true;
     }
 }

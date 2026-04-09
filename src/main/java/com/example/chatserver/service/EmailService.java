@@ -2,6 +2,7 @@ package com.example.chatserver.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -11,6 +12,7 @@ import org.thymeleaf.context.Context;
 
 import javax.annotation.Resource;
 @Service
+@Slf4j
 public class EmailService {
     @Resource
     private JavaMailSender mailSender;  // 邮件发送器
@@ -21,21 +23,26 @@ public class EmailService {
     @Value("${spring.mail.username}")
     String from;
 
+    //todo 异步发送验证码
     public void sendHtmlMessage(String to, String subject, String templateName, Context context) throws MessagingException {
-        //渲染模板
-        String process = templateEngine.process(templateName, context);
+        try {
+            //渲染模板
+            String process = templateEngine.process(templateName, context);
 
-        //创建邮件
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            //创建邮件
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        //设置邮件内容
-        helper.setFrom(from);
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(process, true); // true 表示 HTML 格式
+            //设置邮件内容
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(process, true); // true 表示 HTML 格式
 
-        //发送邮件
-        mailSender.send(message);
+            //发送邮件
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 }

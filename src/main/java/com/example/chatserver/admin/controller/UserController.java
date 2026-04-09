@@ -2,6 +2,7 @@ package com.example.chatserver.admin.controller;
 
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.chatserver.admin.vo.CreateUserVo;
 import com.example.chatserver.admin.vo.UserListVo;
 import com.example.chatserver.annotation.UrlResource;
 import com.example.chatserver.entity.User;
@@ -30,4 +31,11 @@ public class UserController {
         return ResultUtil.Succeed(result);
     }
 
+
+    @PostMapping("/create")
+    @UrlResource("admin")
+    public JSONObject createUser(@RequestBody CreateUserVo createUserVo) {
+        boolean result = userService.createUser(createUserVo);
+        return ResultUtil.ResultByFlag(result);
+    }
 }
