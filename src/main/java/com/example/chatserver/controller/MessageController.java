@@ -3,6 +3,7 @@ package com.example.chatserver.controller;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.example.chatserver.annotation.Userid;
+import com.example.chatserver.constant.MsgType;
 import com.example.chatserver.entity.Message;
 import com.example.chatserver.entity.MessageRetraction;
 import com.example.chatserver.entity.ext.MsgContent;
@@ -49,7 +50,7 @@ public class MessageController {
      */
     @PostMapping("/send")
     public JSONObject sendMessage(@Userid String userId, @RequestBody SendMsgVo sendMsgVo) {
-        Message result = messageService.sendMessage(userId, sendMsgVo);
+        Message result = messageService.sendMessage(userId, sendMsgVo, MsgType.User);
         return ResultUtil.Succeed(result);
     }
 

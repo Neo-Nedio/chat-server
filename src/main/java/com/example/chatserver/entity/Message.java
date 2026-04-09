@@ -40,6 +40,7 @@ public class Message implements Serializable {
 
     /**
      * 消息类型
+     * 消息大类（给谁发：用户消息还是群消息，和 MQ/推送路由相关）
      */
     @TableField("`type`") //反引号告诉 MySQL 这是列名
     private String type;
@@ -65,6 +66,7 @@ public class Message implements Serializable {
 
     /**
      * 消息源
+     * source：消息来源/会话维度（私聊还是群聊）
      */
     @TableField("source")
     private String source;

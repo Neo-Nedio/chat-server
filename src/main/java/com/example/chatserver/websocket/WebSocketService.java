@@ -2,6 +2,7 @@ package com.example.chatserver.websocket;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.example.chatserver.constant.MsgType;
 import com.example.chatserver.constant.WsContentType;
 import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.entity.Message;
@@ -79,7 +80,8 @@ public class WebSocketService {
     public void sendMsgToGroup(Message message, String groupId) {
         List<ChatGroupMember> list = chatGroupMemberService.getGroupMember(groupId);
         for (ChatGroupMember member : list) {
-            if (!message.getFromId().equals(member.getUserId())) {
+            //将消息发送给群内的所有成员（发送者除外，除非是系统消息）
+            if (!message.getFromId().equals(member.getUserId()) || MsgType.System.equals(message.getType())) {
                 sendMsgToUser(message, member.getUserId());
             }
         }
@@ -99,6 +101,15 @@ public class WebSocketService {
         Channel channel = Online_User.get(userId);
         if (channel != null) {
             sendMsg(channel, msg, WsContentType.Notify);
+        }
+    }
+
+    public void sendNoticeToGroup(Message message, String groupId) {
+        List<ChatGroupMember> list = chatGroupMemberService.getGroupMember(groupId);
+        for (ChatGroupMember member : list) {
+            if (!message.getFromId().equals(member.getUserId()) || MsgType.System.equals(message.getType())) {
+                sendNotifyToUser(message, member.getUserId());
+            }
         }
     }
 

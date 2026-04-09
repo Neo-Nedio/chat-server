@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.config.VoiceConfig;
 import com.example.chatserver.constant.MessageContentType;
 import com.example.chatserver.constant.MsgSource;
+import com.example.chatserver.constant.MsgType;
 import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.Message;
 import com.example.chatserver.entity.MessageRetraction;
@@ -67,6 +68,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     UserService userService;
 
     @Resource
+    ChatGroupMemberService chatGroupMemberService;
+
+    @Resource
     MQProducerService mqProducerService;
 
     @Resource
@@ -78,7 +82,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Resource
     VoiceConfig voiceConfig;
 
-    public Message sendMessage(String userId, String toUserId, MsgContent msgContent, String source) {
+    public Message sendMessage(String userId, String toUserId, MsgContent msgContent, String source, String type) {
         //获取上一条显示时间的消息
         Message previousMessage = messageMapper.getPreviousShowTimeMsg(userId, toUserId);
         //存入数据库
@@ -87,6 +91,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setFromId(userId);
         message.setSource(source);
         message.setToId(toUserId);
+        message.setType(type);
         //超过五分钟显示时间
         if (null == previousMessage) {
             message.setIsShowTime(true);
@@ -100,11 +105,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 MessageContentType.Voice.equals(msgContent.getType())) {
             JSONObject content = JSONUtil.parseObj(msgContent.getContent());
             String name = (String) content.get("name");
-            String type = name.substring(name.lastIndexOf(".") + 1);
-            String fileName = userId + "/" + toUserId + "/" + IdUtil.randomUUID() + "." + type;
+            String fileType = name.substring(name.lastIndexOf(".") + 1);
+            String fileName = userId + "/" + toUserId + "/" + IdUtil.randomUUID() + "." + fileType;
             content.set("fileName", fileName);
             content.set("url", minioUtil.getUrl(fileName));
-            content.set("type", type);
+            content.set("type", fileType);
             msgContent.setContent(content.toJSONString(0));
         }
         message.setMsgContent(msgContent);
@@ -116,13 +121,13 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     //给用户发送消息
-    public Message sendMessageToUser(String userId, SendMsgVo sendMsgVo) {
+    public Message sendMessageToUser(String userId, SendMsgVo sendMsgVo, String type) {
         //验证是否是好友
         boolean isFriend = friendService.isFriend(userId, sendMsgVo.getToUserId());
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
-        Message message = sendMessage(userId, sendMsgVo.getToUserId(), sendMsgVo.getMsgContent(), MsgSource.User);
+        Message message = sendMessage(userId, sendMsgVo.getToUserId(), sendMsgVo.getMsgContent(), MsgSource.User, type);
         //更新聊天列表
         chatListService.updateChatList(message.getToId(), userId, message.getMsgContent(), MsgSource.User);
         try {
@@ -137,13 +142,13 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     //给群聊发送消息
-    public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo) {
+    public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo, String type) {
         //获取发送方用户信息
         User user = userService.getById(userId);
         MsgContent msgContent = sendMsgVo.getMsgContent();
         msgContent.setFromUserName(user.getName());
         msgContent.setFromUserPortrait(user.getPortrait());
-        Message message = sendMessage(userId, sendMsgVo.getToUserId(), msgContent, MsgSource.Group);
+        Message message = sendMessage(userId, sendMsgVo.getToUserId(), msgContent, MsgSource.Group, type);
         //更新聊天列表
         chatListService.updateChatListGroup(message.getToId(), message.getMsgContent());
         try {
@@ -157,11 +162,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     //根据发送目标选择用户还是群聊
     @Override
-    public Message sendMessage(String userId, SendMsgVo sendMsgVo) {
+    public Message sendMessage(String userId, SendMsgVo sendMsgVo, String type) {
         if (MsgSource.Group.equals(sendMsgVo.getSource())) {
-            return sendMessageToGroup(userId, sendMsgVo);
+            return sendMessageToGroup(userId, sendMsgVo, type);
         } else {
-            return sendMessageToUser(userId, sendMsgVo);
+            return sendMessageToUser(userId, sendMsgVo, type);
         }
     }
 
@@ -182,7 +187,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         MsgContent msgContent = new MsgContent();
         msgContent.setContent(fileInfo.toJSONString(0));
         msgContent.setType(MessageContentType.File);
-        return sendMessage(userId, toUserId, msgContent, MsgSource.User);
+        return sendMessage(userId, toUserId, msgContent, MsgSource.User, MsgType.User);
     }
 
     @Override
@@ -191,7 +196,8 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (msg == null) {
             throw new BaseException("消息为空");
         }
-        if (msg.getFromId().equals(userId) || msg.getToId().equals(userId)) {
+        if (msg.getFromId().equals(userId) || msg.getToId().equals(userId)
+                || chatGroupMemberService.isMemberExists(msg.getToId(), userId)) {
             return msg.getMsgContent();
         } else {
             throw new BaseException("消息为空");
@@ -214,8 +220,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             throw new BaseException("消息不存在");
         MsgContent msgContent = message.getMsgContent();
 
-        //设置type为撤销前的类型
-        message.setType(msgContent.getType());
+        msgContent.setExt(msgContent.getType());
 
         //只有文本才保存，之前的消息内容
         if (MessageContentType.Text.equals(msgContent.getType())) {
@@ -232,11 +237,20 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         msgContent.setContent("");
         updateById(message);
 
-        //把最后消息设置为撤回
+        //更新发送方的聊天列表
         ChatList userIdchatList = chatListService.getChatListByUserIdAndFromId(userId, message.getToId());
         userIdchatList.setLastMsgContent(msgContent);
         chatListService.updateById(userIdchatList);
-        ChatList toIdchatList = chatListService.getChatListByUserIdAndFromId(message.getToId(), userId);
+
+        //更新接收方的聊天列表
+        ChatList toIdchatList = null;
+        if (MsgSource.User.equals(message.getSource())) {
+            // 单聊：对方是接收方
+            toIdchatList = chatListService.getChatListByUserIdAndFromId(message.getToId(), userId);
+        } else {
+            // 群聊：toId 是群ID
+            toIdchatList = chatListService.getChatListByUserIdAndFromId(message.getFromId(), message.getToId());
+        }
         toIdchatList.setLastMsgContent(msgContent);
         chatListService.updateById(toIdchatList);
 

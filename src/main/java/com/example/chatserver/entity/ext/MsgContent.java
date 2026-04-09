@@ -30,4 +30,6 @@ public class MsgContent implements Serializable {
     private String type;
     //消息内容
     private String content;
+    //扩展
+    private String ext;
 }

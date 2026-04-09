@@ -29,12 +29,14 @@ public class ChatList implements Serializable {
 
     /**
      * 用户id
+     * 这条会话属于谁
      */
     @TableField("user_id")
     private String userId;
 
     /**
      * 会话目标id
+     * 这个会话对应的聊天对象”
      */
     @TableField("from_id")
     private String fromId;
