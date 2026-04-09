@@ -6,16 +6,20 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.config.MinioConfig;
+import com.example.chatserver.constant.MessageContentType;
+import com.example.chatserver.constant.MsgSource;
+import com.example.chatserver.constant.MsgType;
 import com.example.chatserver.dto.ChatGroupDetailsDto;
 import com.example.chatserver.entity.ChatGroup;
 import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.entity.ChatList;
+import com.example.chatserver.entity.User;
+import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.ChatGroupMapper;
-import com.example.chatserver.service.ChatGroupMemberService;
-import com.example.chatserver.service.ChatGroupService;
-import com.example.chatserver.service.ChatListService;
+import com.example.chatserver.service.*;
 import com.example.chatserver.vo.chatGroup.*;
+import com.example.chatserver.vo.message.SendMsgVo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +37,12 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
 
     @Resource
     ChatListService chatListService;
+
+    @Resource
+    MessageService messageService;
+
+    @Resource
+    UserService userService;
 
     @Resource
     ChatGroupMapper chatGroupMapper;
@@ -153,6 +163,73 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         //群聊更新
         ChatGroup chatGroup = getById(quitChatGroupVo.getGroupId());
         chatGroup.setMemberNum(chatGroup.getMemberNum() - 1);
+        return updateById(chatGroup);
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public boolean kickChatGroup(String userId, KickChatGroupVo kickChatGroupVo) {
+        if (!isOwner(kickChatGroupVo.getGroupId(), userId))
+            throw new BaseException("您不是群主~");
+
+        //踢出群成员
+        LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatGroupMember::getChatGroupId, kickChatGroupVo.getGroupId())
+                .eq(ChatGroupMember::getUserId, kickChatGroupVo.getUserId());
+        chatGroupMemberService.remove(queryWrapper);
+
+        //发送群消息
+        SendMsgVo sendMsgVo = new SendMsgVo();
+        sendMsgVo.setSource(MsgSource.Group);
+        sendMsgVo.setToUserId(kickChatGroupVo.getGroupId());
+        MsgContent msgContent = new MsgContent();
+        msgContent.setType(MessageContentType.Quit);
+        User user = userService.getById(kickChatGroupVo.getUserId());
+        msgContent.setContent(user.getName());
+        msgContent.setFromUserId(userId);
+        msgContent.setExt(kickChatGroupVo.getUserId());
+        sendMsgVo.setMsgContent(msgContent);
+        messageService.sendMessage(userId, sendMsgVo, MsgType.System);
+
+        //群成员减一
+        ChatGroup chatGroup = getById(kickChatGroupVo.getGroupId());
+        chatGroup.setMemberNum(chatGroup.getMemberNum() - 1);
+        return updateById(chatGroup);
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public boolean dissolveChatGroup(String userId, DissolveChatGroupVo dissolveChatGroupVo) {
+        if (!isOwner(dissolveChatGroupVo.getGroupId(), userId))
+            throw new BaseException("您不是群主~");
+
+        //踢出所有成员
+        LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatGroupMember::getChatGroupId, dissolveChatGroupVo.getGroupId());
+        chatGroupMemberService.remove(queryWrapper);
+
+        //发送群消息
+        SendMsgVo sendMsgVo = new SendMsgVo();
+        sendMsgVo.setSource(MsgSource.Group);
+        sendMsgVo.setToUserId(dissolveChatGroupVo.getGroupId());
+        MsgContent msgContent = new MsgContent();
+        msgContent.setType(MessageContentType.Quit);
+        msgContent.setFromUserId(userId);
+        msgContent.setExt("all"); //全部人被踢出，就是解散群聊
+        sendMsgVo.setMsgContent(msgContent);
+        messageService.sendMessage(userId, sendMsgVo, MsgType.System);
+
+        //解散群聊
+        return removeById(dissolveChatGroupVo.getGroupId());
+    }
+
+    @Override
+    public boolean transferChatGroup(String userId, TransferChatGroupVo transferChatGroupVo) {
+        if (!isOwner(transferChatGroupVo.getGroupId(), userId))
+            throw new BaseException("您不是群主~");
+        //更换群主
+        ChatGroup chatGroup = getById(transferChatGroupVo.getGroupId());
+        chatGroup.setOwnerUserId(transferChatGroupVo.getUserId());
         return updateById(chatGroup);
     }
 }
