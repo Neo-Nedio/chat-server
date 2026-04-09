@@ -1,6 +1,7 @@
 package com.example.chatserver.runner;
 
 import com.example.chatserver.annotation.UrlFree;
+import com.example.chatserver.annotation.UrlResource;
 import com.example.chatserver.utils.UrlPermitUtil;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
@@ -49,6 +50,17 @@ public class UrlPassRunner implements ApplicationRunner {
                     for (String url : directPaths) {
                         //提取路径并转换通配符  将 {id} 替换为 **
                         urlList.add(url.replaceAll("\\{[^\\}]+\\}", "**"));
+                    }
+                }
+                // 免验证url
+                if (annotation.annotationType().equals(UrlResource.class)) {
+                    UrlResource urlResource = (UrlResource) annotation;
+                    //获取 @UrlResource 注解的 value 属性值，这个值代表允许访问该接口的角色
+                    String value = urlResource.value();
+                    //获取请求路径
+                    Set<String> directPaths = requestMappingInfo.getPatternValues();
+                    for (String url : directPaths) {
+                        urlPermitUtil.addRoleUrl(value, url);
                     }
                 }
             }
