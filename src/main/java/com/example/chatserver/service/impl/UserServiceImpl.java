@@ -327,4 +327,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         return true;
     }
+
+    @Override
+    public boolean setAdmin(String userId, SetAdminVo setAdminVo) {
+        if (userId.equals(setAdminVo.getUserId())) {
+            throw new BaseException("不能操作自己~");
+        }
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(User::getRole, UserRole.Admin)
+                .eq(User::getId, setAdminVo.getUserId());
+        return update(updateWrapper);
+    }
+
+    @Override
+    public boolean cancelAdmin(String userId, CancelAdminVo cancelAdminVo) {
+        if (userId.equals(cancelAdminVo.getUserId())) {
+            throw new BaseException("不能操作自己~");
+        }
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(User::getRole, UserRole.User)
+                .eq(User::getId, cancelAdminVo.getUserId());
+        return update(updateWrapper);
+    }
 }
