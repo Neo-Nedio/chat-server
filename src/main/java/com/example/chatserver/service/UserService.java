@@ -46,4 +46,6 @@ public interface UserService extends IService<User> {
     boolean unDisableUser(UnDisableUserVo unDisableUserVo);
 
     boolean updateUser(UpdateUserVo updateUserVo);
+
+    boolean restPassword(ResetPasswordVo resetPasswordVo);
 }

@@ -302,4 +302,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .eq(User::getId, updateUserVo.getId());
         return update(updateWrapper);
     }
+
+    @Override
+    public boolean restPassword(ResetPasswordVo resetPasswordVo) {
+        User user = getById(resetPasswordVo.getUserId());
+        if (null == user) {
+            throw new BaseException("用户不存在~");
+        }
+        String password = RandomUtil.randomString(8);
+        String passwordHash = SecurityUtil.hashPassword(password);
+        user.setPassword(passwordHash);
+        //密码发送邮件
+        if (updateById(user)) {
+            Context context = new Context();
+            context.setVariable("username", user.getName());
+            context.setVariable("account", user.getAccount());
+            context.setVariable("password", password);
+            try {
+                //发送邮件
+                emailService.sendHtmlMessage(user.getEmail(), "用户密码", "email_password_template.html", context);
+            } catch (MessagingException e) {
+                log.error(e.getMessage());
+            }
+        }
+        return true;
+    }
 }
