@@ -1,4 +1,4 @@
-package com.example.chatserver.admin.vo;
+package com.example.chatserver.admin.vo.user;
 
 import lombok.Data;
 

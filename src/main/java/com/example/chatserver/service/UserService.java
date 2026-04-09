@@ -3,8 +3,7 @@ package com.example.chatserver.service;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.chatserver.admin.vo.CreateUserVo;
-import com.example.chatserver.admin.vo.UserListVo;
+import com.example.chatserver.admin.vo.user.*;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.vo.login.LoginVo;
@@ -37,4 +36,12 @@ public interface UserService extends IService<User> {
     void online(String userId);
 
     boolean createUser(CreateUserVo createUserVo);
+
+    boolean allUserOffline();
+
+    boolean disableUser(String userId, DisableUserVo disableUserVo);
+
+    boolean deleteUser(String userid, DeleteUserVo deleteUserVo);
+
+    boolean unDisableUser(UnDisableUserVo unDisableUserVo);
 }

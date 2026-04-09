@@ -2,9 +2,9 @@ package com.example.chatserver.admin.controller;
 
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.chatserver.admin.vo.CreateUserVo;
-import com.example.chatserver.admin.vo.UserListVo;
+import com.example.chatserver.admin.vo.user.*;
 import com.example.chatserver.annotation.UrlResource;
+import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.ResultUtil;
@@ -36,6 +36,27 @@ public class UserController {
     @UrlResource("admin")
     public JSONObject createUser(@RequestBody CreateUserVo createUserVo) {
         boolean result = userService.createUser(createUserVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    @PostMapping("/disable")
+    @UrlResource("admin")
+    public JSONObject disableUser(@Userid String userid, @RequestBody DisableUserVo disableUserVo) {
+        boolean result = userService.disableUser(userid, disableUserVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    @PostMapping("/unDisable")
+    @UrlResource("admin")
+    public JSONObject unDisableUser(@RequestBody UnDisableUserVo unDisableUser) {
+        boolean result = userService.unDisableUser(unDisableUser);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    @PostMapping("/delete")
+    @UrlResource("admin")
+    public JSONObject deleteUser(@Userid String userid, @RequestBody DeleteUserVo deleteUserVo) {
+        boolean result = userService.deleteUser(userid, deleteUserVo);
         return ResultUtil.ResultByFlag(result);
     }
 }

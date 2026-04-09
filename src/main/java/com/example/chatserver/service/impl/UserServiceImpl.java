@@ -7,8 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.chatserver.admin.vo.CreateUserVo;
-import com.example.chatserver.admin.vo.UserListVo;
+import com.example.chatserver.admin.vo.user.*;
 import com.example.chatserver.config.MinioConfig;
 import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.constant.UserStatus;
@@ -252,5 +251,40 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         return true;
+    }
+
+    @Override
+    public boolean allUserOffline() {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(User::getIsOnline, false);
+        return update(updateWrapper);
+    }
+
+    @Override
+    public boolean disableUser(String userId, DisableUserVo disableUserVo) {
+        if (userId.equals(disableUserVo.getUserId())) {
+            throw new BaseException("不能禁用自己~");
+        }
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        //todo 禁用后不允许上线
+        updateWrapper.set(User::getStatus, UserStatus.Disable)
+                .eq(User::getId, disableUserVo.getUserId());
+        return update(updateWrapper);
+    }
+
+    @Override
+    public boolean deleteUser(String userId, DeleteUserVo deleteUserVo) {
+        if (userId.equals(deleteUserVo.getUserId())) {
+            throw new BaseException("不能删除自己~");
+        }
+        return removeById(deleteUserVo.getUserId());
+    }
+
+    @Override
+    public boolean unDisableUser(UnDisableUserVo unDisableUserVo) {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(User::getStatus, UserStatus.Normal)
+                .eq(User::getId, unDisableUserVo.getUserId());
+        return update(updateWrapper);
     }
 }
