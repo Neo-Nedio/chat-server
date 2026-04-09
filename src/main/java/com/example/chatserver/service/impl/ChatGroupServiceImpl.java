@@ -2,6 +2,7 @@ package com.example.chatserver.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.config.MinioConfig;
 import com.example.chatserver.dto.ChatGroupDetailsDto;
 import com.example.chatserver.entity.ChatGroup;
 import com.example.chatserver.entity.ChatGroupMember;
@@ -28,6 +29,9 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     @Resource
     ChatGroupMapper chatGroupMapper;
 
+    @Resource
+    MinioConfig minioConfig;
+
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
     public boolean createChatGroup(String userId, CreateChatGroupVo createChatGroupVo) {
@@ -36,9 +40,10 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         chatGroup.setId(IdUtil.randomUUID());
         chatGroup.setName(createChatGroupVo.getName());
         chatGroup.setNotice(createChatGroupVo.getNotice());
-        chatGroup.setMemberNum(Optional.ofNullable(createChatGroupVo.getUsers()).map(ArrayList::size).orElse(0));
+        chatGroup.setMemberNum(Optional.ofNullable(createChatGroupVo.getUsers()).map(ArrayList::size).orElse(0) + 1 );
         chatGroup.setUserId(userId);
         chatGroup.setOwnerUserId(userId);
+        chatGroup.setPortrait(minioConfig.getEndpoint() + "/" + minioConfig.getBucketName() + "/default-group-portrait.png");
         boolean isSava = save(chatGroup);
         //添加自己
         ChatGroupMember chatGroupMember = new ChatGroupMember();

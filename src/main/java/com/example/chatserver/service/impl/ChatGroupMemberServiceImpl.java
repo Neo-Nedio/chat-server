@@ -33,4 +33,9 @@ public class ChatGroupMemberServiceImpl extends ServiceImpl<ChatGroupMemberMappe
         //将群成员列表转换为 Map 结构的方法，方便前端按用户 ID 快速查找成员信息
         return result.stream().collect(Collectors.toMap(MemberListDto::getUserId, user -> user));
     }
+
+    @Override
+    public List<MemberListDto> memberListPage(String userId, MemberListVo memberListVo) {
+        return chatGroupMemberMapper.memberListPage(userId, memberListVo);
+    }
 }

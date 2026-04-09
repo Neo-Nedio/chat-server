@@ -131,11 +131,17 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
     @Override
     public ChatList createChatList(String userId, CreateChatListVo createChatListVo) {
         boolean isFriend = friendService.isFriend(userId, createChatListVo.getUserId());
-        if (!isFriend) {
-            throw new BaseException("双方非好友");
+        ChatList chatList = null;
+        if (MsgSource.User.equals(createChatListVo.getType())) {
+            if (!isFriend) {
+                throw new BaseException("双方非好友");
+            }
+            chatList = chatListMapper.detailChatList(userId, createChatListVo.getUserId());
+        } else {
+            //todo 没有检查是否是群成员
+            chatList = chatListMapper.detailChatGroupList(userId, createChatListVo.getUserId());
         }
         //查询是否有会话,没有则新建
-        ChatList chatList = chatListMapper.detailChatList(userId, createChatListVo.getUserId());
         if (null != chatList)
             return chatList;
         //新建
@@ -147,6 +153,12 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
         chatList.setFromId(createChatListVo.getUserId());
         chatList.setUnreadNum(0);
         save(chatList);
+        //保存后再次查询，确保返回完整的会话信息（包括数据库生成的字段如 createTime 等）
+        if (MsgSource.User.equals(createChatListVo.getType())) {
+            chatList = chatListMapper.detailChatList(userId, createChatListVo.getUserId());
+        } else {
+            chatList = chatListMapper.detailChatGroupList(userId, createChatListVo.getUserId());
+        }
         return chatList;
     }
 
