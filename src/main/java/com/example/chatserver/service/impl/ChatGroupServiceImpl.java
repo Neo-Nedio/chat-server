@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -34,14 +36,20 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         chatGroup.setId(IdUtil.randomUUID());
         chatGroup.setName(createChatGroupVo.getName());
         chatGroup.setNotice(createChatGroupVo.getNotice());
-        chatGroup.setMemberNum(createChatGroupVo.getUsers().size());
+        chatGroup.setMemberNum(Optional.ofNullable(createChatGroupVo.getUsers()).map(ArrayList::size).orElse(0));
         chatGroup.setUserId(userId);
         chatGroup.setOwnerUserId(userId);
         boolean isSava = save(chatGroup);
+        //添加自己
+        ChatGroupMember chatGroupMember = new ChatGroupMember();
+        chatGroupMember.setId(IdUtil.randomUUID());
+        chatGroupMember.setChatGroupId(chatGroup.getId());
+        chatGroupMember.setUserId(userId);
+        chatGroupMemberService.save(chatGroupMember);
         //绑定群成员
-        if (isSava) {
+        if (isSava && null != createChatGroupVo.getUsers()) {
             for (CreateChatGroupVo.User user : createChatGroupVo.getUsers()) {
-                ChatGroupMember chatGroupMember = new ChatGroupMember();
+                chatGroupMember = new ChatGroupMember();
                 chatGroupMember.setId(IdUtil.randomUUID());
                 chatGroupMember.setChatGroupId(chatGroup.getId());
                 chatGroupMember.setUserId(user.getUserId());
