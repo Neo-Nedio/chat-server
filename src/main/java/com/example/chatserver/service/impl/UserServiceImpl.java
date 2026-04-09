@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.config.MinioConfig;
+import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
@@ -69,23 +70,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     @Override
-    public JSONObject validateLogin(LoginVo loginVo) {
+    public JSONObject validateLogin(LoginVo loginVo, boolean isAdmin) {
         // 获取用户
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getAccount, loginVo.getAccount()); //添加条件
         User user = getOne(queryWrapper); //执行查询，返回匹配的第一个用户
 
+        if (isAdmin && !UserRole.Admin.equals(user.getRole())) {
+            return ResultUtil.Fail("您非管理员~");
+        }
+
         if (null == user) {
-            return ResultUtil.Fail("用户名或密码错误");
+            return ResultUtil.Fail("用户名或密码错误~");
         }
         if (!SecurityUtil.verifyPassword(loginVo.getPassword(), user.getPassword())) {
-            return ResultUtil.Fail("用户名或密码错误");
+            return ResultUtil.Fail("用户名或密码错误~");
         }
 
         JSONObject userinfo = new JSONObject();
         userinfo.set("userId", user.getId());
         userinfo.set("account", user.getAccount());
         userinfo.set("username", user.getName());
+        userinfo.set("role", user.getRole());
         userinfo.set("portrait", user.getPortrait());
         userinfo.set("phone", user.getPhone());
         userinfo.set("email", user.getEmail());

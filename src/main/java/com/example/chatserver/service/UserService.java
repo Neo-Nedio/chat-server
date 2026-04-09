@@ -15,7 +15,7 @@ import java.util.List;
 public interface UserService extends IService<User> {
     boolean register(RegisterVo registerVo);
 
-    JSONObject validateLogin(LoginVo loginVo);
+    JSONObject validateLogin(LoginVo loginVo, boolean isAdmin);
 
     List<UserDto> searchUser(SearchUserVo searchUserVo);
 
