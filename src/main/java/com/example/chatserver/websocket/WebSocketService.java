@@ -7,12 +7,14 @@ import com.example.chatserver.constant.WsContentType;
 import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.entity.Message;
 import com.example.chatserver.service.ChatGroupMemberService;
+import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.JwtUtil;
 import com.example.chatserver.utils.ResultUtil;
 import io.jsonwebtoken.Claims;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.Data;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,6 +34,10 @@ public class WebSocketService {
     @Resource
     ChatGroupMemberService chatGroupMemberService;
 
+    @Lazy
+    @Resource
+    UserService userService;
+
     //核心数据结构（在线用户存储）
     public static final ConcurrentHashMap<String, Channel> Online_User = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<Channel, String> Online_Channel = new ConcurrentHashMap<>();
@@ -43,6 +49,7 @@ public class WebSocketService {
             String userId = (String) claims.get("userId");
             Online_User.put(userId, channel);
             Online_Channel.put(channel, userId);
+            userService.online(userId);
         } catch (Exception e) {
             sendMsg(channel, ResultUtil.Fail("连接错误"), WsContentType.Msg);
             channel.close();
@@ -55,6 +62,7 @@ public class WebSocketService {
         if (StrUtil.isNotBlank(userId)) { //移除
             Online_User.remove(userId);
             Online_Channel.remove(channel);
+            userService.offline(userId);
         }
     }
 

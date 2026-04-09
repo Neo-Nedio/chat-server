@@ -1,6 +1,7 @@
 package com.example.chatserver.service;
 
 import cn.hutool.json.JSONObject;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
@@ -26,4 +27,8 @@ public interface UserService extends IService<User> {
     boolean updateUserInfo(String userId, UpdateVo updateVo);
 
     boolean updateUserPortrait(String userId, String portrait);
+
+    void offline(String userId);
+
+    void online(String userId);
 }

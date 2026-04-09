@@ -4,9 +4,11 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.config.MinioConfig;
 import com.example.chatserver.constant.UserRole;
+import com.example.chatserver.constant.UserStatus;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
@@ -63,6 +65,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setAccount(registerVo.getAccount());
         user.setPassword(registerVo.getPassword());
         user.setBirthday(new Date());
+        user.setStatus(UserStatus.Normal);
         user.setSex("男");
         user.setPortrait(minioConfig.getEndpoint() + "/" + minioConfig.getBucketName() + "/default-portrait.jpg");
         return save(user);
@@ -142,5 +145,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         updateWrapper.set(User::getPortrait, portrait)
                 .eq(User::getId, userId);
         return update(updateWrapper);
+    }
+
+    @Override
+    public void offline(String userId) {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(User::getIsOnline, false)
+                .eq(User::getId, userId);
+        update(updateWrapper);
+    }
+
+    @Override
+    public void online(String userId) {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(User::getIsOnline, true)
+                .eq(User::getId, userId);
+        update(updateWrapper);
     }
 }
