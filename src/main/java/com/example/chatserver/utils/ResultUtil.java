@@ -10,7 +10,8 @@ public class ResultUtil {
     public enum ResponseEnum {
         SUCCEED(0),
         FAIL(1),
-        TOKEN_INVALID(-1); //token失效
+        TOKEN_INVALID(-1), //token失效
+        FORBIDDEN(-2); //没有权限
 
 
         //类型后的数字
@@ -135,6 +136,16 @@ public class ResultUtil {
         JSONObject result = new JSONObject();
         result.set(CODE, ResponseEnum.TOKEN_INVALID.getType());
         result.set(MSG, "认证失效,请重新登录~");
+        return result;
+    }
+
+    /**
+     * 失败有返回消息和返回数据
+     */
+    public static JSONObject Forbidden() {
+        JSONObject result = new JSONObject();
+        result.set(CODE, ResponseEnum.FORBIDDEN.getType());
+        result.set(MSG, "该用户没有权限~");
         return result;
     }
 }

@@ -9,6 +9,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -27,8 +28,8 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter { //确保�
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest,
-                                    HttpServletResponse httpServletResponse,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    @NotNull HttpServletResponse httpServletResponse,
+                                    @NotNull FilterChain filterChain) throws ServletException, IOException {
 
         //OPTIONS 请求	浏览器跨域请求前的预检请求
         //直接放行	不需要验证 Token，否则跨域会失败
@@ -48,7 +49,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter { //确保�
             try {
                 claims = JwtUtil.parseToken(token); //获取token里的数据
             } catch (Exception e) {
-                tokenInvalid(httpServletResponse);
+                tokenInvalid(httpServletResponse,false);
                 return;
             }
 
@@ -60,7 +61,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter { //确保�
             //验证角色是否有权限
             String role = (String) map.get("role");
             if (!urlPermitUtil.isRoleUrl(role, url)) {
-                tokenInvalid(httpServletResponse);
+                tokenInvalid(httpServletResponse,true);
                 return;
             }
         }
@@ -68,13 +69,16 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter { //确保�
         filterChain.doFilter(httpServletRequest, httpServletResponse);
     }
 
-    public void tokenInvalid(HttpServletResponse httpServletResponse) {
+    public void tokenInvalid(HttpServletResponse httpServletResponse,boolean isForbidden) {
         try {
             // Token 无效，返回 403
             httpServletResponse.setContentType("application/json;charset=UTF-8");
             httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
             PrintWriter out = httpServletResponse.getWriter();
-            out.write(ResultUtil.TokenInvalid().toJSONString(0));
+
+            if(isForbidden) out.write(ResultUtil.Forbidden().toJSONString(0));
+            else out.write(ResultUtil.TokenInvalid().toJSONString(0));
+
             out.flush();
             out.close();
         } catch (Exception e) {
