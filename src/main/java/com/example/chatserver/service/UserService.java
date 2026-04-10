@@ -59,4 +59,6 @@ public interface UserService extends IService<User> {
     boolean updateThirdPartyUser(MultipartFile portrait, String name, String userId);
 
     boolean deleteThirdPartyUser(String userId);
+
+    User getUserByEmail(String email);
 }

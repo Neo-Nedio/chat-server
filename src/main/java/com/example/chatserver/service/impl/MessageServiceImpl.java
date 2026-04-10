@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.admin.vo.expose.ThirdSendMsgVo;
 import com.example.chatserver.config.VoiceConfig;
 import com.example.chatserver.constant.MessageContentType;
 import com.example.chatserver.constant.MsgSource;
@@ -124,10 +125,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     //给用户发送消息
-    public Message sendMessageToUser(String userId, String role, SendMsgVo sendMsgVo, String type) {
+    public Message sendMessageToUser(String userId, SendMsgVo sendMsgVo, String type) {
         //验证是否是好友
         boolean isFriend = friendService.isFriend(userId, sendMsgVo.getToUserId());
-        if (!isFriend && UserRole.User.equals(role)) { //管理员可以直接发送。不需要好友
+        if (!isFriend) {
             throw new BaseException("双方非好友");
         }
         Message message = sendMessage(userId, sendMsgVo.getToUserId(), sendMsgVo.getMsgContent(), MsgSource.User, type);
@@ -169,7 +170,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (MsgSource.Group.equals(sendMsgVo.getSource())) {
             return sendMessageToGroup(userId, sendMsgVo, type);
         } else {
-            return sendMessageToUser(userId, role, sendMsgVo, type);
+            return sendMessageToUser(userId,sendMsgVo, type);
         }
     }
 
@@ -341,5 +342,24 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Override
     public List<Top10MsgDto> getTop10Msg(Date date) {
         return messageMapper.getTop10Msg(date);
+    }
+
+    @Override
+    public boolean thirdPartySendMsg(String userId, ThirdSendMsgVo thirdSendMsgVo) {
+        if (userId == null)
+            return false;
+        User user = userService.getUserByEmail(thirdSendMsgVo.getEmail());
+
+
+        MsgContent msgContent = new MsgContent();
+        msgContent.setType(MessageContentType.Text);
+        msgContent.setContent(thirdSendMsgVo.getContent());
+
+        SendMsgVo sendMsgVo = new SendMsgVo();
+        sendMsgVo.setMsgContent(msgContent);
+        sendMsgVo.setToUserId(user.getId());
+        sendMsgVo.setSource(MsgSource.User);
+        sendMessageToUser(userId, sendMsgVo, MsgType.User);
+        return true;
     }
 }

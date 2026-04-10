@@ -131,9 +131,9 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
     //新建会话
     @Override
     public ChatList createChatList(String userId, String role, CreateChatListVo createChatListVo) {
-        boolean isFriend = friendService.isFriend(userId, createChatListVo.getUserId());
         ChatList chatList = null;
         if (MsgSource.User.equals(createChatListVo.getType())) {
+            boolean isFriend = friendService.isFriend(userId, createChatListVo.getUserId());
             if (!isFriend && UserRole.User.equals(role)) { //管理员可以直接开启对话，不用好友
                 throw new BaseException("双方非好友");
             }

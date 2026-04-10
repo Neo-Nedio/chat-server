@@ -465,4 +465,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public boolean deleteThirdPartyUser(String userId) {
         return removeById(userId);
     }
+
+    @Override
+    public User getUserByEmail(String email) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getEmail, email);
+        return getOne(queryWrapper);
+    }
 }
