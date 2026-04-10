@@ -17,12 +17,9 @@ import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.*;
-import com.example.chatserver.utils.RedisUtils;
-import com.example.chatserver.utils.SecurityUtil;
+import com.example.chatserver.utils.*;
 import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.mapper.UserMapper;
-import com.example.chatserver.utils.JwtUtil;
-import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
@@ -32,8 +29,10 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.context.Context;
 
 import java.util.Date;
@@ -66,6 +65,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     RedisUtils redisUtils;
+
+    @Resource
+    MinioUtil minioUtil;
+
 
     @Override
     public boolean register(RegisterVo registerVo) {
@@ -341,6 +344,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (userId.equals(deleteUserVo.getUserId())) {
             throw new BaseException("不能删除自己~");
         }
+        User user = getById(deleteUserVo.getUserId());
+        if (UserRole.Third.equals(user.getRole())) {
+            throw new BaseException("第三方用户不能删除，请到会话中删除~");
+        }
         return removeById(deleteUserVo.getUserId());
     }
 
@@ -407,5 +414,55 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         updateWrapper.set(User::getRole, UserRole.User)
                 .eq(User::getId, cancelAdminVo.getUserId());
         return update(updateWrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public String createThirdPartyUser(MultipartFile portrait, String name) {
+        String userId = IdUtil.randomUUID();
+        User user = new User();
+        user.setId(userId);
+        user.setName(name);
+        user.setAccount(IdUtil.objectId());
+        String password = RandomUtil.randomString(8); //随机密码，不需要知道，第三方用密钥登录
+        String passwordHash = SecurityUtil.hashPassword(password);
+        user.setStatus(UserStatus.Normal);
+        user.setPassword(passwordHash);
+        user.setBirthday(new Date());
+        user.setRole(UserRole.Third);
+        user.setSex("男");
+        String url;
+        try {
+            url = minioUtil.upload(portrait.getInputStream(), userId + "-portrait"
+                    , portrait.getContentType(), portrait.getSize());
+        } catch (Exception e) {
+            throw new BaseException("头像上传失败~");
+        }
+        user.setPortrait(url);
+        save(user);
+        return userId;
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public boolean updateThirdPartyUser(MultipartFile portrait, String name, String userId) {
+        String url;
+        try {
+            url = minioUtil.upload(portrait.getInputStream(), userId + "-portrait"
+                    , portrait.getContentType(), portrait.getSize());
+        } catch (Exception e) {
+            throw new BaseException("头像上传失败~");
+        }
+        url += "?t=" + System.currentTimeMillis();
+        User user = getById(userId);
+        user.setPortrait(url);
+        user.setName(name);
+        return updateById(user);
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public boolean deleteThirdPartyUser(String userId) {
+        return removeById(userId);
     }
 }

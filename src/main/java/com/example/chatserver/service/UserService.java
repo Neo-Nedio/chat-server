@@ -10,6 +10,7 @@ import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,4 +53,10 @@ public interface UserService extends IService<User> {
     boolean setAdmin(String userid, SetAdminVo setAdminVo);
 
     boolean cancelAdmin(String userid, CancelAdminVo cancelAdminVo);
+
+    String createThirdPartyUser(MultipartFile portrait, String name);
+
+    boolean updateThirdPartyUser(MultipartFile portrait, String name, String userId);
+
+    boolean deleteThirdPartyUser(String userId);
 }
