@@ -11,6 +11,7 @@ import com.example.chatserver.service.UserOperatedService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -32,5 +33,10 @@ public class UserOperatedServiceImpl extends ServiceImpl<UserOperatedMapper, Use
     @Override
     public List<UserOperatedDto> loginDetails(LoginDetailsVo loginDetailsVo) {
         return userOperatedMapper.loginDetails(loginDetailsVo.getIndex(), loginDetailsVo.getNum(), loginDetailsVo.getKeyword());
+    }
+
+    @Override
+    public Integer uniqueLoginNum(Date date) {
+        return userOperatedMapper.uniqueLoginNum(date);
     }
 }

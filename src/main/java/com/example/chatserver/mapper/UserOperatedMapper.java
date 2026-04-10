@@ -6,6 +6,7 @@ import com.example.chatserver.entity.UserOperated;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Date;
 import java.util.List;
 
 public interface UserOperatedMapper extends BaseMapper<UserOperated> {
@@ -19,4 +20,12 @@ public interface UserOperatedMapper extends BaseMapper<UserOperated> {
             "ORDER BY uo.create_time DESC " +
             "LIMIT #{index}, #{num}")
     List<UserOperatedDto> loginDetails(@Param("index") int index, @Param("num") int num, @Param("keyword") String keyword);
+
+    @Select("SELECT COUNT(DISTINCT user_id) AS `num` " +
+            "FROM user_operated " +
+            "WHERE type = 'login' " +
+            "  AND create_time >= #{date} " +
+            "  AND create_time < DATE_ADD(#{date}, INTERVAL 1 DAY)")
+    //查看某一天内的登录用户数量
+    Integer uniqueLoginNum(@Param("date") Date date);
 }

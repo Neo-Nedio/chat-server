@@ -1,5 +1,6 @@
 package com.example.chatserver.service;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.chatserver.entity.Message;
@@ -35,4 +36,6 @@ public interface MessageService extends IService<Message> {
     String sendFileOrImg(String userId, String msgId, HttpServletRequest request) throws IOException;
 
     Message voiceToText(String userId, String msgId);
+
+    Integer messageNum(DateTime date);
 }

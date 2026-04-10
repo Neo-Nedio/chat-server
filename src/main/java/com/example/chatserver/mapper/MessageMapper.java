@@ -1,5 +1,6 @@
 package com.example.chatserver.mapper;
 
+import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.chatserver.entity.Message;
 import org.apache.ibatis.annotations.Param;
@@ -47,5 +48,10 @@ public interface MessageMapper extends BaseMapper<Message> {
             "ORDER BY `create_time` DESC LIMIT 1")
     @ResultMap("mybatis-plus_Message")
     Message getPreviousShowTimeMsg(@Param("userId") String userId, @Param("targetId") String toUserId);
+
+    @Select("select count(*) from `message` where create_time >= #{date} " +
+            "    AND create_time < DATE_ADD(#{date}, INTERVAL 1 DAY) ")
+    //查看某一天内的消息数量
+    Integer messageNum(DateTime date);
 
 }

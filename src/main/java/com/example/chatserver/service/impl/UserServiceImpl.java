@@ -1,5 +1,7 @@
 package com.example.chatserver.service.impl;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONObject;
@@ -24,6 +26,7 @@ import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.user.RegisterVo;
 import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
+import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,6 +54,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     UserOperatedService userOperatedService;
+
+    @Resource
+    WebSocketService webSocketService;
 
     @Resource
     UserMapper userMapper;
@@ -122,8 +128,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userinfo.set("email", user.getEmail());
         //生成用户token
         userinfo.set("token", JwtUtil.createToken(userinfo));
-        //记录登录操作
-        userOperatedService.recordLogin(user.getId(), getClientIp());
+        ThreadUtil.execAsync(() -> {
+            //记录登录操作
+            userOperatedService.recordLogin(user.getId(), getClientIp());
+            //更新同时在线人数
+            updateRedisOnlineNum();
+        });
         return ResultUtil.Succeed(userinfo);
     }
 
@@ -155,6 +165,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         return clientIp;
+    }
+
+    public void updateRedisOnlineNum() {
+        Integer onlineNum = webSocketService.getOnlineNum();
+        String key = "onlineNum#" + DateUtil.today();
+        Integer redisOnlineNum = (Integer) redisUtils.get(key);
+        if (null == redisOnlineNum) {
+            redisUtils.set(key, onlineNum, 25 * 60 * 1000);
+        }
+        if (onlineNum > redisOnlineNum) {
+            redisUtils.set(key, onlineNum, 25 * 60 * 1000);
+        }
     }
 
     @Override
