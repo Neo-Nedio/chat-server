@@ -7,6 +7,7 @@ import javax.crypto.Cipher;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.Base64;
 
 //安全工具类，提供密码加密验证和 RSA 解密功能
@@ -30,7 +31,9 @@ public final class SecurityUtil {
 
     //获取公钥
     public static String getPublicKey() {
-        return Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
+        return "-----BEGIN PUBLIC KEY-----\n" +
+                Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()) +
+                "\n-----END PUBLIC KEY-----";
     }
 
     //RSA 解密
