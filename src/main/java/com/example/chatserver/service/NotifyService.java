@@ -1,6 +1,7 @@
 package com.example.chatserver.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.chatserver.admin.vo.notify.DeleteNotifyVo;
 import com.example.chatserver.dto.FriendNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.entity.Notify;
@@ -22,4 +23,6 @@ public interface NotifyService extends IService<Notify> {
     boolean readNotify(String userId, ReadNotifyVo readNotifyVo);
 
     List<SystemNotifyDto> SystemListNotify(String userId);
+
+    boolean deleteNotify(DeleteNotifyVo deleteNotifyVo);
 }

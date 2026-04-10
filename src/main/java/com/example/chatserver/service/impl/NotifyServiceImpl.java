@@ -3,6 +3,7 @@ package com.example.chatserver.service.impl;
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.chatserver.admin.vo.notify.DeleteNotifyVo;
 import com.example.chatserver.constant.FriendApplyStatus;
 import com.example.chatserver.constant.NotifyType;
 import com.example.chatserver.dto.FriendNotifyDto;
@@ -80,5 +81,10 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
     @Override
     public List<SystemNotifyDto> SystemListNotify(String userId) {
         return notifyMapper.SystemListNotify();
+    }
+
+    @Override
+    public boolean deleteNotify(DeleteNotifyVo deleteNotifyVo) {
+        return removeById(deleteNotifyVo.getNotifyId());
     }
 }
