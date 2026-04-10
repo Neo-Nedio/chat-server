@@ -1,6 +1,7 @@
 package com.example.chatserver.config;
 
 import com.example.chatserver.interceptor.SignatureInterceptor;
+import com.example.chatserver.service.ConversationService;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,12 +12,16 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @Configuration
 //Spring MVC 配置类，用于自定义控制器（Controller）的方法参数解析器
 //注册一个自定义的 UserInfoArgumentResolver，让控制器方法能直接通过参数获取当前登录用户信息，无需手动从 Session/Token 中提取。
 public class WebMvcConfig implements WebMvcConfigurer {
+
+    @Resource
+    ConversationService conversationService;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) { //Spring 维护的解析器列表
@@ -49,7 +54,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     //对暴露出去的第三方接口进行拦截验证公钥与密钥是否匹配
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new SignatureInterceptor())
+        registry.addInterceptor(new SignatureInterceptor(conversationService))
                 .addPathPatterns("/v1/api/expose/**");
     }
 }

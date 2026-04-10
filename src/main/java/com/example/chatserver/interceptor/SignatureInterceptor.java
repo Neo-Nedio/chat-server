@@ -1,6 +1,7 @@
 package com.example.chatserver.interceptor;
 
 
+import com.example.chatserver.entity.Conversation;
 import com.example.chatserver.service.ConversationService;
 import com.example.chatserver.utils.SignatureUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +11,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
+
 /*
 
         ┌─────────────────────────────────────────────────────────────────────────────────────┐
@@ -109,9 +113,11 @@ import javax.annotation.Resource;
 @Component
 //前端会生成一个签名，后端通过参数再次生成一个进行比较，比较成功则证明前端知道完整的公钥和密钥，验证成功
 public class SignatureInterceptor implements HandlerInterceptor {
-
-    @Resource
     ConversationService conversationService;
+
+    public SignatureInterceptor(ConversationService conversationService) {
+        this.conversationService = conversationService;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response, Object handler) throws Exception {
@@ -131,8 +137,8 @@ public class SignatureInterceptor implements HandlerInterceptor {
             return false;
         }
         // 根据accessKey获取secretKey
-        String secretKey = conversationService.getSecretKey(accessKey);
-        if (secretKey == null) {
+        Conversation conversation = conversationService.getConversationByAccessKey(accessKey);
+        if (null == conversation) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
@@ -140,11 +146,18 @@ public class SignatureInterceptor implements HandlerInterceptor {
         // 验证签名
         String method = request.getMethod();
         String path = request.getRequestURI();
-        String calculatedSignature = SignatureUtils.calculateSignature(method, path, accessKey, timestamp, secretKey);
+        String calculatedSignature = SignatureUtils.calculateSignature(method, path, accessKey, timestamp, conversation.getSecretKey());
         if (!calculatedSignature.equals(signature)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
+
+        //将信息放入请求头
+        Map<String, Object> map = new HashMap<>();
+        map.put("accessKey", accessKey);
+        map.put("timestamp", timestamp);
+        map.put("userId", conversation.getUserId());
+        request.setAttribute("userinfo", map);
         return true;
     }
 }

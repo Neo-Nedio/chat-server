@@ -40,12 +40,14 @@ public class UserInfoArgumentResolver implements HandlerMethodArgumentResolver {
 
         if (parameter.hasParameterAnnotation(UserInfo.class)) {
             return request.getAttribute("userinfo"); //直接从 request 中获取名为 "userinfo" 的属性
-        } else if (parameter.hasParameterAnnotation(Userid.class)) {
+        }
+        if (parameter.hasParameterAnnotation(Userid.class)) {
             Map<String, Object> userinfo = (Map<String, Object>) request.getAttribute("userinfo");
             if (userinfo != null) {
                 return userinfo.get("userId"); //返回用户id
             }
-        } else if (parameter.hasParameterAnnotation(UserRole.class)) {
+        }
+        if (parameter.hasParameterAnnotation(UserRole.class)) {
             Map<String, Object> userinfo = (Map<String, Object>) request.getAttribute("userinfo");
             if (userinfo != null) {
                 return userinfo.get("role");
