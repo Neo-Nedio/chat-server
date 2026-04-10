@@ -3,8 +3,10 @@ package com.example.chatserver.config;
 
 
 import com.example.chatserver.annotation.UserInfo;
+import com.example.chatserver.annotation.UserIp;
 import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
+import com.example.chatserver.utils.IpUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
@@ -24,7 +26,8 @@ public class UserInfoArgumentResolver implements HandlerMethodArgumentResolver {
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(UserInfo.class) ||
                 parameter.hasParameterAnnotation(Userid.class) ||
-                parameter.hasParameterAnnotation(UserRole.class);
+                parameter.hasParameterAnnotation(UserRole.class) ||
+                parameter.hasParameterAnnotation(UserIp.class);
     }
 
     //实际解析参数并返回值
@@ -52,6 +55,9 @@ public class UserInfoArgumentResolver implements HandlerMethodArgumentResolver {
             if (userinfo != null) {
                 return userinfo.get("role");
             }
+        }
+        if (parameter.hasParameterAnnotation(UserIp.class)) {
+            return IpUtil.getIpAddr(request);
         }
         return null;
     }

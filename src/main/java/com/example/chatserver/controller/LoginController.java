@@ -2,6 +2,7 @@ package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.UrlFree;
+import com.example.chatserver.annotation.UserIp;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.login.LoginVo;
@@ -28,9 +29,9 @@ public class LoginController {
 
     @UrlFree
     @PostMapping()
-    public Object login(@Valid @RequestBody LoginVo loginVo) {
+    public Object login(@Valid @RequestBody LoginVo loginVo, @UserIp String userIp) {
         String decryptedPassword = SecurityUtil.decryptPassword(loginVo.getPassword());
         loginVo.setPassword(decryptedPassword);
-        return userService.validateLogin(loginVo,false);
+        return userService.validateLogin(loginVo,userIp,false);
     }
 }

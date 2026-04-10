@@ -102,7 +102,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     @Override
-    public JSONObject validateLogin(LoginVo loginVo, boolean isAdmin) {
+    public JSONObject validateLogin(LoginVo loginVo, String userIp, boolean isAdmin) {
         // 获取用户
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getAccount, loginVo.getAccount()); //添加条件
@@ -130,44 +130,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //生成用户token
         userinfo.set("token", JwtUtil.createToken(userinfo));
 
-        String ip = getClientIp();
         ThreadUtil.execAsync(() -> {
             //记录登录操作
-            userOperatedService.recordLogin(user.getId(), ip);
+            userOperatedService.recordLogin(user.getId(), userIp);
             //更新同时在线人数
             updateRedisOnlineNum();
         });
         return ResultUtil.Succeed(userinfo);
-    }
-
-    public String getClientIp() {
-        // 1. 获取当前HTTP请求对象（从线程上下文中）
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
-                .currentRequestAttributes()).getRequest();
-
-        String clientIp = null;
-        // 2. 从 X-Forwarded-For 请求头获取（最常用，标准代理头）
-        //    格式：X-Forwarded-For: 客户端IP, 代理1IP, 代理2IP
-        clientIp = request.getHeader("X-Forwarded-For");
-        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
-            // 3. Apache 代理服务器
-            clientIp = request.getHeader("Proxy-Client-IP");
-        }
-        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
-            // 4. WebLogic 代理服务器
-            clientIp = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
-            // 5. 降级：直接获取连接的IP（没有代理时）
-            clientIp = request.getRemoteAddr();
-        }
-
-        // 6. 如果 X-Forwarded-For 有多个IP，取第一个（最原始的真实客户端IP）
-        if (clientIp != null && clientIp.contains(",")) {
-            clientIp = clientIp.split(",")[0].trim();
-        }
-
-        return clientIp;
     }
 
     public void updateRedisOnlineNum() {
@@ -175,10 +144,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String key = "onlineNum#" + DateUtil.today();
         Integer redisOnlineNum = (Integer) redisUtils.get(key);
         if (null == redisOnlineNum) {
-            redisUtils.set(key, onlineNum, 25 * 60 * 1000);
+            redisUtils.set(key, onlineNum, 25 * 60);
         }
         if (onlineNum > redisOnlineNum) {
-            redisUtils.set(key, onlineNum, 25 * 60 * 1000);
+            redisUtils.set(key, onlineNum, 25 * 60);
         }
     }
 
