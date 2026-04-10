@@ -2,7 +2,9 @@ package com.example.chatserver.admin.controller;
 
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.admin.vo.conversation.DeleteConversationVo;
+import com.example.chatserver.admin.vo.conversation.DisableConversationVo;
 import com.example.chatserver.admin.vo.conversation.ResetSecretVo;
+import com.example.chatserver.admin.vo.conversation.UnDisableConversationVo;
 import com.example.chatserver.annotation.UrlResource;
 import com.example.chatserver.dto.ConversationDto;
 import com.example.chatserver.entity.Conversation;
@@ -75,6 +77,26 @@ public class ConversationController {
     @UrlResource("admin")
     public JSONObject resetSecret(@RequestBody ResetSecretVo resetSecretVo) {
         boolean result = conversationService.resetSecret(resetSecretVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
+     * 禁用会话
+     */
+    @PostMapping("/disable")
+    @UrlResource("admin")
+    public JSONObject disableConversation(@RequestBody DisableConversationVo disableConversationVo) {
+        boolean result = conversationService.disableConversation(disableConversationVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
+     * 解禁会话
+     */
+    @PostMapping("/undisable")
+    @UrlResource("admin")
+    public JSONObject unDisableConversation(@RequestBody UnDisableConversationVo unDisableConversationVo) {
+        boolean result = conversationService.unDisableConversation(unDisableConversationVo);
         return ResultUtil.ResultByFlag(result);
     }
 
