@@ -106,7 +106,6 @@ public class UserController {
 
     /**
      *修改密码
-
      */
     @PostMapping("/update/password")
     public JSONObject updateUserPassword(@Userid String userId, @RequestBody UpdatePasswordVo updateVo) {
@@ -192,7 +191,7 @@ public class UserController {
         String url = (String) redisUtils.get(name);
         if (StringUtils.isBlank(url)) {
             url = minioUtil.previewFile(name);
-            redisUtils.set(name, url, 7 * 24 * 60);
+            redisUtils.set(name, url, 7 * 24 * 60 * 60);
         }
         return ResultUtil.Succeed(url);
     }

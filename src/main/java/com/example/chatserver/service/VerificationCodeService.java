@@ -29,7 +29,7 @@ public class VerificationCodeService {
         }
 
         code = RandomUtil.randomNumbers(6); //生成验证码
-        redisUtils.set(email, code, 10); //10分钟后自动失效
+        redisUtils.set(email, code, 10 * 60); //10分钟后自动失效
 
         //准备模板数据
         Context context = new Context();
