@@ -3,10 +3,12 @@ package com.example.chatserver.controller;
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.UrlFree;
 import com.example.chatserver.annotation.UserIp;
+import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.service.UserService;
+import com.example.chatserver.vo.login.QrCodeLoginVo;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -33,5 +35,12 @@ public class LoginController {
         String decryptedPassword = SecurityUtil.decryptPassword(loginVo.getPassword());
         loginVo.setPassword(decryptedPassword);
         return userService.validateLogin(loginVo,userIp,false);
+    }
+
+    @PostMapping("/qr")
+    //移动端扫描二维码
+    //userId 为移动端当前账号，将当前账号绑定到客户端二维码
+    public Object qrCodeLogin(@Valid @RequestBody QrCodeLoginVo qrCodeLoginVo, @Userid String userid) {
+        return userService.validateQrCodeLogin(qrCodeLoginVo, userid);
     }
 }

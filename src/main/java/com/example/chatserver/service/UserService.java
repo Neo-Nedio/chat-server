@@ -7,6 +7,7 @@ import com.example.chatserver.admin.vo.user.*;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.vo.login.LoginVo;
+import com.example.chatserver.vo.login.QrCodeLoginVo;
 import com.example.chatserver.vo.user.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -63,4 +64,6 @@ public interface UserService extends IService<User> {
     boolean deleteThirdPartyUser(String userId);
 
     User getUserByEmail(String email);
+
+    JSONObject validateQrCodeLogin(QrCodeLoginVo qrCodeLoginVo, String userid);
 }

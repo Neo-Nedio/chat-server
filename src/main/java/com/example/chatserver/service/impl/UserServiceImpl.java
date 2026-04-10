@@ -5,6 +5,7 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -13,6 +14,7 @@ import com.example.chatserver.admin.vo.user.*;
 import com.example.chatserver.config.MinioConfig;
 import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.constant.UserStatus;
+import com.example.chatserver.dto.QrCodeResult;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
@@ -20,6 +22,7 @@ import com.example.chatserver.service.*;
 import com.example.chatserver.utils.*;
 import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.mapper.UserMapper;
+import com.example.chatserver.vo.login.QrCodeLoginVo;
 import com.example.chatserver.vo.user.*;
 import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
@@ -119,6 +122,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return ResultUtil.Fail("您非管理员~");
         }
 
+        //获取token
+        JSONObject userinfo = createUserToken(user, userIp);
+        return ResultUtil.Succeed(userinfo);
+    }
+
+    public JSONObject createUserToken(User user, String userIp) {
+
         JSONObject userinfo = new JSONObject();
         userinfo.set("userId", user.getId());
         userinfo.set("account", user.getAccount());
@@ -136,7 +146,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             //更新同时在线人数
             updateRedisOnlineNum();
         });
-        return ResultUtil.Succeed(userinfo);
+        return userinfo;
     }
 
     public void updateRedisOnlineNum() {
@@ -466,5 +476,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getEmail, email);
         return getOne(queryWrapper);
+    }
+
+    @Override
+    public JSONObject validateQrCodeLogin(QrCodeLoginVo qrCodeLoginVo, String userid) {
+        // 获取用户
+        User user = getById(userid);
+        if (null == user) {
+            return ResultUtil.Fail("用户不存在~");
+        }
+
+        String result = (String) redisUtils.get(qrCodeLoginVo.getKey());
+        if (null == result) {
+            return ResultUtil.Fail("二维码已失效~");
+        }
+
+        //将用户保存在对应客户端的QrCodeResult
+        QrCodeResult qrCodeResult = JSONUtil.toBean(result, QrCodeResult.class);
+        JSONObject userinfo = createUserToken(user, qrCodeResult.getIp());
+        qrCodeResult.setStatus("success");
+        qrCodeResult.setUserInfo(userinfo);
+        redisUtils.set(qrCodeLoginVo.getKey(), JSONUtil.toJsonStr(qrCodeResult), 1);
+        return ResultUtil.Succeed();
     }
 }
