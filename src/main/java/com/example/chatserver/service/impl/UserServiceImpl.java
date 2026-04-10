@@ -14,14 +14,11 @@ import com.example.chatserver.constant.UserStatus;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
-import com.example.chatserver.service.ChatListService;
-import com.example.chatserver.service.EmailService;
-import com.example.chatserver.service.NotifyService;
+import com.example.chatserver.service.*;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.mapper.UserMapper;
-import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.JwtUtil;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.user.RegisterVo;
@@ -29,8 +26,11 @@ import com.example.chatserver.vo.user.SearchUserVo;
 import com.example.chatserver.vo.user.UpdateVo;
 import jakarta.annotation.Resource;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.thymeleaf.context.Context;
 
 import java.util.Date;
@@ -48,6 +48,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     EmailService emailService;
+
+    @Resource
+    UserOperatedService userOperatedService;
 
     @Resource
     UserMapper userMapper;
@@ -119,7 +122,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userinfo.set("email", user.getEmail());
         //生成用户token
         userinfo.set("token", JwtUtil.createToken(userinfo));
+        //记录登录操作
+        userOperatedService.recordLogin(user.getId(), getClientIp());
         return ResultUtil.Succeed(userinfo);
+    }
+
+    public String getClientIp() {
+        // 1. 获取当前HTTP请求对象（从线程上下文中）
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
+                .currentRequestAttributes()).getRequest();
+
+        String clientIp = null;
+        // 2. 从 X-Forwarded-For 请求头获取（最常用，标准代理头）
+        //    格式：X-Forwarded-For: 客户端IP, 代理1IP, 代理2IP
+        clientIp = request.getHeader("X-Forwarded-For");
+        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
+            // 3. Apache 代理服务器
+            clientIp = request.getHeader("Proxy-Client-IP");
+        }
+        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
+            // 4. WebLogic 代理服务器
+            clientIp = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (clientIp == null || clientIp.isEmpty() || "unknown".equalsIgnoreCase(clientIp)) {
+            // 5. 降级：直接获取连接的IP（没有代理时）
+            clientIp = request.getRemoteAddr();
+        }
+
+        // 6. 如果 X-Forwarded-For 有多个IP，取第一个（最原始的真实客户端IP）
+        if (clientIp != null && clientIp.contains(",")) {
+            clientIp = clientIp.split(",")[0].trim();
+        }
+
+        return clientIp;
     }
 
     @Override
