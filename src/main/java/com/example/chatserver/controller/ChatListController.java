@@ -2,6 +2,7 @@ package com.example.chatserver.controller;
 
 
 import cn.hutool.json.JSONObject;
+import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.ChatListDto;
 import com.example.chatserver.entity.ChatList;
@@ -34,8 +35,8 @@ public class ChatListController {
      * 创建聊天会话
      */
     @PostMapping("/create")
-    public JSONObject createChatList(@Userid String userId, @RequestBody CreateChatListVo createChatListVo) {
-        ChatList result = chatListService.createChatList(userId, createChatListVo);
+    public JSONObject createChatList(@Userid String userId, @UserRole String role, @RequestBody CreateChatListVo createChatListVo) {
+        ChatList result = chatListService.createChatList(userId, role, createChatListVo);
         return ResultUtil.Succeed(result);
     }
 

@@ -3,6 +3,7 @@ package com.example.chatserver.config;
 
 
 import com.example.chatserver.annotation.UserInfo;
+import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
@@ -22,7 +23,8 @@ public class UserInfoArgumentResolver implements HandlerMethodArgumentResolver {
     //判断是否支持该参数
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(UserInfo.class) ||
-                parameter.hasParameterAnnotation(Userid.class);
+                parameter.hasParameterAnnotation(Userid.class) ||
+                parameter.hasParameterAnnotation(UserRole.class);
     }
 
     //实际解析参数并返回值
@@ -42,6 +44,11 @@ public class UserInfoArgumentResolver implements HandlerMethodArgumentResolver {
             Map<String, Object> userinfo = (Map<String, Object>) request.getAttribute("userinfo");
             if (userinfo != null) {
                 return userinfo.get("userId"); //返回用户id
+            }
+        } else if (parameter.hasParameterAnnotation(UserRole.class)) {
+            Map<String, Object> userinfo = (Map<String, Object>) request.getAttribute("userinfo");
+            if (userinfo != null) {
+                return userinfo.get("role");
             }
         }
         return null;

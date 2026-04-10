@@ -2,6 +2,7 @@ package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.constant.MsgType;
 import com.example.chatserver.entity.Message;
@@ -49,8 +50,8 @@ public class MessageController {
      * 发送消息
      */
     @PostMapping("/send")
-    public JSONObject sendMessage(@Userid String userId, @RequestBody SendMsgVo sendMsgVo) {
-        Message result = messageService.sendMessage(userId, sendMsgVo, MsgType.User);
+    public JSONObject sendMessage(@Userid String userId, @UserRole String role, @RequestBody SendMsgVo sendMsgVo) {
+        Message result = messageService.sendMessage(userId, role, sendMsgVo, MsgType.User);
         return ResultUtil.Succeed(result);
     }
 

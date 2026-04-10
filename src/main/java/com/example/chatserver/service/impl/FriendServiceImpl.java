@@ -6,12 +6,14 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.constant.FriendApplyStatus;
 import com.example.chatserver.constant.NotifyType;
+import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.dto.TalkContentDto;
 import com.example.chatserver.entity.Friend;
 import com.example.chatserver.entity.Group;
 import com.example.chatserver.entity.Notify;
+import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.FriendMapper;
 import com.example.chatserver.service.*;
@@ -36,6 +38,9 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
 
     @Resource
     NotifyService notifyService;
+
+    @Resource
+    UserService userService;
 
     @Resource
     TalkService talkService;
@@ -86,6 +91,13 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
 
     @Override
     public boolean isFriend(String userId, String friendId) {
+        //如果是管理员，当作双方是好友
+        User friend = userService.getById(friendId);
+        User user = userService.getById(userId);
+        if (null != user && (UserRole.Admin.equals(user.getRole()) || UserRole.Admin.equals(friend.getRole()))) {
+            return true;
+        }
+
         LambdaQueryWrapper<Friend> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Friend::getUserId, userId).eq(Friend::getFriendId, friendId);
         return count(queryWrapper) > 0;

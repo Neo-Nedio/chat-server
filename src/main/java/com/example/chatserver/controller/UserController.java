@@ -2,6 +2,7 @@ package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.UrlFree;
+import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.exception.BaseException;
@@ -131,10 +132,12 @@ public class UserController {
      */
     @GetMapping("/get/file")
     public ResponseEntity<InputStreamResource> getFile(@Userid String userId,
+                                                       @UserRole String role,
                                                        @RequestHeader("targetId") String targetId,
                                                        @RequestHeader("fileName") String fileName) {
         boolean isFriend = friendService.isFriend(userId, targetId);
-        if (!isFriend && !userId.equals(targetId)) {
+        if (!isFriend && !userId.equals(targetId) &&
+                com.example.chatserver.constant.UserRole.User.equals(role)) {
             throw new BaseException("双方非好友");
         }
         InputStream inputStream = minioUtil.getObject(targetId + "/img/" + fileName);
@@ -149,10 +152,12 @@ public class UserController {
      */
     @GetMapping("/get/img")
     public JSONObject getImg(@Userid String userId,
+                             @UserRole String role,
                              @RequestParam("targetId") String targetId,
                              @RequestParam("fileName") String fileName) {
         boolean isFriend = friendService.isFriend(userId, targetId);
-        if (!isFriend && !userId.equals(targetId)) {
+        if (!isFriend && !userId.equals(targetId) &&
+                com.example.chatserver.constant.UserRole.User.equals(role)) {
             throw new BaseException("双方非好友");
         }
         String name = targetId + "/img/" + fileName;

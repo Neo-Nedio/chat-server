@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.constant.MsgSource;
+import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.ChatListDto;
 import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.entity.ChatList;
@@ -129,11 +130,11 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
 
     //新建会话
     @Override
-    public ChatList createChatList(String userId, CreateChatListVo createChatListVo) {
+    public ChatList createChatList(String userId, String role, CreateChatListVo createChatListVo) {
         boolean isFriend = friendService.isFriend(userId, createChatListVo.getUserId());
         ChatList chatList = null;
         if (MsgSource.User.equals(createChatListVo.getType())) {
-            if (!isFriend) {
+            if (!isFriend && UserRole.User.equals(role)) { //管理员可以直接开启对话，不用好友
                 throw new BaseException("双方非好友");
             }
             chatList = chatListMapper.detailChatList(userId, createChatListVo.getUserId());

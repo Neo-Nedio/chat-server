@@ -13,6 +13,7 @@ import com.example.chatserver.config.VoiceConfig;
 import com.example.chatserver.constant.MessageContentType;
 import com.example.chatserver.constant.MsgSource;
 import com.example.chatserver.constant.MsgType;
+import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.Top10MsgDto;
 import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.Message;
@@ -123,10 +124,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     //给用户发送消息
-    public Message sendMessageToUser(String userId, SendMsgVo sendMsgVo, String type) {
+    public Message sendMessageToUser(String userId, String role, SendMsgVo sendMsgVo, String type) {
         //验证是否是好友
         boolean isFriend = friendService.isFriend(userId, sendMsgVo.getToUserId());
-        if (!isFriend) {
+        if (!isFriend && UserRole.User.equals(role)) { //管理员可以直接发送。不需要好友
             throw new BaseException("双方非好友");
         }
         Message message = sendMessage(userId, sendMsgVo.getToUserId(), sendMsgVo.getMsgContent(), MsgSource.User, type);
@@ -164,11 +165,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     //根据发送目标选择用户还是群聊
     @Override
-    public Message sendMessage(String userId, SendMsgVo sendMsgVo, String type) {
+    public Message sendMessage(String userId, String role, SendMsgVo sendMsgVo, String type) {
         if (MsgSource.Group.equals(sendMsgVo.getSource())) {
             return sendMessageToGroup(userId, sendMsgVo, type);
         } else {
-            return sendMessageToUser(userId, sendMsgVo, type);
+            return sendMessageToUser(userId, role, sendMsgVo, type);
         }
     }
 

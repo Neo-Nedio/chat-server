@@ -10,6 +10,7 @@ import com.example.chatserver.config.MinioConfig;
 import com.example.chatserver.constant.MessageContentType;
 import com.example.chatserver.constant.MsgSource;
 import com.example.chatserver.constant.MsgType;
+import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.ChatGroupDetailsDto;
 import com.example.chatserver.dto.SystemMsgDto;
 import com.example.chatserver.entity.ChatGroup;
@@ -160,7 +161,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
             msgContent.setFromUserId(userId);
             msgContent.setExt(userId);
             sendMsgVo.setMsgContent(msgContent);
-            messageService.sendMessage(userId, sendMsgVo, MsgType.System);
+            messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
         }
         if (!members.isEmpty()) {
             ChatGroup chatGroup = getById(inviteMemberVo.getGroupId());
@@ -215,7 +216,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         msgContent.setFromUserId(userId);
         msgContent.setExt(kickChatGroupVo.getUserId());
         sendMsgVo.setMsgContent(msgContent);
-        messageService.sendMessage(userId, sendMsgVo, MsgType.System);
+        messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
 
         //群成员减一
         ChatGroup chatGroup = getById(kickChatGroupVo.getGroupId());
@@ -243,7 +244,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         msgContent.setFromUserId(userId);
         msgContent.setExt("all"); //全部人被踢出，就是解散群聊
         sendMsgVo.setMsgContent(msgContent);
-        messageService.sendMessage(userId, sendMsgVo, MsgType.System);
+        messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
 
         //解散群聊
         return removeById(dissolveChatGroupVo.getGroupId());
