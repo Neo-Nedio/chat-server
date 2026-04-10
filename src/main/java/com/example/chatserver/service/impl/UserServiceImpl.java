@@ -20,9 +20,7 @@ import com.example.chatserver.service.*;
 import com.example.chatserver.utils.*;
 import com.example.chatserver.vo.login.LoginVo;
 import com.example.chatserver.mapper.UserMapper;
-import com.example.chatserver.vo.user.RegisterVo;
-import com.example.chatserver.vo.user.SearchUserVo;
-import com.example.chatserver.vo.user.UpdateVo;
+import com.example.chatserver.vo.user.*;
 import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
 import jakarta.mail.MessagingException;
@@ -221,11 +219,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public boolean updateUserInfo(String userId, UpdatePasswordVo updateVo) {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        String passwordHash = SecurityUtil.hashPassword(updateVo.getConfirmPassword());
+        updateWrapper.set(User::getPassword, passwordHash)
+                .eq(User::getId, userId);
+        return update(updateWrapper);
+    }
+    @Override
     public boolean updateUserPortrait(String userId, String portrait) {
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(User::getPortrait, portrait)
                 .eq(User::getId, userId);
         return update(updateWrapper);
+    }
+
+    @Override
+    public boolean forget(ForgetVo forgetVo) {
+        //验证码校验
+        String code = (String) redisUtils.get(forgetVo.getEmail());
+        if (code == null || !code.equals(forgetVo.getCode())) {
+            throw new BaseException("验证码错误或者已失效~");
+        }
+        redisUtils.del(forgetVo.getEmail());
+
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getAccount, forgetVo.getAccount())
+                .eq(User::getEmail, forgetVo.getEmail());
+        User user = getOne(queryWrapper);
+        if (null == user) throw new BaseException("用户不存在~");
+
+        String passwordHash = SecurityUtil.hashPassword(forgetVo.getPassword());
+        user.setPassword(passwordHash);
+        return updateById(user);
     }
 
     @Override

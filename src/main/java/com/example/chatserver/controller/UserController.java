@@ -5,6 +5,7 @@ import com.example.chatserver.annotation.UrlFree;
 import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.UserDto;
+import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.UserService;
@@ -13,10 +14,7 @@ import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.utils.SecurityUtil;
-import com.example.chatserver.vo.user.EmailVerifyVo;
-import com.example.chatserver.vo.user.RegisterVo;
-import com.example.chatserver.vo.user.SearchUserVo;
-import com.example.chatserver.vo.user.UpdateVo;
+import com.example.chatserver.vo.user.*;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -91,6 +89,36 @@ public class UserController {
     public JSONObject emailVerify(@RequestBody EmailVerifyVo emailVerifyVo) {
         verificationCodeService.emailVerificationCode(emailVerifyVo.getEmail());
         return ResultUtil.Succeed();
+    }
+
+    /**
+     * 忘记密码
+
+     */
+    @UrlFree
+    @PostMapping("/forget")
+    public JSONObject forget(@RequestBody ForgetVo forgetVo) {
+        String decryptedPassword = SecurityUtil.decryptPassword(forgetVo.getPassword());
+        forgetVo.setPassword(decryptedPassword);
+        boolean result = userService.forget(forgetVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
+     *修改密码
+
+     */
+    @PostMapping("/update/password")
+    public JSONObject updateUserPassword(@Userid String userId, @RequestBody UpdatePasswordVo updateVo) {
+        String decryptedPassword = SecurityUtil.decryptPassword(updateVo.getConfirmPassword());
+        updateVo.setConfirmPassword(decryptedPassword);
+        User user = userService.getById(userId);
+        //验证旧密码是否正确
+        if (SecurityUtil.verifyPassword(updateVo.getOldPassword(), user.getPassword())) {
+            boolean result = userService.updateUserInfo(userId, updateVo);
+            return ResultUtil.ResultByFlag(result);
+        }
+        else return ResultUtil.ResultByFlag(false,"原密码错误~",400);
     }
 
     /**

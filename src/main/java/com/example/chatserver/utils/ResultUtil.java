@@ -45,7 +45,7 @@ public class ResultUtil {
         if (flag) {
             return Succeed();
         } else {
-            return Fail();
+            return Fail(msg);
         }
     }
 

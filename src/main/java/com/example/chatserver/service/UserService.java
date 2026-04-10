@@ -7,9 +7,7 @@ import com.example.chatserver.admin.vo.user.*;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.vo.login.LoginVo;
-import com.example.chatserver.vo.user.RegisterVo;
-import com.example.chatserver.vo.user.SearchUserVo;
-import com.example.chatserver.vo.user.UpdateVo;
+import com.example.chatserver.vo.user.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
@@ -28,7 +26,11 @@ public interface UserService extends IService<User> {
 
     boolean updateUserInfo(String userId, UpdateVo updateVo);
 
+    boolean updateUserInfo(String userId, UpdatePasswordVo updateVo);
+
     boolean updateUserPortrait(String userId, String portrait);
+
+    boolean forget(ForgetVo forgetVo);
 
     Page<User> userList(UserListVo userListVo);
 
