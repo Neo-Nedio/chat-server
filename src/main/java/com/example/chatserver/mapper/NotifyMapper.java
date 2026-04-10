@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.chatserver.dto.FriendNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.entity.Notify;
+import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -29,5 +30,6 @@ public interface NotifyMapper extends BaseMapper<Notify> {
     @Select("SELECT * FROM `notify`" +
             "WHERE `type` = 'system' " +
             "ORDER BY `create_time` DESC")
+    @ResultMap("SystemNotifyDtoResultMap")
     List<SystemNotifyDto> SystemListNotify();
 }
