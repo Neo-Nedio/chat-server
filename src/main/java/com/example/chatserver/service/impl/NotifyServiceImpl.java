@@ -1,6 +1,7 @@
 package com.example.chatserver.service.impl;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.admin.vo.notify.DeleteNotifyVo;
@@ -86,5 +87,20 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
     @Override
     public boolean deleteNotify(DeleteNotifyVo deleteNotifyVo) {
         return removeById(deleteNotifyVo.getNotifyId());
+    }
+
+    @Override
+    public boolean createNotify(String url, String title, String text) {
+        SystemNotifyDto.SystemNotifyContent content = new SystemNotifyDto.SystemNotifyContent();
+        content.setImg(url);
+        content.setText(text);
+        content.setTitle(title);
+        Notify notify = new Notify();
+        notify.setId(IdUtil.randomUUID());
+        notify.setType(NotifyType.System);
+        notify.setToId("all");
+        notify.setFromId("system");
+        notify.setContent(JSONUtil.toJsonStr(content));
+        return save(notify);
     }
 }
