@@ -8,6 +8,7 @@ import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.entity.Friend;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.utils.ResultUtil;
+import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.friend.*;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
@@ -68,11 +69,21 @@ public class FriendController {
     }
 
     /**
-     * 同意好友请求
+     * 同意好友请求(好友申请接口在notify)
      */
     @PostMapping("/agree")
     public JSONObject agreeFriendApply(@Userid String userId, @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
         boolean result = friendService.agreeFriendApply(userId, agreeFriendApplyVo);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 扫码好友请求（立即建立好友关系）
+     */
+    @PostMapping("/add/qr")
+    public JSONObject addFriendByQr(@Userid String userId, @RequestBody AddFriendByQrVo AddFriendByQrVo) {
+        String targetId = SecurityUtil.aesDecrypt(AddFriendByQrVo.getQrCode()); //解密出好友id
+        boolean result = friendService.addFriendApply(userId, targetId);
         return ResultUtil.Succeed(result);
     }
 
