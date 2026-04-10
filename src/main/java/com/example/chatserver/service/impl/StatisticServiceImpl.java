@@ -6,6 +6,7 @@ import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.dto.NumInfoDto;
+import com.example.chatserver.dto.Top10MsgDto;
 import com.example.chatserver.entity.Statistic;
 import com.example.chatserver.mapper.StatisticMapper;
 import com.example.chatserver.service.MessageService;
@@ -65,5 +66,10 @@ public class StatisticServiceImpl extends ServiceImpl<StatisticMapper, Statistic
 
     public List<Statistic> getStatisticList(int day) {
         return statisticMapper.getStatisticList(day);
+    }
+
+    @Override
+    public List<Top10MsgDto> top10Msg() {
+        return messageService.getTop10Msg(new Date());
     }
 }

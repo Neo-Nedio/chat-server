@@ -13,6 +13,7 @@ import com.example.chatserver.config.VoiceConfig;
 import com.example.chatserver.constant.MessageContentType;
 import com.example.chatserver.constant.MsgSource;
 import com.example.chatserver.constant.MsgType;
+import com.example.chatserver.dto.Top10MsgDto;
 import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.Message;
 import com.example.chatserver.entity.MessageRetraction;
@@ -334,5 +335,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Override
     public Integer messageNum(DateTime date) {
         return messageMapper.messageNum(date);
+    }
+
+    @Override
+    public List<Top10MsgDto> getTop10Msg(Date date) {
+        return messageMapper.getTop10Msg(date);
     }
 }

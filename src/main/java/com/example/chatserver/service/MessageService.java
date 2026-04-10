@@ -3,6 +3,7 @@ package com.example.chatserver.service;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.chatserver.dto.Top10MsgDto;
 import com.example.chatserver.entity.Message;
 import com.example.chatserver.entity.MessageRetraction;
 import com.example.chatserver.entity.ext.MsgContent;
@@ -13,6 +14,7 @@ import com.example.chatserver.vo.message.SendMsgVo;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 public interface MessageService extends IService<Message> {
@@ -38,4 +40,6 @@ public interface MessageService extends IService<Message> {
     Message voiceToText(String userId, String msgId);
 
     Integer messageNum(DateTime date);
+
+    List<Top10MsgDto> getTop10Msg(Date date);
 }

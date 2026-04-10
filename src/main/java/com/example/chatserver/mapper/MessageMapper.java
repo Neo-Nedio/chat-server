@@ -2,11 +2,13 @@ package com.example.chatserver.mapper;
 
 import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.example.chatserver.dto.Top10MsgDto;
 import com.example.chatserver.entity.Message;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -53,5 +55,16 @@ public interface MessageMapper extends BaseMapper<Message> {
             "    AND create_time < DATE_ADD(#{date}, INTERVAL 1 DAY) ")
     //查看某一天内的消息数量
     Integer messageNum(DateTime date);
+
+    @Select("SELECT u.id, u.account, u.name, u.portrait, COUNT(m.id) AS num " +
+            "FROM message m " +
+            "JOIN user u ON m.from_id = u.id " +
+            "WHERE m.create_time >= DATE(#{date}) " +
+            "  AND m.create_time < DATE_ADD(DATE (#{date}), INTERVAL 1 DAY) " +
+            "GROUP BY u.id " +
+            "ORDER BY num DESC " +
+            "LIMIT 10 ")
+    //获取某天消息数量最多的十名用户
+    List<Top10MsgDto> getTop10Msg(Date date);
 
 }

@@ -5,6 +5,7 @@ import cn.hutool.json.JSONObject;
 import com.example.chatserver.admin.vo.statistic.LoginDetailsVo;
 import com.example.chatserver.annotation.UrlResource;
 import com.example.chatserver.dto.NumInfoDto;
+import com.example.chatserver.dto.Top10MsgDto;
 import com.example.chatserver.dto.UserOperatedDto;
 import com.example.chatserver.service.StatisticService;
 import com.example.chatserver.service.UserOperatedService;
@@ -43,6 +44,16 @@ public class StatisticController {
     @UrlResource("admin")
     public JSONObject numInfo() {
         NumInfoDto result = statisticService.numInfo();
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 消息发送数量top10
+     */
+    @GetMapping("/top10/msg")
+    @UrlResource("admin")
+    public JSONObject top10Msg() {
+        List<Top10MsgDto> result = statisticService.top10Msg();
         return ResultUtil.Succeed(result);
     }
 }

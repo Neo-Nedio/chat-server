@@ -128,9 +128,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userinfo.set("email", user.getEmail());
         //生成用户token
         userinfo.set("token", JwtUtil.createToken(userinfo));
+
+        String ip = getClientIp();
         ThreadUtil.execAsync(() -> {
             //记录登录操作
-            userOperatedService.recordLogin(user.getId(), getClientIp());
+            userOperatedService.recordLogin(user.getId(), ip);
             //更新同时在线人数
             updateRedisOnlineNum();
         });
