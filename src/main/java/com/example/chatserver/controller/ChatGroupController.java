@@ -12,6 +12,7 @@ import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.chatGroup.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -135,6 +136,26 @@ public class ChatGroupController {
         String fileName = groupId + "-portrait" + name.substring(name.lastIndexOf("."));
         String url = minioUtil.upload(request.getInputStream(), fileName, type, size);
         //添加缓存破坏参数 防止浏览器缓存旧头像。每次更新头像后，URL 都会不同，强制刷新。
+        url += "?t=" + System.currentTimeMillis();
+        chatGroupService.updateGroupPortrait(groupId, url);
+        return ResultUtil.Succeed(url);
+    }
+
+    /**
+     * 更新群头像（表单）
+     */
+    @PostMapping(value = "/upload/portrait/form")
+    public JSONObject uploadForm(MultipartFile file,
+                                 @Userid String userId,
+                                 @RequestParam("groupId") String groupId,
+                                 @RequestParam("name") String name,
+                                 @RequestParam("type") String type,
+                                 @RequestParam("size") long size) throws IOException {
+        boolean isOwner = chatGroupService.isOwner(groupId, userId);
+        if (!isOwner)
+            throw new BaseException("您不是群主~");
+        String fileName = groupId + "-portrait" + name.substring(name.lastIndexOf("."));
+        String url = minioUtil.upload(file.getInputStream(), fileName, type, size);
         url += "?t=" + System.currentTimeMillis();
         chatGroupService.updateGroupPortrait(groupId, url);
         return ResultUtil.Succeed(url);
