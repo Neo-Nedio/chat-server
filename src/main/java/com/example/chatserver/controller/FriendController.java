@@ -87,6 +87,15 @@ public class FriendController {
     }
 
     /**
+     * 拒绝好友请求
+     */
+    @PostMapping("/reject")
+    public JSONObject refuseFriendApply(@Userid String userId, @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
+        boolean result = friendService.rejectFriendApply(userId, agreeFriendApplyVo.getNotifyId());
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
      * 扫码好友请求（立即建立好友关系）
      */
     @PostMapping("/add/qr")
