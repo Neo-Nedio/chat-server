@@ -240,7 +240,11 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         MsgContent msgContent = new MsgContent();
         msgContent.setType(MessageContentType.Quit);
         User user = userService.getById(kickChatGroupVo.getUserId());
-        msgContent.setContent(user.getName());
+        //设置系统消息
+        SystemMsgDto systemMsgDto = new SystemMsgDto();
+        systemMsgDto.addEmphasizeContent(user.getName())
+                .addContent("已被踢出该群");
+        msgContent.setContent(JSONUtil.toJsonStr(systemMsgDto.getContents()));
         msgContent.setFromUserId(userId);
         msgContent.setExt(kickChatGroupVo.getUserId());
         sendMsgVo.setMsgContent(msgContent);
