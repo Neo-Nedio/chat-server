@@ -32,7 +32,7 @@ import com.example.chatserver.vo.message.RetractionMsgVo;
 import com.example.chatserver.websocket.WebSocketService;
 import com.example.chatserver.vo.message.SendMsgVo;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ByteArrayResource;
@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@Slf4j
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
 
     @Resource

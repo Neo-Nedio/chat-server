@@ -9,6 +9,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,7 @@ import java.util.Map;
 
 //JWT 认证过滤器，在请求到达 Controller 之前验证 Token 是否有效
 @Component
+@Slf4j
 public class AuthenticationTokenFilter extends OncePerRequestFilter { //确保每个请求只经过一次该过滤器
 
     @Resource
@@ -80,7 +82,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter { //确保�
             out.flush();
             out.close();
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 
