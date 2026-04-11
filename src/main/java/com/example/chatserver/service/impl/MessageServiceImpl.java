@@ -149,14 +149,14 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
-        Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.User, type);
-        MsgContent msgContent = message.getMsgContent();
+        MsgContent msgContent = sendMsgVo.getMsgContent();
         FriendDetailsDto friendDetails = friendService.getFriendDetails(sendMsgVo.getToUserId(), userId);
         msgContent.setFromUserId(userId);
         msgContent.setFromUserName(StringUtils.isNotBlank(friendDetails.getRemark())
                 ? friendDetails.getRemark() : friendDetails.getName());
         msgContent.setFromUserPortrait(friendDetails.getPortrait());
-        //更新聊天列表（展示名与头像已在 sendMessage 内按接收方视角写入 msgContent）
+        Message message = sendMessage(userId, sendMsgVo,sendMsgVo.getMsgContent(), MsgSource.User, type);
+        //更新聊天列表
         chatListService.updateChatList(message.getToId(), userId, message.getMsgContent(), MsgSource.User);
         try {
             //发送消息
@@ -171,7 +171,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     //给群聊发送消息
     public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo, String type) {
-        Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.Group, type);
+        //获取发送方用户信息
+        User user = userService.getById(userId);
+        MsgContent msgContent = sendMsgVo.getMsgContent();
+        msgContent.setFromUserName(user.getName());
+        msgContent.setFromUserPortrait(user.getPortrait());
+        Message message = sendMessage(userId, sendMsgVo, msgContent, MsgSource.Group, type);
         //更新聊天列表
         chatListService.updateChatListGroup(message.getToId(), message.getMsgContent());
         try {

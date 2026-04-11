@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/api//talk-comment")
+@RequestMapping("/v1/api/talk-comment")
 public class TalkCommentController {
     @Resource
     TalkCommentService talkCommentService;
