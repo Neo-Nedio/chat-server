@@ -14,7 +14,6 @@ import com.example.chatserver.config.VoiceConfig;
 import com.example.chatserver.constant.MessageContentType;
 import com.example.chatserver.constant.MsgSource;
 import com.example.chatserver.constant.MsgType;
-import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.Top10MsgDto;
 import com.example.chatserver.entity.ChatList;
@@ -139,7 +138,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             throw new BaseException("双方非好友");
         }
         Message message = sendMessage(userId, sendMsgVo.getToUserId(), sendMsgVo.getMsgContent(), MsgSource.User, type);
-        //更新聊天列表
+        //更新聊天列表（展示名与头像已在 sendMessage 内按接收方视角写入 msgContent）
         chatListService.updateChatList(message.getToId(), userId, message.getMsgContent(), MsgSource.User);
         try {
             //发送消息
