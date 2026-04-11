@@ -99,10 +99,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setId(IdUtil.randomUUID());
         user.setName(registerVo.getUsername());
         user.setAccount(registerVo.getAccount());
-        user.setPassword(registerVo.getPassword());
-        user.setBirthday(new Date());
+        String passwordHash = SecurityUtil.hashPassword(registerVo.getPassword());
         user.setStatus(UserStatus.Normal);
+        user.setPassword(passwordHash);
+        user.setBirthday(new Date());
         user.setSex("男");
+        user.setEmail(registerVo.getEmail());
         user.setPortrait(minioConfig.getEndpoint() + "/" + minioConfig.getBucketName() + "/default-portrait.jpg");
         return save(user);
     }
