@@ -77,6 +77,12 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
     }
 
     @Override
+    public int unreadByType(String userId, String type) {
+        Integer num = notifyMapper.unreadByType(userId, type);
+        return num == null ? 0 : num;
+    }
+
+    @Override
     //通知已读
     public boolean readNotify(String userId, ReadNotifyVo readNotifyVo) {
         LambdaUpdateWrapper<Notify> updateWrapper = new LambdaUpdateWrapper<>();

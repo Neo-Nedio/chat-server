@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.admin.vo.user.*;
 import com.example.chatserver.config.MinioConfig;
+import com.example.chatserver.constant.NotifyType;
 import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.constant.UserStatus;
 import com.example.chatserver.dto.QrCodeResult;
@@ -178,6 +179,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         int notifyNum = notifyService.unread(userId);
         unreadInfo.put("chat", msgNum);
         unreadInfo.put("notify", notifyNum);
+        unreadInfo.put("friendNotify", notifyService.unreadByType(userId, NotifyType.Friend_Apply));
+        unreadInfo.put("systemNotify", notifyService.unreadByType(userId, NotifyType.System));
         return unreadInfo;
     }
 
