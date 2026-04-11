@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.admin.vo.notify.DeleteNotifyVo;
 import com.example.chatserver.constant.FriendApplyStatus;
 import com.example.chatserver.constant.NotifyType;
+import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.FriendNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.entity.Friend;
@@ -40,9 +41,14 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
 
     @Override
     //发送好友申请
-    public boolean friendApplyNotify(String userId, FriendApplyNotifyVo friendApplyNotifyVo) {
+    public boolean friendApplyNotify(String userId,String userRole, FriendApplyNotifyVo friendApplyNotifyVo) {
         if (friendService.isFriendIgnoreSpecial(userId, friendApplyNotifyVo.getUserId())) {
             throw new BaseException("ta已是您的好友");
+        }
+        //管理员直接添加好友，不发送请求
+        if(UserRole.Admin.equals(userRole)){
+            friendService.addFriendApply(userId,friendApplyNotifyVo.getUserId());
+            return true;
         }
 
         Notify notify = new Notify();

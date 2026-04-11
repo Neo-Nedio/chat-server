@@ -2,6 +2,7 @@ package com.example.chatserver.controller;
 
 
 import cn.hutool.json.JSONObject;
+import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.FriendNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
@@ -37,8 +38,8 @@ public class NotifyController {
      * 好友申请通知
      */
     @PostMapping("/friend/apply")
-    public JSONObject friendApplyNotify(@Userid String userId, @RequestBody FriendApplyNotifyVo friendApplyNotifyVo) {
-        boolean result = notifyService.friendApplyNotify(userId, friendApplyNotifyVo);
+    public JSONObject friendApplyNotify(@Userid String userId,@UserRole String userRole,@RequestBody FriendApplyNotifyVo friendApplyNotifyVo) {
+        boolean result = notifyService.friendApplyNotify(userId,userRole, friendApplyNotifyVo);
         return ResultUtil.Succeed(result);
     }
 

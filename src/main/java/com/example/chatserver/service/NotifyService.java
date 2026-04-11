@@ -14,7 +14,7 @@ import java.util.List;
 
 public interface NotifyService extends IService<Notify> {
 
-    boolean friendApplyNotify(String userId, FriendApplyNotifyVo friendApplyNotifyVo);
+    boolean friendApplyNotify(String userId,String userRole, FriendApplyNotifyVo friendApplyNotifyVo);
 
     List<FriendNotifyDto> friendListNotify(String userId);
 
