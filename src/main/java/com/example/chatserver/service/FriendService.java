@@ -18,7 +18,7 @@ public interface FriendService extends IService<Friend> {
 
     FriendDetailsDto getFriendDetails(String userId, String friendId);
 
-    List<FriendDetailsDto> searchFriends(String userId, SearchFriendsVo searchFriendsVo);
+    List<FriendDetailsDto> searchFriends(String userId, SearchVo searchFriendsVo);
 
     boolean agreeFriendApply(String userId, AgreeFriendApplyVo agreeFriendApplyVo);
 

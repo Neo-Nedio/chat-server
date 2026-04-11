@@ -68,6 +68,12 @@ public class Friend implements Serializable {
     private String status;
 
     /**
+     * 聊天背景
+     */
+    @TableField("chat_background")
+    private String chatBackground;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)

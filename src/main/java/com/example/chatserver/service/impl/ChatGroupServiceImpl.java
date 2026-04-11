@@ -28,6 +28,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 
 @Service
@@ -57,9 +58,22 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
     public boolean createChatGroup(String userId, CreateChatGroupVo createChatGroupVo) {
-        //创建群聊
+        ///创建群聊
         ChatGroup chatGroup = new ChatGroup();
         chatGroup.setId(IdUtil.randomUUID());
+        //设置群号
+        Random random = new Random();
+        String randomString = String.format("%010d", random.nextInt(1000000000)); //格式化为 10 位数字（不足 10 位前面补空格）
+        LambdaQueryWrapper<ChatGroup> wrapper = new LambdaQueryWrapper<ChatGroup>()
+                .eq(ChatGroup::getChatGroupNumber, randomString);
+        while (count(wrapper) > 0){ //查询数据库是否存在这个群号
+            //如果已存在，重新生成，直到找到不存在的
+            randomString = String.format("%010d", random.nextInt(1000000000));
+            wrapper.clear();
+            wrapper.eq(ChatGroup::getChatGroupNumber, randomString);
+        }
+        chatGroup.setChatGroupNumber(randomString);
+
         chatGroup.setName(createChatGroupVo.getName());
         chatGroup.setMemberNum(Optional.ofNullable(createChatGroupVo.getUsers()).map(ArrayList::size).orElse(0) + 1 );
         chatGroup.setUserId(userId);
@@ -75,13 +89,14 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
             chatGroup.setNotice(chatGroupNotice);
         }
         boolean isSava = save(chatGroup);
-        //添加自己
+
+        ///添加自己
         ChatGroupMember chatGroupMember = new ChatGroupMember();
         chatGroupMember.setId(IdUtil.randomUUID());
         chatGroupMember.setChatGroupId(chatGroup.getId());
         chatGroupMember.setUserId(userId);
         chatGroupMemberService.save(chatGroupMember);
-        //绑定群成员
+        ///绑定群成员
         if (isSava && null != createChatGroupVo.getUsers()) {
             for (CreateChatGroupVo.User user : createChatGroupVo.getUsers()) {
                 chatGroupMember = new ChatGroupMember();
@@ -208,6 +223,9 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     public boolean kickChatGroup(String userId, KickChatGroupVo kickChatGroupVo) {
         if (!isOwner(kickChatGroupVo.getGroupId(), userId))
             throw new BaseException("您不是群主~");
+        if(userId.equals(kickChatGroupVo.getUserId())){
+            throw new BaseException("不能踢出自己~");
+        }
 
         //踢出群成员
         LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();

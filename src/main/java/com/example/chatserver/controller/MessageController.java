@@ -108,7 +108,7 @@ public class MessageController {
      * 发送文件（表单）
      */
     @PostMapping("/send/file/form")
-    public JSONObject sendFile(MultipartFile file,
+    public JSONObject sendFile(@RequestParam("file") MultipartFile file,
                                @Userid String userId,
                                @RequestParam("msgId") String msgId) throws IOException {
         String url = messageService.sendFileOrImg(userId, msgId, file.getInputStream());
@@ -166,6 +166,16 @@ public class MessageController {
     @GetMapping("/voice/to/text")
     public JSONObject voiceToText(@Userid String userId, @RequestParam("msgId") String msgId) {
         Message result = messageService.voiceToText(userId, msgId);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 语音消息转文字(根据私聊活群聊进行条件判断)
+     */
+    @GetMapping("/voice/to/text/from")
+    public JSONObject voiceToTextFrom(@Userid String userId, @RequestParam("msgId") String msgId,
+                                      @RequestParam("isChatGroupMessage") Boolean isChatGroupMessage) {
+        Message result = messageService.voiceToText(userId, msgId, isChatGroupMessage);
         return ResultUtil.Succeed(result);
     }
 

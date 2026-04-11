@@ -131,16 +131,16 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
     //新建会话
     @Override
     public ChatList createChatList(String userId, String role, CreateChatListVo createChatListVo) {
-        ChatList chatList = null;
+        ChatList chatList;
         if (MsgSource.User.equals(createChatListVo.getType())) {
-            boolean isFriend = friendService.isFriendIgnoreSpecial(userId, createChatListVo.getUserId());
+            boolean isFriend = friendService.isFriendIgnoreSpecial(userId, createChatListVo.getToId());
             if (!isFriend && UserRole.User.equals(role)) { //管理员可以直接开启对话，不用好友
                 throw new BaseException("双方非好友");
             }
-            chatList = chatListMapper.detailChatList(userId, createChatListVo.getUserId());
+            chatList = chatListMapper.detailChatList(userId, createChatListVo.getToId());
         } else {
             //todo 没有检查是否是群成员
-            chatList = chatListMapper.detailChatGroupList(userId, createChatListVo.getUserId());
+            chatList = chatListMapper.detailChatGroupList(userId, createChatListVo.getToId());
         }
         //查询是否有会话,没有则新建
         if (null != chatList)
@@ -151,14 +151,14 @@ public class ChatListServiceImpl extends ServiceImpl<ChatListMapper, ChatList> i
         chatList.setId(IdUtil.randomUUID());
         chatList.setUserId(userId);
         chatList.setType(createChatListVo.getType());
-        chatList.setFromId(createChatListVo.getUserId());
+        chatList.setFromId(createChatListVo.getToId());
         chatList.setUnreadNum(0);
         save(chatList);
         //保存后再次查询，确保返回完整的会话信息（包括数据库生成的字段如 createTime 等）
         if (MsgSource.User.equals(createChatListVo.getType())) {
-            chatList = chatListMapper.detailChatList(userId, createChatListVo.getUserId());
+            chatList = chatListMapper.detailChatList(userId, createChatListVo.getToId());
         } else {
-            chatList = chatListMapper.detailChatGroupList(userId, createChatListVo.getUserId());
+            chatList = chatListMapper.detailChatGroupList(userId, createChatListVo.getToId());
         }
         return chatList;
     }

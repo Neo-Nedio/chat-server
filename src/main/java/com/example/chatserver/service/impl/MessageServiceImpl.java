@@ -32,6 +32,7 @@ import com.example.chatserver.vo.message.RetractionMsgVo;
 import com.example.chatserver.websocket.WebSocketService;
 import com.example.chatserver.vo.message.SendMsgVo;
 import jakarta.annotation.Resource;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -88,7 +89,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Resource
     VoiceConfig voiceConfig;
 
-    public Message sendMessage(String userId, String toUserId, MsgContent msgContent, String source, String type) {
+    private @NotNull Message getMessage(String userId, MsgContent msgContent, String source, String type, String toUserId) {
         //获取上一条显示时间的消息
         Message previousMessage = messageMapper.getPreviousShowTimeMsg(userId, toUserId);
         //存入数据库
@@ -124,10 +125,27 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             msgContent.setContent(content.toJSONString(0));
         }
         message.setMsgContent(msgContent);
-        boolean isSave = save(message); //保存信息
-        if (isSave) {
-            return message;
-        }
+        return message;
+    }
+
+    //第二个参数为toUserId
+    public Message sendMessage(String userId, String toUserId, MsgContent msgContent, String source, String type) {
+        Message message = getMessage(userId, msgContent, source, type, toUserId);
+        boolean isSave = save(message);
+        if (isSave) return message;
+        return null;
+    }
+
+    //第二个参数为SendMsgVo，用于查看是否是转发消息
+    public Message sendMessage(String userId, SendMsgVo sendMsgVo,MsgContent msgContent ,String source, String type) {
+        final String toUserId = sendMsgVo.getToUserId();
+        Message message = getMessage(userId, msgContent, source, type, toUserId);
+
+        //是转发消息
+        if (null != sendMsgVo.getIsForward() && sendMsgVo.getIsForward())
+            message.setFromForwardMsgId(sendMsgVo.getFromMsgId());
+        boolean isSave = save(message);
+        if (isSave) return message;
         return null;
     }
 
@@ -138,7 +156,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
-        Message message = sendMessage(userId, sendMsgVo.getToUserId(), sendMsgVo.getMsgContent(), MsgSource.User, type);
+        Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.User, type);
         //更新聊天列表（展示名与头像已在 sendMessage 内按接收方视角写入 msgContent）
         chatListService.updateChatList(message.getToId(), userId, message.getMsgContent(), MsgSource.User);
         try {
@@ -159,7 +177,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         MsgContent msgContent = sendMsgVo.getMsgContent();
         msgContent.setFromUserName(user.getName());
         msgContent.setFromUserPortrait(user.getPortrait());
-        Message message = sendMessage(userId, sendMsgVo.getToUserId(), msgContent, MsgSource.Group, type);
+        Message message = sendMessage(userId, sendMsgVo, msgContent, MsgSource.Group, type);
         //更新聊天列表
         chatListService.updateChatListGroup(message.getToId(), message.getMsgContent());
         try {
@@ -229,14 +247,27 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         Message message = getById(retractionMsgVo.getMsgId());
         if (null == message)
             throw new BaseException("消息不存在");
+        if (!userId.equals(message.getFromId())) {
+            throw new BaseException("只能撤回自己发送的消息");
+        }
+        if (message.getUpdateTime() == null
+                || DateUtil.between(message.getUpdateTime(), new Date(), DateUnit.SECOND) >= 180) {
+            throw new BaseException("发送超过三分钟的消息不能撤回");
+        }
+
         MsgContent msgContent = message.getMsgContent();
+        //如果是私聊消息，把对方给撤回方的备注写上
+        if (MsgSource.User.equals(message.getSource())) {
+            FriendDetailsDto friendDetails = friendService.getFriendDetails(message.getToId(), userId);
+            msgContent.setFromUserName(StringUtils.isNotBlank(friendDetails.getRemark())
+                    ? friendDetails.getRemark() : friendDetails.getName());
+        }
 
         msgContent.setExt(msgContent.getType());
-
         //只有文本才保存，之前的消息内容
         if (MessageContentType.Text.equals(msgContent.getType())) {
             MessageRetraction messageRetraction = new MessageRetraction();
-            messageRetraction.setMsgId(IdUtil.randomUUID());
+            messageRetraction.setId(IdUtil.randomUUID());
             messageRetraction.setMsgId(message.getId());
             messageRetraction.setMsgContent(msgContent);
             messageRetractionService.save(messageRetraction);
@@ -288,16 +319,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         return minioUtil.uploadFile(inputStream, fileInfo.get("fileName").toString(), fileInfo.getLong("size"));
     }
 
-    @Override
-    public Message voiceToText(String userId, String msgId) {
-        Message message = getById(msgId);
-        if (null == message || !MessageContentType.Voice.equals(message.getMsgContent().getType())) {
-            throw new BaseException("这不是一条语音~");
-        }
-        //两个都不满足，说明既不是发送方也不是接收方，抛出异常
-        if (!message.getToId().equals(userId) && !message.getFromId().equals(userId)) {
-            throw new BaseException("不能查看其他~");
-        }
+    private @NotNull Message getVoiceMessage(Message message) {
         //检查是否已转换过
         JSONObject voice = JSONUtil.parseObj(message.getMsgContent().getContent());
         if (voice.containsKey("text")) {
@@ -339,9 +361,35 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 throw new BaseException("语音转换错误~");
             }
         } catch (Exception e) {
-            log.error("voiceToText:" + e.getMessage());
+            log.error("voiceToText:{}", e.getMessage());
             throw new BaseException("语音转换错误~");
         }
+    }
+
+    @Override
+    public Message voiceToText(String userId, String msgId) {
+        Message message = getById(msgId);
+        if (null == message || !MessageContentType.Voice.equals(message.getMsgContent().getType())) {
+            throw new BaseException("这不是一条语音~");
+        }
+        //两个都不满足，说明既不是发送方也不是接收方，抛出异常
+        if (!message.getToId().equals(userId) && !message.getFromId().equals(userId)) {
+            throw new BaseException("不能查看其他~");
+        }
+        return getVoiceMessage(message);
+    }
+
+    @Override
+    public Message voiceToText(String userId, String msgId,Boolean isChatGroupMessage) {
+        Message message = getById(msgId);
+        if (null == message || !MessageContentType.Voice.equals(message.getMsgContent().getType())) {
+            throw new BaseException("这不是一条语音~");
+        }
+        //三个都不满足，说明既不是发送方也不是接收方，还不在群聊中，抛出异常
+        if (!message.getToId().equals(userId) && !message.getFromId().equals(userId) && !isChatGroupMessage) {
+            throw new BaseException("不能查看其他~");
+        }
+        return getVoiceMessage(message);
     }
 
     @Override

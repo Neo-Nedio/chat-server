@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
      * 自定义异常
      */
     //BaseException（自定义异常）
-    @ExceptionHandler(value = com.example.chatserver.exception.BaseException.class)
+    @ExceptionHandler(value = BaseException.class)
     public Object BaseException(BaseException e, HttpServletRequest request) {
         log.error("自定义异常 -> {}", e.getClass());
         log.error("url -> {}", request.getRequestURL());

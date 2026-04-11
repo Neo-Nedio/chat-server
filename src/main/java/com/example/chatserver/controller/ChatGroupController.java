@@ -20,6 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/v1/api/chat-group")
+//todo 搜索群聊功能(名字/群号) ，用于添加群聊 ，并且给群主设计同意功能
 public class ChatGroupController {
 
     @Resource

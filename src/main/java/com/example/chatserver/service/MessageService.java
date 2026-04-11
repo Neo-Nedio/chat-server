@@ -41,6 +41,8 @@ public interface MessageService extends IService<Message> {
 
     Message voiceToText(String userId, String msgId);
 
+    Message voiceToText(String userId, String msgId,Boolean isChatGroupMessage);
+
     Integer messageNum(DateTime date);
 
     List<Top10MsgDto> getTop10Msg(Date date);

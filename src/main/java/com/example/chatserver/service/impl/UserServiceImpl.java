@@ -128,7 +128,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         //获取token
         JSONObject userinfo = createUserToken(user, userIp);
-        return ResultUtil.Succeed(userinfo);
+        user.setOnlineEquipment(loginVo.getOnlineEquipment());
+        boolean isSave = updateById(user);
+        return isSave?ResultUtil.Succeed(userinfo):ResultUtil.Fail("登录失败~");
     }
 
     public JSONObject createUserToken(User user, String userIp) {

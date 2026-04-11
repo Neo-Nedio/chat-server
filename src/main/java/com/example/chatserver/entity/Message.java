@@ -72,6 +72,13 @@ public class Message implements Serializable {
     private String source;
 
     /**
+     * 转发消息的id
+     */
+    @TableField(value = "from_forward_msgId")
+    private String fromForwardMsgId;
+
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)

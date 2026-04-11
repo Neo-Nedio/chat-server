@@ -105,6 +105,12 @@ public class User implements Serializable {
     private String role;
 
     /**
+     * 在线设备
+     */
+    @TableField("online_equipment")
+    private String onlineEquipment;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)

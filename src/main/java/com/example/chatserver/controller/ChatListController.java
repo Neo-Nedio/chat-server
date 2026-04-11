@@ -4,16 +4,24 @@ package com.example.chatserver.controller;
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
+import com.example.chatserver.dto.ChatDto;
 import com.example.chatserver.dto.ChatListDto;
+import com.example.chatserver.dto.FriendDetailsDto;
+import com.example.chatserver.entity.ChatGroup;
 import com.example.chatserver.entity.ChatList;
+import com.example.chatserver.mapper.ChatGroupMapper;
 import com.example.chatserver.service.ChatListService;
+import com.example.chatserver.service.FriendService;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.chatlist.CreateChatListVo;
 import com.example.chatserver.vo.chatlist.DeleteChatListVo;
 import com.example.chatserver.vo.chatlist.DetailChatListVo;
 import com.example.chatserver.vo.chatlist.TopChatListVo;
+import com.example.chatserver.vo.friend.SearchVo;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -22,6 +30,12 @@ public class ChatListController {
     @Resource
     ChatListService chatListService;
 
+    @Resource
+    FriendService friendService;
+
+    @Resource
+    ChatGroupMapper chatGroupMapper;
+
     /**
      * 获取聊天列表
      */
@@ -29,6 +43,19 @@ public class ChatListController {
     public JSONObject getChatList(@Userid String userId) {
         ChatListDto chatList = chatListService.getChatList(userId);
         return ResultUtil.Succeed(chatList);
+    }
+
+    /**
+     * 搜索好友或群组
+     */
+    @PostMapping("/search")
+    public JSONObject searchFriends(@Userid String userId, @RequestBody SearchVo searchVo) {
+        ChatDto chatDto = new ChatDto();
+        List<FriendDetailsDto> friends = friendService.searchFriends(userId, searchVo);
+        chatDto.setFriend(friends);
+        List<ChatGroup> chatGroups = chatGroupMapper.getListFromSearch(userId, searchVo.getSearchInfo());
+        chatDto.setGroup(chatGroups);
+        return ResultUtil.Succeed(chatDto);
     }
 
     /**

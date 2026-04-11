@@ -17,6 +17,19 @@ public interface ChatGroupMapper extends BaseMapper<ChatGroup> {
     //获得自己的群聊列表
     List<ChatGroup> getList(String userId);
 
+    @Select("<script>" +
+            "SELECT cg.*, cgm.`group_remark` AS `group_remark` FROM `chat_group` AS cg " +
+            "LEFT JOIN `chat_group_member` AS cgm ON cg.`id` = cgm.`chat_group_id` AND cgm.`user_id` = #{userId} " +
+            "WHERE cgm.`user_id` = #{userId} " +
+            "<if test=\"search != null and search != ''\">" +
+            "AND (cg.`name` LIKE CONCAT('%', #{search}, '%') " +
+            "OR cg.`chat_group_number` LIKE CONCAT('%', #{search}, '%') " +
+            "OR cgm.`group_remark` LIKE CONCAT('%', #{search}, '%'))" +
+            "</if>" +
+            "</script>")
+    //搜索自己的群聊列表
+    List<ChatGroup> getListFromSearch(String userId, String search);
+
     @Select("SELECT cg.*,cgm.`group_name`,cgm.`group_remark` from `chat_group` as cg " +
             "LEFT JOIN `chat_group_member` as cgm on cg.`id` = cgm.`chat_group_id` " +
             "where cg.`id` = #{chatGroupId} AND cgm.`user_id`=#{userId} ")

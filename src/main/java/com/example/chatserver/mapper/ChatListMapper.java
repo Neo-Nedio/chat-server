@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface ChatListMapper extends BaseMapper<ChatList> {
 
-    @Select("SELECT c.*, u.`name` AS `name`, f.`remark`, u.`portrait` AS portrait " +
+    @Select("SELECT c.*, u.`name` AS `name`, f.`remark`,f.`chat_background` AS `chatBackground`, u.`portrait` AS portrait " +
             "FROM `chat_list` AS c " +
             "LEFT JOIN `user` AS u ON c.`from_id` = u.`id` " +
             "LEFT JOIN `friend` AS f ON c.`from_id` = f.`friend_id` AND c.`user_id` = f.`user_id` " +
@@ -21,7 +21,7 @@ public interface ChatListMapper extends BaseMapper<ChatList> {
     List<ChatList> getChatListByUserIdAndIsTop(@Param("userId") String userId, @Param("isTop") boolean isTop);
 
     //group_remark：当前用户给群聊的备注名
-    @Select("SELECT c.*, cg.`name` AS `name`, cgm.`group_remark` AS `remark`, cg.`portrait` AS portrait  " +
+    @Select("SELECT c.*, cg.`name` AS `name`, cgm.`chat_background` AS `chatBackground`,cgm.`group_remark` AS `remark`, cg.`portrait` AS portrait  " +
             "FROM `chat_list` AS c " +
             "LEFT JOIN `chat_group` AS cg ON c.`from_id` = cg.`id` " +
             "LEFT JOIN `chat_group_member` AS cgm ON c.`from_id` = cgm.`chat_group_id` AND c.`user_id` = cgm.`user_id`  " +
@@ -31,14 +31,14 @@ public interface ChatListMapper extends BaseMapper<ChatList> {
     List<ChatList> getChatListChatGroupByUserIdAndIsTop(@Param("userId") String userId, @Param("isTop") boolean isTop);
 
 
-    @Select("SELECT c.*, u.`name` AS `name`, u.`portrait` AS portrait, f.`remark` " +
+    @Select("SELECT c.*, u.`name` AS `name`,f.`chat_background` AS `chatBackground`, u.`portrait` AS portrait, f.`remark` " +
             "FROM `chat_list` AS c " +
             "LEFT JOIN `user` AS u ON c.`from_id` = u.`id` " +
             "LEFT JOIN `friend` AS f ON c.`from_id` = f.`friend_id` AND c.`user_id` = f.`user_id` " +
             "WHERE c.`user_id` = #{userId} AND c.`from_id` = #{targetId} ")
     ChatList detailChatList(String userId, String targetId);
 
-    @Select("SELECT c.*, cg.`name` AS `name`, cgm.`group_remark` AS `remark`, cg.`portrait` AS portrait  " +
+    @Select("SELECT c.*, cg.`name` AS `name`, cgm.`chat_background` AS `chatBackground`,cgm.`group_remark` AS `remark`, cg.`portrait` AS portrait  " +
             "FROM `chat_list` AS c " +
             "LEFT JOIN `chat_group` AS cg ON c.`from_id` = cg.`id` " +
             "LEFT JOIN `chat_group_member` AS cgm ON c.`from_id` = cgm.`chat_group_id` AND c.`user_id` = cgm.`user_id`  " +

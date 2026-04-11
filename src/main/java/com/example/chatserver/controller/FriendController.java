@@ -2,17 +2,21 @@ package com.example.chatserver.controller;
 
 
 import cn.hutool.json.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
 import com.example.chatserver.entity.Friend;
 import com.example.chatserver.service.FriendService;
+import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.friend.*;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -22,6 +26,9 @@ public class FriendController {
 
     @Resource
     FriendService friendService;
+
+    @Resource
+    MinioUtil minioUtil;
 
     /**
      * 获取好友列表
@@ -72,8 +79,8 @@ public class FriendController {
      * 搜索好友
      */
     @PostMapping("/search")
-    public JSONObject searchFriends(@Userid String userId, @RequestBody SearchFriendsVo searchFriendsVo) {
-        List<FriendDetailsDto> result = friendService.searchFriends(userId, searchFriendsVo);
+    public JSONObject searchFriends(@Userid String userId, @RequestBody SearchVo searchVo) {
+        List<FriendDetailsDto> result = friendService.searchFriends(userId, searchVo);
         return ResultUtil.Succeed(result);
     }
 
@@ -157,6 +164,36 @@ public class FriendController {
     public JSONObject unCareForFriend(@Userid String userId, @RequestBody UnCareForFriendVo unCareForFriendVo) {
         boolean result = friendService.unCareForFriend(userId, unCareForFriendVo);
         return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
+     * 设置聊天背景
+     */
+    @PostMapping("/set-chat-background")
+    public JSONObject setChatBackground(@Userid String userId,
+                                        @RequestParam("friendId") String friendId,
+                                        @RequestParam("name") String name,
+                                        @RequestParam("type") String type,
+                                        @RequestParam("size") long size,
+                                        @RequestParam("file") MultipartFile file) {
+
+        LambdaQueryWrapper<Friend> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Friend::getUserId, userId).eq(Friend::getFriendId, friendId);
+        Friend friend = friendService.getOne(queryWrapper);
+        if (friend == null) return ResultUtil.Fail("好友不存在");
+        boolean update;
+        String url;
+        try {
+            String fileName = userId+"-"+friendId + "-chat-background" + name.substring(name.lastIndexOf("."));
+            url = minioUtil.upload(file.getInputStream(), fileName, type, size);
+            url += "?t=" + System.currentTimeMillis();
+            friend.setChatBackground(url);
+            update = friendService.updateById(friend);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (!update) return ResultUtil.Fail("设置失败");
+        return ResultUtil.Succeed(url);
     }
 }
 

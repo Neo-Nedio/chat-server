@@ -11,4 +11,7 @@ public class LoginVo {
     private String account;
     @NotNull(message = "密码不能为空")
     private String password;
+
+    // 登录设备
+    private String onlineEquipment;
 }
