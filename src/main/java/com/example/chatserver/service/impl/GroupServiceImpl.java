@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.dto.GroupListDto;
 import com.example.chatserver.entity.Group;
+import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.GroupMapper;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.GroupService;
@@ -40,6 +41,9 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
 
     @Override
     public boolean createGroup(String userId, CreateGroupVo createGroupVo) {
+        if (isExistGroupNameByUserId(userId, createGroupVo.getGroupName())) {
+            throw new BaseException("分组名已存在~");
+        }
         Group group = new Group();
         group.setId(IdUtil.randomUUID());
         group.setUserId(userId);
@@ -49,6 +53,9 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
 
     @Override
     public boolean updateGroup(String userId, UpdateGroupVo updateGroupVo) {
+        if (isExistGroupNameByUserId(userId, updateGroupVo.getGroupName())) {
+            throw new BaseException("分组名已存在~");
+        }
         LambdaUpdateWrapper<Group> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(Group::getName, updateGroupVo.getGroupName())
                 .eq(Group::getUserId, userId)
@@ -92,6 +99,12 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
 
         LambdaQueryWrapper<Group> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Group::getUserId, userId).eq(Group::getId, GroupId);
+        return count(queryWrapper) > 0;
+    }
+
+    public boolean isExistGroupNameByUserId(String userId, String groupName) {
+        LambdaQueryWrapper<Group> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Group::getUserId, userId).eq(Group::getName, groupName);
         return count(queryWrapper) > 0;
     }
 }
