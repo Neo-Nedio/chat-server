@@ -15,6 +15,7 @@ import com.example.chatserver.constant.MessageContentType;
 import com.example.chatserver.constant.MsgSource;
 import com.example.chatserver.constant.MsgType;
 import com.example.chatserver.constant.UserRole;
+import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.Top10MsgDto;
 import com.example.chatserver.entity.ChatList;
 import com.example.chatserver.entity.Message;
@@ -34,6 +35,7 @@ import com.example.chatserver.vo.message.SendMsgVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -103,7 +105,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             message.setIsShowTime(DateUtil.between(new Date(), previousMessage.getUpdateTime(), DateUnit.MINUTE) > 5);
         }
         //设置内容
+        FriendDetailsDto friendDetails = friendService.getFriendDetails(toUserId, userId); //查发送方 userId 在被发送方toUserId那设置的好友信息
         msgContent.setFromUserId(userId);
+        //优先用接收方给发送方设的 备注（remark 非空），否则用好友资料里的 昵称/姓名（name）
+        msgContent.setFromUserName(StringUtils.isNotBlank(friendDetails.getRemark())
+                ? friendDetails.getRemark() : friendDetails.getName());
+        msgContent.setFromUserPortrait(friendDetails.getPortrait());
         if (MessageContentType.Img.equals(msgContent.getType()) ||
                 MessageContentType.File.equals(msgContent.getType()) ||
                 MessageContentType.Voice.equals(msgContent.getType())) {
