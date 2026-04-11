@@ -24,6 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -149,6 +150,19 @@ public class UserController {
                              @RequestHeader("size") long size) throws IOException {
         String fileName = userId + "-portrait" + name.substring(name.lastIndexOf("."));
         String url = minioUtil.upload(request.getInputStream(), fileName, type, size);
+        url += "?t=" + System.currentTimeMillis();
+        userService.updateUserPortrait(userId, url);
+        return ResultUtil.Succeed(url);
+    }
+
+    @PostMapping(value = "upload/portrait/form")
+    public JSONObject uploadFrom(@Userid String userId,
+                                 @RequestParam("name") String name,
+                                 @RequestParam("type") String type,
+                                 @RequestParam("size") long size,
+                                 @RequestParam("file") MultipartFile file) throws IOException {
+        String fileName = userId + "-portrait" + name.substring(name.lastIndexOf("."));
+        String url = minioUtil.upload(file.getInputStream(), fileName, type, size);
         url += "?t=" + System.currentTimeMillis();
         userService.updateUserPortrait(userId, url);
         return ResultUtil.Succeed(url);
