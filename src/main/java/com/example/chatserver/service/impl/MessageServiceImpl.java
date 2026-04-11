@@ -278,10 +278,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     @Override
-    public String sendFileOrImg(String userId, String msgId, HttpServletRequest request) throws IOException {
+    public String sendFileOrImg(String userId, String msgId, InputStream inputStream) throws IOException {
         MsgContent msgContent = getFileMsgContent(userId, msgId);
         JSONObject fileInfo = JSONUtil.parseObj(msgContent.getContent());
-        return minioUtil.uploadFile(request.getInputStream(), fileInfo.get("fileName").toString(), fileInfo.getLong("size"));
+        return minioUtil.uploadFile(inputStream, fileInfo.get("fileName").toString(), fileInfo.getLong("size"));
     }
 
     @Override
