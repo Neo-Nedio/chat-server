@@ -60,6 +60,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     WebSocketService webSocketService;
 
     @Resource
+    VerificationCodeService verificationCodeService;
+
+    @Resource
     UserMapper userMapper;
 
     @Resource
@@ -219,19 +222,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public boolean forget(ForgetVo forgetVo) {
+        User user = getUserByAccount(forgetVo.getAccount());
+        if (null == user) throw new BaseException("用户不存在~");
         //验证码校验
-        String code = (String) redisUtils.get(forgetVo.getEmail());
+        String code = (String) redisUtils.get(user.getEmail());
         if (code == null || !code.equals(forgetVo.getCode())) {
             throw new BaseException("验证码错误或者已失效~");
         }
-        redisUtils.del(forgetVo.getEmail());
-
+        redisUtils.del(user.getEmail());
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getAccount, forgetVo.getAccount())
-                .eq(User::getEmail, forgetVo.getEmail());
-        User user = getOne(queryWrapper);
-        if (null == user) throw new BaseException("用户不存在~");
-
+                .eq(User::getEmail, user.getEmail());
         String passwordHash = SecurityUtil.hashPassword(forgetVo.getPassword());
         user.setPassword(passwordHash);
         return updateById(user);
@@ -483,6 +484,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public User getUserByAccount(String account) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getAccount, account);
+        return getOne(queryWrapper);
+    }
+
+    @Override
     public JSONObject validateQrCodeLogin(QrCodeLoginVo qrCodeLoginVo, String userid) {
         // 获取用户
         User user = getById(userid);
@@ -502,5 +510,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         qrCodeResult.setExtend(userinfo);
         redisUtils.set(qrCodeLoginVo.getKey(), JSONUtil.toJsonStr(qrCodeResult), 60);
         return ResultUtil.Succeed();
+    }
+
+    @Override
+    //通过账号获取邮箱验证码
+    public void emailVerifyByAccount(String account) {
+        User user = getUserByAccount(account);
+        if (null == user) {
+            throw new BaseException("用户不存在~");
+        }
+        if (StringUtils.isEmpty(user.getEmail())) {
+            throw new BaseException("用户没有对应的邮箱~");
+        }
+        verificationCodeService.emailVerificationCode(user.getEmail());
     }
 }

@@ -93,6 +93,16 @@ public class UserController {
     }
 
     /**
+     * 邮箱验证码(通过账号)
+     */
+    @PostMapping("/email/verify/by/account")
+    @UrlFree
+    public JSONObject emailVerifyByAccount(@RequestBody EmailVerifyByAccountVo emailVerifyByAccountVo) {
+        userService.emailVerifyByAccount(emailVerifyByAccountVo.getAccount());
+        return ResultUtil.Succeed();
+    }
+
+    /**
      * 忘记密码
 
      */

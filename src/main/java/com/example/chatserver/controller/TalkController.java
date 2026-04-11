@@ -16,6 +16,7 @@ import com.example.chatserver.vo.talk.TalkListVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -59,6 +60,19 @@ public class TalkController {
         String imgName = IdUtil.randomUUID() + name.substring(name.lastIndexOf("."));
         String imgPath = userId + "/img/" + imgName;
         minioUtil.uploadFile(request.getInputStream(), imgPath, size);
+        Talk talk = talkService.updateTalkImg(userId, talkId, imgName);
+        return ResultUtil.Succeed(talk);
+    }
+
+    @PostMapping("/upload/img/form")
+    public JSONObject uploadImgTalk(MultipartFile file,
+                                    @Userid String userId,
+                                    @RequestParam("talkId") String talkId,
+                                    @RequestParam("name") String name,
+                                    @RequestParam("size") long size) throws IOException {
+        String imgName = IdUtil.randomUUID() + name.substring(name.lastIndexOf("."));
+        String imgPath = userId + "/img/" + imgName;
+        minioUtil.uploadFile(file.getInputStream(), imgPath, size);
         Talk talk = talkService.updateTalkImg(userId, talkId, imgName);
         return ResultUtil.Succeed(talk);
     }

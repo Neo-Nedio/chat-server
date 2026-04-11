@@ -1,6 +1,5 @@
 package com.example.chatserver.vo.user;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -12,8 +11,6 @@ public class ForgetVo {
     private String account;
     @NotNull(message = "密码不能为空")
     private String password;
-    @Email(message = "邮箱格式有误")
-    private String email;
     @NotNull(message = "验证码不能为空")
     private String code;
 }
