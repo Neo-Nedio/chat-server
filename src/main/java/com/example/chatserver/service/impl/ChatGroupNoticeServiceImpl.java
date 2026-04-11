@@ -39,7 +39,7 @@ public class ChatGroupNoticeServiceImpl extends ServiceImpl<ChatGroupNoticeMappe
         boolean isMemberExists = chatGroupMemberService.isMemberExists(noticeListVo.getGroupId(), userId);
         if (!isMemberExists)
             throw new BaseException("非该群成员~");
-        return chatGroupNoticeMapper.noticeList(userId, noticeListVo.getGroupId());
+        return chatGroupNoticeMapper.noticeList(noticeListVo.getGroupId());
     }
 
     @Override
@@ -76,7 +76,7 @@ public class ChatGroupNoticeServiceImpl extends ServiceImpl<ChatGroupNoticeMappe
 
         //如果被删除公告是最新的，找最新一条替代
         if (deleteNoticeVo.getNoticeId().equals(chatGroup.getNotice().getId())) {
-            List<ChatGroupNotice> result = chatGroupNoticeMapper.noticeList(userId, deleteNoticeVo.getGroupId());
+            List<ChatGroupNotice> result = chatGroupNoticeMapper.noticeList(deleteNoticeVo.getGroupId());
             if (null != result) {
                 chatGroup.setNotice(result.get(0));
             }
