@@ -87,11 +87,20 @@ public class FriendController {
     }
 
     /**
+     * 同意好友请求(批量)
+     */
+    @PostMapping("/agree/id")
+    public JSONObject agreeFriendApplyFromId(@Userid String userId, @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
+        boolean result = friendService.agreeFriendApply(userId, agreeFriendApplyVo.getFromId());
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
      * 拒绝好友请求
      */
     @PostMapping("/reject")
-    public JSONObject refuseFriendApply(@Userid String userId, @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
-        boolean result = friendService.rejectFriendApply(userId, agreeFriendApplyVo.getNotifyId());
+    public JSONObject refuseFriendApply(@Userid String userId, @RequestBody RejectFriendApplyVo friendApplyVo) {
+        boolean result = friendService.rejectFriendApply(userId, friendApplyVo.getFromId());
         return ResultUtil.Succeed(result);
     }
 

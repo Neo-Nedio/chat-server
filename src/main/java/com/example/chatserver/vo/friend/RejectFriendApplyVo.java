@@ -4,11 +4,11 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 
+
 @Data
-public class AgreeFriendApplyVo {
+public class RejectFriendApplyVo {
 
-    @NotNull(message = "好友申请的通知id不能为空")
-    public String notifyId;
-
+    @NotNull(message = "fromId不能为空")
     private String fromId;
+
 }
