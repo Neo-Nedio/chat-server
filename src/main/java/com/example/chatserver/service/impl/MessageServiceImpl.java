@@ -89,7 +89,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Resource
     VoiceConfig voiceConfig;
 
-    private @NotNull Message getMessage(String userId, MsgContent msgContent, String source, String type, String toUserId) {
+    private Message getMessage(String userId, MsgContent msgContent, String source, String type, String toUserId) {
         //获取上一条显示时间的消息
         Message previousMessage = messageMapper.getPreviousShowTimeMsg(userId, toUserId);
         //存入数据库
