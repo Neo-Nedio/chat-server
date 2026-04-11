@@ -77,8 +77,10 @@ public class ChatGroupNoticeServiceImpl extends ServiceImpl<ChatGroupNoticeMappe
         //如果被删除公告是最新的，找最新一条替代
         if (deleteNoticeVo.getNoticeId().equals(chatGroup.getNotice().getId())) {
             List<ChatGroupNotice> result = chatGroupNoticeMapper.noticeList(deleteNoticeVo.getGroupId());
-            if (null != result) {
+            if (result != null && !result.isEmpty()) {
                 chatGroup.setNotice(result.get(0));
+            } else {
+                chatGroup.setNotice(null);
             }
             return chatGroupService.updateById(chatGroup);
         }

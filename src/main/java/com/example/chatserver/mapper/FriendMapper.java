@@ -17,7 +17,7 @@ public interface FriendMapper extends BaseMapper<Friend> {
     //先从好友表找到对应好友id，再去用户表找对应名字
     List<Friend> getFriendByUserIdAndGroupId(@Param("userId") String userId, @Param("groupId") String groupId);
 
-    @Select("SELECT u.*, f.`remark`, g.`name` AS `group_name`, f.`friend_id`, f.`is_concern` " +
+    @Select("SELECT u.*, f.`remark`, g.`name` AS `groupName`, f.`friend_id`, f.`is_concern` " +
             "FROM `friend` AS f " +
             "         LEFT JOIN `user` AS u ON f.`friend_id` = u.`id` " +
             "         LEFT JOIN `group` AS g ON f.`group_id` = g.`id` " +
@@ -25,7 +25,7 @@ public interface FriendMapper extends BaseMapper<Friend> {
             "  AND f.`friend_id` = #{friendId} ")
     FriendDetailsDto getFriendDetails(@Param("userId") String userId, @Param("friendId") String friendId);
 
-    @Select("SELECT u.*, f.`remark`, g.`name` AS `group_name`, f.`friend_id`, f.`is_concern` " +
+    @Select("SELECT u.*, f.`remark`, g.`name` AS `groupName`, f.`friend_id`, f.`is_concern` " +
             "FROM `friend` AS f " +
             "         LEFT JOIN `user` AS u ON f.`friend_id` = u.`id` " +
             "         LEFT JOIN `group` AS g ON f.`group_id` = g.`id` " +

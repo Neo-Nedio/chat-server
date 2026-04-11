@@ -42,6 +42,11 @@ public class WebSocketService {
     public static final ConcurrentHashMap<String, Channel> Online_User = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<Channel, String> Online_Channel = new ConcurrentHashMap<>();
 
+    public boolean isOnline(String userId) {
+        Channel channel = Online_User.get(userId);
+        return channel != null && channel.isActive();
+    }
+
     //用户上线
     public void online(Channel channel, String token) {
         try {

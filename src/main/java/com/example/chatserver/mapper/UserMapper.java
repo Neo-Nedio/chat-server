@@ -13,6 +13,10 @@ public interface UserMapper extends BaseMapper<User> {
     @Select("select * from `user` where `id` = #{userId}")
     UserDto info(String userId);
 
-    @Select("SELECT * FROM user WHERE account = #{userInfo} OR phone = #{userInfo} OR email = #{userInfo}")
+    @Select("SELECT * FROM user " +
+            "WHERE account LIKE CONCAT('%', #{userInfo}, '%') " +
+            "   OR phone LIKE CONCAT('%', #{userInfo}, '%') " +
+            "   OR email LIKE CONCAT('%', #{userInfo}, '%') " +
+            "   OR name LIKE CONCAT('%', #{userInfo}, '%')")
     List<UserDto> findUserByInfo(String userInfo);
 }

@@ -50,6 +50,9 @@ public class VideoService {
         msg.set("type", "invite");
         msg.set("fromId", userId);
         msg.set("isOnlyAudio", inviteVo.isOnlyAudio());
+        if(!webSocketService.isOnline(inviteVo.getUserId())){
+            throw new BaseException("对方不在线或连接异常");
+        }
         webSocketService.sendVideoToUser(msg, inviteVo.getUserId());
         return true;
     }
@@ -62,6 +65,9 @@ public class VideoService {
         JSONObject msg = new JSONObject();
         msg.set("type", "accept");
         msg.set("fromId", userId);
+        if(!webSocketService.isOnline(acceptVo.getUserId())){
+            throw new BaseException("对方不在线或连接异常");
+        }
         webSocketService.sendVideoToUser(msg, acceptVo.getUserId());
         return true;
     }
@@ -76,6 +82,9 @@ public class VideoService {
         //desc 包含了通话的媒体配置信息，比如用什么编码、网络地址、端口等。
         msg.set("desc", offerVo.getDesc());
         msg.set("fromId", userId);
+        if(!webSocketService.isOnline(offerVo.getUserId())){
+            throw new BaseException("对方不在线或连接异常");
+        }
         webSocketService.sendVideoToUser(msg, offerVo.getUserId());
         return true;
     }
@@ -90,6 +99,9 @@ public class VideoService {
         //desc 包含了通话的媒体配置信息，比如用什么编码、网络地址、端口等。
         msg.set("desc", answerVo.getDesc());
         msg.set("fromId", userId);
+        if(!webSocketService.isOnline(answerVo.getUserId())){
+            throw new BaseException("对方不在线或连接异常");
+        }
         webSocketService.sendVideoToUser(msg, answerVo.getUserId());
         return true;
     }
@@ -104,6 +116,9 @@ public class VideoService {
         //candidate 是 ICE Candidate（ICE 候选者），包含了网络地址信息，用于帮助双方找到彼此并建立 P2P 连接。
         msg.set("candidate", candidateVo.getCandidate());
         msg.set("fromId", userId);
+        if(!webSocketService.isOnline(candidateVo.getUserId())){
+            throw new BaseException("对方不在线或连接异常");
+        }
         webSocketService.sendVideoToUser(msg, candidateVo.getUserId());
         return true;
     }
@@ -116,6 +131,9 @@ public class VideoService {
         JSONObject msg = new JSONObject();
         msg.set("type", "hangup");
         msg.set("fromId", userId);
+        if(!webSocketService.isOnline(hangupVo.getUserId())){
+            throw new BaseException("对方不在线或连接异常");
+        }
         webSocketService.sendVideoToUser(msg, hangupVo.getUserId());
         return true;
     }

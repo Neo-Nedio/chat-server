@@ -373,6 +373,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public boolean updateUser(UpdateUserVo updateUserVo) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getEmail, updateUserVo.getEmail());
+        if (count(queryWrapper) > 0) {
+            throw new BaseException("邮箱已存在~");
+        }
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(User::getName, updateUserVo.getName())
                 .set(User::getEmail, updateUserVo.getEmail())

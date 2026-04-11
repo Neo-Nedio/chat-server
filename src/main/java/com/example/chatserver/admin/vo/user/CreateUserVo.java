@@ -12,6 +12,7 @@ public class CreateUserVo {
     @NotNull(message = "用户名不能为空")
     private String name;
     @Email(message = "邮箱格式有误")
+    @Email(message = "邮箱不能为空")
     private String email;
     private String phone;
 }

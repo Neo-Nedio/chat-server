@@ -17,6 +17,7 @@ import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.user.*;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.InputStreamResource;
@@ -56,7 +57,7 @@ public class UserController {
      */
     @UrlFree
     @PostMapping("/register")
-    public JSONObject register(@RequestBody RegisterVo registerVo) {
+    public JSONObject register(@Valid @RequestBody RegisterVo registerVo) {
         //RSA 解密
         String decryptedPassword = SecurityUtil.decryptPassword(registerVo.getPassword());
         registerVo.setPassword(decryptedPassword);
