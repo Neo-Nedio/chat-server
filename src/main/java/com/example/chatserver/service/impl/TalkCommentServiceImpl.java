@@ -56,9 +56,6 @@ public class TalkCommentServiceImpl extends ServiceImpl<TalkCommentMapper, TalkC
         Talk talk = talkService.getById(deleteTalkLikeVo.getTalkId());
         talk.setCommentNum(talk.getCommentNum() - 1);
         talkService.updateById(talk);
-        LambdaQueryWrapper<TalkComment> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(TalkComment::getTalkId, deleteTalkLikeVo.getTalkId())
-                .eq(TalkComment::getUserId, userId);
-        return remove(queryWrapper);
+        return removeById(deleteTalkLikeVo.getTalkCommentId());
     }
 }
