@@ -105,13 +105,6 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         } else {
             message.setIsShowTime(DateUtil.between(new Date(), previousMessage.getUpdateTime(), DateUnit.MINUTE) > 5);
         }
-        //设置内容
-        FriendDetailsDto friendDetails = friendService.getFriendDetails(toUserId, userId); //查发送方 userId 在被发送方toUserId那设置的好友信息
-        msgContent.setFromUserId(userId);
-        //优先用接收方给发送方设的 备注（remark 非空），否则用好友资料里的 昵称/姓名（name）
-        msgContent.setFromUserName(StringUtils.isNotBlank(friendDetails.getRemark())
-                ? friendDetails.getRemark() : friendDetails.getName());
-        msgContent.setFromUserPortrait(friendDetails.getPortrait());
         if (MessageContentType.Img.equals(msgContent.getType()) ||
                 MessageContentType.File.equals(msgContent.getType()) ||
                 MessageContentType.Voice.equals(msgContent.getType())) {
@@ -157,6 +150,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             throw new BaseException("双方非好友");
         }
         Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.User, type);
+        MsgContent msgContent = message.getMsgContent();
+        FriendDetailsDto friendDetails = friendService.getFriendDetails(sendMsgVo.getToUserId(), userId);
+        msgContent.setFromUserId(userId);
+        msgContent.setFromUserName(StringUtils.isNotBlank(friendDetails.getRemark())
+                ? friendDetails.getRemark() : friendDetails.getName());
+        msgContent.setFromUserPortrait(friendDetails.getPortrait());
         //更新聊天列表（展示名与头像已在 sendMessage 内按接收方视角写入 msgContent）
         chatListService.updateChatList(message.getToId(), userId, message.getMsgContent(), MsgSource.User);
         try {
@@ -172,12 +171,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     //给群聊发送消息
     public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo, String type) {
-        //获取发送方用户信息
-        User user = userService.getById(userId);
-        MsgContent msgContent = sendMsgVo.getMsgContent();
-        msgContent.setFromUserName(user.getName());
-        msgContent.setFromUserPortrait(user.getPortrait());
-        Message message = sendMessage(userId, sendMsgVo, msgContent, MsgSource.Group, type);
+        Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.Group, type);
         //更新聊天列表
         chatListService.updateChatListGroup(message.getToId(), message.getMsgContent());
         try {

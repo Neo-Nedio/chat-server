@@ -12,13 +12,12 @@ import lombok.experimental.Accessors;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("chat_list")
+@TableName(value = "chat_list", autoResultMap = true)
 public class ChatList implements Serializable {
 
     @Serial
