@@ -13,13 +13,11 @@ import com.example.chatserver.constant.MsgType;
 import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.ChatGroupDetailsDto;
 import com.example.chatserver.dto.SystemMsgDto;
-import com.example.chatserver.entity.ChatGroup;
-import com.example.chatserver.entity.ChatGroupMember;
-import com.example.chatserver.entity.ChatList;
-import com.example.chatserver.entity.User;
+import com.example.chatserver.entity.*;
 import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.ChatGroupMapper;
+import com.example.chatserver.mapper.ChatGroupNoticeMapper;
 import com.example.chatserver.service.*;
 import com.example.chatserver.vo.chatGroup.*;
 import com.example.chatserver.vo.message.SendMsgVo;
@@ -51,6 +49,9 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     ChatGroupMapper chatGroupMapper;
 
     @Resource
+    ChatGroupNoticeMapper chatGroupNoticeMapper;
+
+    @Resource
     MinioConfig minioConfig;
 
     @Override
@@ -64,6 +65,15 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         chatGroup.setUserId(userId);
         chatGroup.setOwnerUserId(userId);
         chatGroup.setPortrait(minioConfig.getEndpoint() + "/" + minioConfig.getBucketName() + "/default-group-portrait.png");
+        if (createChatGroupVo.getNotice() != null){
+            ChatGroupNotice chatGroupNotice = new ChatGroupNotice();
+            chatGroupNotice.setId(IdUtil.randomUUID());
+            chatGroupNotice.setChatGroupId(chatGroup.getId());
+            chatGroupNotice.setNoticeContent(createChatGroupVo.getNotice());
+            chatGroupNotice.setUserId(userId);
+            chatGroupNoticeMapper.insert(chatGroupNotice);
+            chatGroup.setNotice(chatGroupNotice);
+        }
         boolean isSava = save(chatGroup);
         //添加自己
         ChatGroupMember chatGroupMember = new ChatGroupMember();

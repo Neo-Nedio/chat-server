@@ -253,7 +253,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         chatListService.updateById(userIdchatList);
 
         //更新接收方的聊天列表
-        ChatList toIdchatList = null;
+        ChatList toIdchatList;
         if (MsgSource.User.equals(message.getSource())) {
             // 单聊：对方是接收方
             toIdchatList = chatListService.getChatListByUserIdAndFromId(message.getToId(), userId);
@@ -265,7 +265,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         chatListService.updateById(toIdchatList);
 
         //发送
-        webSocketService.sendMsgToUser(message, message.getToId());
+        if (message.getSource().equals(MsgSource.User))
+            webSocketService.sendMsgToUser(message, message.getToId());
+        if (message.getSource().equals(MsgSource.Group))
+            webSocketService.sendMsgToGroup(message, retractionMsgVo.getTargetId());
         return message;
     }
 
