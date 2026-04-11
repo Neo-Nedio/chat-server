@@ -127,7 +127,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     //给用户发送消息
     public Message sendMessageToUser(String userId, SendMsgVo sendMsgVo, String type) {
         //验证是否是好友
-        boolean isFriend = friendService.isFriend(userId, sendMsgVo.getToUserId());
+        boolean isFriend = friendService.isFriendIgnoreSpecial(userId, sendMsgVo.getToUserId());
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }

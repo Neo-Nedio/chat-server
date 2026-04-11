@@ -41,11 +41,7 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
     @Override
     //发送好友申请
     public boolean friendApplyNotify(String userId, FriendApplyNotifyVo friendApplyNotifyVo) {
-        LambdaQueryWrapper<Friend> queryFriendWrapper = new LambdaQueryWrapper<>();
-        queryFriendWrapper
-                .eq(Friend::getUserId, userId)
-                .eq(Friend::getFriendId, friendApplyNotifyVo.getUserId());
-        if (friendService.count(queryFriendWrapper) > 0) {
+        if (friendService.isFriendIgnoreSpecial(userId, friendApplyNotifyVo.getUserId())) {
             throw new BaseException("ta已是您的好友");
         }
 

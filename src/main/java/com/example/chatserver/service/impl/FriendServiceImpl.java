@@ -89,6 +89,16 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
         return friendListDtoS;
     }
 
+    /**
+     * 判断是否是好友（忽略管理员，三方用户)
+     */
+    @Override
+    public boolean isFriendIgnoreSpecial(String userId, String friendId) {
+        LambdaQueryWrapper<Friend> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Friend::getUserId, userId).eq(Friend::getFriendId, friendId);
+        return count(queryWrapper) > 0;
+    }
+
     @Override
     public boolean isFriend(String userId, String friendId) {
         //如果是管理员，当作双方是好友
@@ -108,7 +118,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
 
     @Override
     public FriendDetailsDto getFriendDetails(String userId, String friendId) {
-        boolean isFriend = isFriend(userId, friendId);
+        boolean isFriend = isFriendIgnoreSpecial(userId, friendId);
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }

@@ -42,7 +42,7 @@ public class VideoService {
     //这里的类型是消息的类型，总的类型video由WebSocket设置
 
     public boolean invite(String userId, InviteVo inviteVo) {
-        boolean isFriend = friendService.isFriend(userId, inviteVo.getUserId());
+        boolean isFriend = friendService.isFriendIgnoreSpecial(userId, inviteVo.getUserId());
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
@@ -55,7 +55,7 @@ public class VideoService {
     }
 
     public boolean accept(String userId, AcceptVo acceptVo) {
-        boolean isFriend = friendService.isFriend(userId, acceptVo.getUserId());
+        boolean isFriend = friendService.isFriendIgnoreSpecial(userId, acceptVo.getUserId());
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
@@ -67,7 +67,7 @@ public class VideoService {
     }
 
     public boolean offer(String userId, OfferVo offerVo) {
-        boolean isFriend = friendService.isFriend(userId, offerVo.getUserId());
+        boolean isFriend = friendService.isFriendIgnoreSpecial(userId, offerVo.getUserId());
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
@@ -81,7 +81,7 @@ public class VideoService {
     }
 
     public boolean answer(String userId, AnswerVo answerVo) {
-        boolean isFriend = friendService.isFriend(userId, answerVo.getUserId());
+        boolean isFriend = friendService.isFriendIgnoreSpecial(userId, answerVo.getUserId());
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
@@ -95,7 +95,7 @@ public class VideoService {
     }
 
     public boolean candidate(String userId, CandidateVo candidateVo) {
-        boolean isFriend = friendService.isFriend(userId, candidateVo.getUserId());
+        boolean isFriend = friendService.isFriendIgnoreSpecial(userId, candidateVo.getUserId());
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
@@ -109,7 +109,7 @@ public class VideoService {
     }
 
     public boolean hangup(String userId, HangupVo hangupVo) {
-        boolean isFriend = friendService.isFriend(userId, hangupVo.getUserId());
+        boolean isFriend = friendService.isFriendIgnoreSpecial(userId, hangupVo.getUserId());
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
