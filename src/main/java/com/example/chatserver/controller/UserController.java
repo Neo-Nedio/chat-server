@@ -1,11 +1,13 @@
 package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.example.chatserver.annotation.UrlFree;
 import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.entity.User;
+import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.UserService;
@@ -27,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.print.Printable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -159,11 +162,11 @@ public class UserController {
                              @RequestHeader("name") String name,
                              @RequestHeader("type") String type,
                              @RequestHeader("size") long size) throws IOException {
-        String fileName = userId + "-portrait" + name.substring(name.lastIndexOf("."));
-        String url = minioUtil.upload(request.getInputStream(), fileName, type, size);
-        url += "?t=" + System.currentTimeMillis();
-        userService.updateUserPortrait(userId, url);
-        return ResultUtil.Succeed(url);
+        //用时间戳让文件名不一样，从而url不一样，这样前端就不会因为url一样用原缓存
+        String fileName = userId + "-portrait" + System.currentTimeMillis() + name.substring(name.lastIndexOf("."));
+        minioUtil.upload(request.getInputStream(), fileName, type, size);
+        userService.updateUserPortrait(userId, fileName);
+        return ResultUtil.Succeed(fileName);
     }
 
     @PostMapping(value = "upload/portrait/form")
@@ -172,10 +175,23 @@ public class UserController {
                                  @RequestParam("type") String type,
                                  @RequestParam("size") long size,
                                  @RequestParam("file") MultipartFile file) throws IOException {
-        String fileName = userId + "-portrait" + name.substring(name.lastIndexOf("."));
-        String url = minioUtil.upload(file.getInputStream(), fileName, type, size);
-        url += "?t=" + System.currentTimeMillis();
-        userService.updateUserPortrait(userId, url);
+        //用时间戳让文件名不一样，从而url不一样，这样前端就不会因为url一样用原缓存
+        String fileName = userId + "-portrait" + System.currentTimeMillis() + name.substring(name.lastIndexOf("."));
+        minioUtil.upload(file.getInputStream(), fileName, type, size);
+        userService.updateUserPortrait(userId, fileName);
+        return ResultUtil.Succeed(fileName);
+    }
+
+    /**
+     * 获取头像
+     */
+    @GetMapping("/get/portrait")
+    public JSONObject getMedia(@Userid String userId, @RequestParam("fileName") String fileName) {
+        String url = (String) redisUtils.get(fileName);
+        if (StringUtils.isBlank(url)) {
+            url = minioUtil.preview(fileName);
+            redisUtils.set(fileName, url, 7 * 24 * 60 * 60);
+        }
         return ResultUtil.Succeed(url);
     }
 
