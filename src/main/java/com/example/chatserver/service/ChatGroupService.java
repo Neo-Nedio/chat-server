@@ -18,7 +18,7 @@ public interface ChatGroupService extends IService<ChatGroup> {
 
     boolean isOwner(String groupId, String userId);
 
-    boolean updateGroupPortrait(String groupId, String url);
+    boolean updateGroupPortrait(String groupId, String fileName);
 
     boolean updateChatGroupName(String userId, UpdateChatGroupNameVo updateChatGroupNameVo);
 

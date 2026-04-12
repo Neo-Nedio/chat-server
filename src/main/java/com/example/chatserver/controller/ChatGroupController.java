@@ -133,13 +133,11 @@ public class ChatGroupController {
         boolean isOwner = chatGroupService.isOwner(groupId, userId);
         if (!isOwner)
             throw new BaseException("您不是群主~");
-        //最终文件名	${groupId}-portrait.png
-        String fileName = groupId + "-portrait" + name.substring(name.lastIndexOf("."));
-        String url = minioUtil.upload(request.getInputStream(), fileName, type, size);
         //添加缓存破坏参数 防止浏览器缓存旧头像。每次更新头像后，URL 都会不同，强制刷新。
-        url += "?t=" + System.currentTimeMillis();
-        chatGroupService.updateGroupPortrait(groupId, url);
-        return ResultUtil.Succeed(url);
+        String fileName = groupId + "-portrait" +  System.currentTimeMillis() + name.substring(name.lastIndexOf("."));
+        minioUtil.upload(request.getInputStream(), fileName, type, size);
+        chatGroupService.updateGroupPortrait(groupId, fileName);
+        return ResultUtil.Succeed(fileName);
     }
 
     /**
@@ -155,10 +153,10 @@ public class ChatGroupController {
         boolean isOwner = chatGroupService.isOwner(groupId, userId);
         if (!isOwner)
             throw new BaseException("您不是群主~");
-        String fileName = groupId + "-portrait" + name.substring(name.lastIndexOf("."));
-        String url = minioUtil.upload(file.getInputStream(), fileName, type, size);
-        url += "?t=" + System.currentTimeMillis();
-        chatGroupService.updateGroupPortrait(groupId, url);
-        return ResultUtil.Succeed(url);
+        //添加缓存破坏参数 防止浏览器缓存旧头像。每次更新头像后，URL 都会不同，强制刷新。
+        String fileName = groupId + "-portrait" +  System.currentTimeMillis() + name.substring(name.lastIndexOf("."));
+        minioUtil.upload(file.getInputStream(), fileName, type, size);
+        chatGroupService.updateGroupPortrait(groupId, fileName);
+        return ResultUtil.Succeed(fileName);
     }
 }

@@ -127,9 +127,10 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     }
 
     @Override
-    public boolean updateGroupPortrait(String groupId, String url) {
+    //头像从userController获取
+    public boolean updateGroupPortrait(String groupId, String fileName) {
         LambdaUpdateWrapper<ChatGroup> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.set(ChatGroup::getPortrait, url)
+        updateWrapper.set(ChatGroup::getPortrait, fileName)
                 .eq(ChatGroup::getId, groupId);
         return update(updateWrapper);
     }
