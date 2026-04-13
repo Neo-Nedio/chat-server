@@ -371,19 +371,6 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     @Override
-    public Message voiceToText(String userId, String msgId) {
-        Message message = getById(msgId);
-        if (null == message || !MessageContentType.Voice.equals(message.getMsgContent().getType())) {
-            throw new BaseException("这不是一条语音~");
-        }
-        //两个都不满足，说明既不是发送方也不是接收方，抛出异常
-        if (!message.getToId().equals(userId) && !message.getFromId().equals(userId)) {
-            throw new BaseException("不能查看其他~");
-        }
-        return getVoiceMessage(message);
-    }
-
-    @Override
     public Message voiceToText(String userId, String msgId,Boolean isChatGroupMessage) {
         Message message = getById(msgId);
         if (null == message || !MessageContentType.Voice.equals(message.getMsgContent().getType())) {

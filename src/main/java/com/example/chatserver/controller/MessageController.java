@@ -164,16 +164,7 @@ public class MessageController {
      * 语音消息转文字
      */
     @GetMapping("/voice/to/text")
-    public JSONObject voiceToText(@Userid String userId, @RequestParam("msgId") String msgId) {
-        Message result = messageService.voiceToText(userId, msgId);
-        return ResultUtil.Succeed(result);
-    }
-
-    /**
-     * 语音消息转文字(根据私聊活群聊进行条件判断)
-     */
-    @GetMapping("/voice/to/text/from")
-    public JSONObject voiceToTextFrom(@Userid String userId, @RequestParam("msgId") String msgId,
+    public JSONObject voiceToText(@Userid String userId, @RequestParam("msgId") String msgId,
                                       @RequestParam("isChatGroupMessage") Boolean isChatGroupMessage) {
         Message result = messageService.voiceToText(userId, msgId, isChatGroupMessage);
         return ResultUtil.Succeed(result);
