@@ -178,7 +178,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         msgContent.setFromUserName(user.getName());
         msgContent.setFromUserPortrait(user.getPortrait());*/
         //不在群聊不允许发言
-        if(chatGroupMemberService.isMemberExists(sendMsgVo.getToUserId(), userId)){
+        if(!chatGroupMemberService.isMemberExists(sendMsgVo.getToUserId(), userId)){
             throw new BaseException("你不在群聊内");
         }
         Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.Group, type);
