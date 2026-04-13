@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -103,7 +104,6 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
                 chatGroupMember.setId(IdUtil.randomUUID());
                 chatGroupMember.setChatGroupId(chatGroup.getId());
                 chatGroupMember.setUserId(user.getUserId());
-                chatGroupMember.setGroupRemark(user.getName());
                 chatGroupMemberService.save(chatGroupMember);
             }
         }
@@ -136,12 +136,30 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     }
 
     @Override
+    @Transactional(rollbackFor = RuntimeException.class)
     public boolean updateChatGroupName(String userId, UpdateChatGroupNameVo updateChatGroupNameVo) {
         if (!isOwner(updateChatGroupNameVo.getGroupId(), userId))
             throw new BaseException("您不是群主~");
         LambdaUpdateWrapper<ChatGroup> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(ChatGroup::getName, updateChatGroupNameVo.getName())
                 .eq(ChatGroup::getId, updateChatGroupNameVo.getGroupId());
+
+        //发送群消息系统消息
+        SendMsgVo sendMsgVo = new SendMsgVo();
+        sendMsgVo.setSource(MsgSource.Group);
+        sendMsgVo.setToUserId(updateChatGroupNameVo.getGroupId());
+        MsgContent msgContent = new MsgContent();
+        msgContent.setType(MessageContentType.System);
+        //设置系统消息
+        SystemMsgDto systemMsgDto = new SystemMsgDto();
+        systemMsgDto.addEmphasizeContent("群主")
+                .addContent("修改了群名称");
+        msgContent.setContent(JSONUtil.toJsonStr(systemMsgDto.getContents()));
+        msgContent.setFromUserId(userId);
+        msgContent.setExt(userId);
+        sendMsgVo.setMsgContent(msgContent);
+        messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
+
         return update(updateWrapper);
     }
 
@@ -207,6 +225,23 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
                 .eq(ChatGroupMember::getChatGroupId, quitChatGroupVo.getGroupId());
         chatGroupMemberService.remove(queryWrapper);
 
+        //发送群消息
+        SendMsgVo sendMsgVo = new SendMsgVo();
+        sendMsgVo.setSource(MsgSource.Group);
+        sendMsgVo.setToUserId(quitChatGroupVo.getGroupId());
+        MsgContent msgContent = new MsgContent();
+        msgContent.setType(MessageContentType.Quit);
+        User user = userService.getById(userId);
+        //设置系统消息
+        SystemMsgDto systemMsgDto = new SystemMsgDto();
+        systemMsgDto.addEmphasizeContent(user.getName())
+                .addContent("退出了群聊");
+        msgContent.setContent(JSONUtil.toJsonStr(systemMsgDto.getContents()));
+        msgContent.setFromUserId(userId);
+        msgContent.setExt(userId);
+        sendMsgVo.setMsgContent(msgContent);
+        messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
+
         //删除会话
         LambdaQueryWrapper<ChatList> chatListLambdaQueryWrapper = new LambdaQueryWrapper<>();
         chatListLambdaQueryWrapper.eq(ChatList::getUserId, userId)
@@ -251,6 +286,13 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         sendMsgVo.setMsgContent(msgContent);
         messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
 
+        //删除对应成员的会话，防止报错
+        LambdaQueryWrapper<ChatList> chatListLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatListLambdaQueryWrapper.eq(ChatList::getUserId, userId)
+                .eq(ChatList::getFromId, kickChatGroupVo.getGroupId());
+
+        chatListService.remove(chatListLambdaQueryWrapper);
+
         //群成员减一
         ChatGroup chatGroup = getById(kickChatGroupVo.getGroupId());
         chatGroup.setMemberNum(chatGroup.getMemberNum() - 1);
@@ -263,10 +305,23 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         if (!isOwner(dissolveChatGroupVo.getGroupId(), userId))
             throw new BaseException("您不是群主~");
 
-        //踢出所有成员
+        // 先查询获取成员列表
         LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ChatGroupMember::getChatGroupId, dissolveChatGroupVo.getGroupId());
+        List<ChatGroupMember> memberList = chatGroupMemberService.list(queryWrapper);
+        // 踢出所有成员
         chatGroupMemberService.remove(queryWrapper);
+        // 批量删除每个人的会话（优化版）
+        if (memberList != null && !memberList.isEmpty()) {
+            // 构建删除条件：群组ID = 会话目标ID，且用户ID在成员列表中
+            LambdaQueryWrapper<ChatList> chatListLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            chatListLambdaQueryWrapper
+                    .eq(ChatList::getFromId, dissolveChatGroupVo.getGroupId())
+                    .in(ChatList::getUserId, memberList.stream()
+                            .map(ChatGroupMember::getUserId)
+                            .collect(Collectors.toList()));
+            chatListService.remove(chatListLambdaQueryWrapper);
+        }
 
         //发送群消息
         SendMsgVo sendMsgVo = new SendMsgVo();
@@ -287,6 +342,26 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     public boolean transferChatGroup(String userId, TransferChatGroupVo transferChatGroupVo) {
         if (!isOwner(transferChatGroupVo.getGroupId(), userId))
             throw new BaseException("您不是群主~");
+
+        //发送群消息系统消息
+        SendMsgVo sendMsgVo = new SendMsgVo();
+        sendMsgVo.setSource(MsgSource.Group);
+        sendMsgVo.setToUserId(transferChatGroupVo.getGroupId());
+        MsgContent msgContent = new MsgContent();
+        msgContent.setType(MessageContentType.Transfer);
+        User user = userService.getById(userId);
+        User inviteUser = userService.getById(transferChatGroupVo.getUserId());
+        //设置系统消息
+        SystemMsgDto systemMsgDto = new SystemMsgDto();
+        systemMsgDto.addEmphasizeContent(user.getName())
+                .addContent("把群主转让给了")
+                .addEmphasizeContent(inviteUser.getName());
+        msgContent.setContent(JSONUtil.toJsonStr(systemMsgDto.getContents()));
+        msgContent.setFromUserId(userId);
+        msgContent.setExt(userId);
+        sendMsgVo.setMsgContent(msgContent);
+        messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
+
         //更换群主
         ChatGroup chatGroup = getById(transferChatGroupVo.getGroupId());
         chatGroup.setOwnerUserId(transferChatGroupVo.getUserId());

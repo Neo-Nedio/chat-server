@@ -9,4 +9,5 @@ public class MessageContentType {
     public static String Call = "call";
     public static String System = "system";
     public static String Quit = "quit";
+    public static String Transfer = "transfer";
 }
