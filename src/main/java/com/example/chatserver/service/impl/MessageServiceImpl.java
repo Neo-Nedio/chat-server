@@ -149,12 +149,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
-        MsgContent msgContent = sendMsgVo.getMsgContent();
+        /*MsgContent msgContent = sendMsgVo.getMsgContent();
         FriendDetailsDto friendDetails = friendService.getFriendDetails(sendMsgVo.getToUserId(), userId);
         msgContent.setFromUserId(userId);
         msgContent.setFromUserName(StringUtils.isNotBlank(friendDetails.getRemark())
                 ? friendDetails.getRemark() : friendDetails.getName());
-        msgContent.setFromUserPortrait(friendDetails.getPortrait());
+        msgContent.setFromUserPortrait(friendDetails.getPortrait());*/
         Message message = sendMessage(userId, sendMsgVo,sendMsgVo.getMsgContent(), MsgSource.User, type);
         //更新聊天列表
         chatListService.updateChatList(message.getToId(), userId, message.getMsgContent(), MsgSource.User);
@@ -171,12 +171,17 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     //给群聊发送消息
     public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo, String type) {
+        /* 不需要获取，群聊内的头像名字会在打开时去访问最新的user表，而不是这些消息的旧内容
         //获取发送方用户信息
         User user = userService.getById(userId);
         MsgContent msgContent = sendMsgVo.getMsgContent();
         msgContent.setFromUserName(user.getName());
-        msgContent.setFromUserPortrait(user.getPortrait());
-        Message message = sendMessage(userId, sendMsgVo, msgContent, MsgSource.Group, type);
+        msgContent.setFromUserPortrait(user.getPortrait());*/
+        //不在群聊不允许发言
+        if(chatGroupMemberService.isMemberExists(sendMsgVo.getToUserId(), userId)){
+            throw new BaseException("你不在群聊内");
+        }
+        Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.Group, type);
         //更新聊天列表
         chatListService.updateChatListGroup(message.getToId(), message.getMsgContent());
         try {
