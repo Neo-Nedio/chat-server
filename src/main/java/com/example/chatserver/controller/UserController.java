@@ -147,6 +147,15 @@ public class UserController {
     }
 
     /**
+     * 获取某个用户的信息
+     */
+    @GetMapping("/info/id")
+    public JSONObject getInfoById(@Userid String userId,@RequestParam("toId") String toId) {
+        User user = userService.getById(toId);
+        return ResultUtil.Succeed(user);
+    }
+
+    /**
      * 修改当前用户信息
      */
     @PostMapping("/update")
