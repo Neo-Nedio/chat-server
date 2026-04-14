@@ -11,6 +11,7 @@ import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.chatGroup.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -130,9 +131,18 @@ public class ChatGroupController {
                              @RequestHeader("name") String name,
                              @RequestHeader("type") String type,
                              @RequestHeader("size") long size) throws IOException {
-        boolean isOwner = chatGroupService.isOwner(groupId, userId);
-        if (!isOwner)
+        ChatGroup chatGroup= chatGroupService.getById(groupId);
+        if (chatGroup == null) {
+            return ResultUtil.Fail("群聊不存在");
+        }
+        if(!chatGroup.getOwnerUserId().equals(userId)) {
             throw new BaseException("您不是群主~");
+        }
+
+        if(StringUtils.isNotBlank(chatGroup.getPortrait())){
+            minioUtil.remove(chatGroup.getPortrait());
+        }
+
         //添加缓存破坏参数 防止浏览器缓存旧头像。每次更新头像后，URL 都会不同，强制刷新。
         String fileName = groupId + "-portrait" +  System.currentTimeMillis() + name.substring(name.lastIndexOf("."));
         minioUtil.upload(request.getInputStream(), fileName, type, size);
@@ -150,9 +160,17 @@ public class ChatGroupController {
                                  @RequestParam("name") String name,
                                  @RequestParam("type") String type,
                                  @RequestParam("size") long size) throws IOException {
-        boolean isOwner = chatGroupService.isOwner(groupId, userId);
-        if (!isOwner)
+        ChatGroup chatGroup= chatGroupService.getById(groupId);
+        if (chatGroup == null) {
+            return ResultUtil.Fail("群聊不存在");
+        }
+        if(!chatGroup.getOwnerUserId().equals(userId)) {
             throw new BaseException("您不是群主~");
+        }
+
+        if(StringUtils.isNotBlank(chatGroup.getPortrait())){
+            minioUtil.remove(chatGroup.getPortrait());
+        }
         //添加缓存破坏参数 防止浏览器缓存旧头像。每次更新头像后，URL 都会不同，强制刷新。
         String fileName = groupId + "-portrait" +  System.currentTimeMillis() + name.substring(name.lastIndexOf("."));
         minioUtil.upload(file.getInputStream(), fileName, type, size);

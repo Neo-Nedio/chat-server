@@ -177,6 +177,13 @@ public class UserController {
                                  @RequestParam("type") String type,
                                  @RequestParam("size") long size,
                                  @RequestParam("file") MultipartFile file) throws IOException {
+        User user = userService.getById(userId);
+        if (user == null) {
+            return ResultUtil.Fail("用户不存在");
+        }
+        if(StringUtils.isNotBlank(user.getPortrait())){
+            minioUtil.remove(user.getPortrait());
+        }
         //用时间戳让文件名不一样，从而url不一样，这样前端就不会因为url一样用原缓存
         String fileName = userId + "-portrait" + System.currentTimeMillis() + name.substring(name.lastIndexOf("."));
         minioUtil.upload(file.getInputStream(), fileName, type, size);
@@ -248,15 +255,17 @@ public class UserController {
                                         @RequestParam("type") String type,
                                         @RequestParam("size") long size,
                                         @RequestParam("file") MultipartFile file) {
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getId, userId);
-        User user = userService.getOne(queryWrapper);
-        if (user == null) return ResultUtil.Fail("用户不存在");
-
+        User user = userService.getById(userId);
+        if (user == null) {
+            return ResultUtil.Fail("用户不存在");
+        }
+        if(StringUtils.isNotBlank(user.getChatBackground())){
+            minioUtil.remove(user.getChatBackground());
+        }
         boolean update;
         String url;
         try {
-            String fileName = userId+"-"+ "chat-background" + System.currentTimeMillis()+ name.substring(name.lastIndexOf("."));
+            String fileName = userId + "-chat-background-" + System.currentTimeMillis() + name.substring(name.lastIndexOf("."));
             url = minioUtil.upload(file.getInputStream(), fileName, type, size);
             user.setChatBackground(fileName);
             update = userService.updateById(user);
