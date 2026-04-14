@@ -1,5 +1,6 @@
 package com.example.chatserver.utils;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -534,6 +535,22 @@ public class RedisUtils {
         } catch (Exception e) {
             log.error("错误: {}", e.getMessage());
             return 0;
+        }
+    }
+
+    /**
+     * 启动时清空所有缓存
+     */
+    @PostConstruct
+    public void clearAll() {
+        try {
+            Set<String> keys = redisTemplate.keys("*");
+            if (!CollectionUtils.isEmpty(keys)) {
+                redisTemplate.delete(keys);
+                log.info("清空所有缓存成功，共删除 {} 个key", keys.size());
+            }
+        } catch (Exception e) {
+            log.error("清空所有缓存失败: {}", e.getMessage());
         }
     }
 }
