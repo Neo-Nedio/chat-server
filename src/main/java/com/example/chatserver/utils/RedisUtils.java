@@ -3,7 +3,10 @@ package com.example.chatserver.utils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -543,14 +546,13 @@ public class RedisUtils {
      */
     @PostConstruct
     public void clearAll() {
-        try {
-            Set<String> keys = redisTemplate.keys("*");
-            if (!CollectionUtils.isEmpty(keys)) {
-                redisTemplate.delete(keys);
-                log.info("清空所有缓存成功，共删除 {} 个key", keys.size());
+        redisTemplate.execute((RedisCallback<Void>) c -> {
+            try (Cursor<byte[]> cursor = c.scan(ScanOptions.scanOptions().match("*").count(1000).build())) {
+                List<byte[]> keys = new ArrayList<>();
+                while (cursor.hasNext()) keys.add(cursor.next());
+                if (!keys.isEmpty()) c.del(keys.toArray(new byte[0][]));
             }
-        } catch (Exception e) {
-            log.error("清空所有缓存失败: {}", e.getMessage());
-        }
+            return null;
+        });
     }
 }
