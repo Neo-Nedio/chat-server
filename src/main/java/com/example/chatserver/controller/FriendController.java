@@ -165,35 +165,5 @@ public class FriendController {
         boolean result = friendService.unCareForFriend(userId, unCareForFriendVo);
         return ResultUtil.ResultByFlag(result);
     }
-
-    /**
-     * 设置聊天背景
-     */
-    @PostMapping("/set-chat-background")
-    public JSONObject setChatBackground(@Userid String userId,
-                                        @RequestParam("friendId") String friendId,
-                                        @RequestParam("name") String name,
-                                        @RequestParam("type") String type,
-                                        @RequestParam("size") long size,
-                                        @RequestParam("file") MultipartFile file) {
-
-        LambdaQueryWrapper<Friend> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Friend::getUserId, userId).eq(Friend::getFriendId, friendId);
-        Friend friend = friendService.getOne(queryWrapper);
-        if (friend == null) return ResultUtil.Fail("好友不存在");
-        boolean update;
-        String url;
-        try {
-            String fileName = userId+"-"+friendId + "-chat-background" + name.substring(name.lastIndexOf("."));
-            url = minioUtil.upload(file.getInputStream(), fileName, type, size);
-            url += "?t=" + System.currentTimeMillis();
-            friend.setChatBackground(url);
-            update = friendService.updateById(friend);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        if (!update) return ResultUtil.Fail("设置失败");
-        return ResultUtil.Succeed(url);
-    }
 }
 

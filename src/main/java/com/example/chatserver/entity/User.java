@@ -80,6 +80,12 @@ public class User implements Serializable {
     private String email;
 
     /**
+     * 聊天背景
+     */
+    @TableField("chat_background")
+    private String chatBackground;
+
+    /**
      * 最后操作时间
      */
     //格式化日期时间在序列化（Java → JSON）和反序列化（JSON → Java）时的格式。

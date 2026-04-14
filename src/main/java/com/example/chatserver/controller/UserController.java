@@ -2,10 +2,12 @@ package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.chatserver.annotation.UrlFree;
 import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.UserDto;
+import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.exception.BaseException;
@@ -233,6 +235,52 @@ public class UserController {
         if (StringUtils.isBlank(url)) {
             url = minioUtil.previewFile(name);
             redisUtils.set(name, url, 7 * 24 * 60 * 60);
+        }
+        return ResultUtil.Succeed(url);
+    }
+
+    /**
+     * 设置聊天背景
+     */
+    @PostMapping("/set-chat-background")
+    public JSONObject setChatBackground(@Userid String userId,
+                                        @RequestParam("name") String name,
+                                        @RequestParam("type") String type,
+                                        @RequestParam("size") long size,
+                                        @RequestParam("file") MultipartFile file) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getId, userId);
+        User user = userService.getOne(queryWrapper);
+        if (user == null) return ResultUtil.Fail("用户不存在");
+
+        boolean update;
+        String url;
+        try {
+            String fileName = userId+"-"+ "chat-background" + System.currentTimeMillis()+ name.substring(name.lastIndexOf("."));
+            url = minioUtil.upload(file.getInputStream(), fileName, type, size);
+            user.setChatBackground(fileName);
+            update = userService.updateById(user);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (!update) return ResultUtil.Fail("设置失败");
+        return ResultUtil.Succeed(url);
+    }
+
+    /**
+     * 获取聊天背景
+     */
+    @GetMapping("/get-chat-background")
+    public JSONObject getChatBackground(@Userid String userId) {
+        User user = userService.getById(userId);
+        if (user == null) {
+            return ResultUtil.Fail("用户不存在");
+        }
+        String fileName = user.getChatBackground();
+        String url = (String) redisUtils.get(fileName);
+        if (StringUtils.isBlank(url)) {
+            url = minioUtil.preview(fileName);
+            redisUtils.set(fileName, url, 7 * 24 * 60 * 60);
         }
         return ResultUtil.Succeed(url);
     }

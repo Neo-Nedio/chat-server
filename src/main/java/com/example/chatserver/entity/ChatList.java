@@ -86,9 +86,6 @@ public class ChatList implements Serializable {
     private Date updateTime;
 
     @TableField(exist = false)
-    private String chatBackground;
-
-    @TableField(exist = false)
     private String name;
 
     @TableField(exist = false)
