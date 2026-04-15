@@ -3,9 +3,11 @@ package com.example.chatserver.websocket;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.example.chatserver.constant.MsgType;
+import com.example.chatserver.constant.UserStatus;
 import com.example.chatserver.constant.WsContentType;
 import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.entity.Message;
+import com.example.chatserver.entity.User;
 import com.example.chatserver.service.ChatGroupMemberService;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.JwtUtil;
@@ -52,6 +54,15 @@ public class WebSocketService {
         try {
             Claims claims = JwtUtil.parseToken(token);
             String userId = (String) claims.get("userId");
+
+            // 先检查是否被禁用，禁用则通知后直接关闭，不加入在线列表
+            User user = userService.getById(userId);
+            if (user.getStatus().equals(UserStatus.Disable)) {
+                sendMsg(channel, "您的账号已被管理员禁用", WsContentType.Disable);
+                channel.close();
+                return;
+            }
+
             Online_User.put(userId, channel);
             Online_Channel.put(channel, userId);
             userService.online(userId);
@@ -138,6 +149,16 @@ public class WebSocketService {
         Online_Channel.forEach((channel, ext) -> {
             sendMsg(channel, msg, WsContentType.Notify);
         });
+    }
+
+    //禁用用户
+    public void sendDisableToUser(String userId) {
+        Channel channel = Online_User.get(userId);
+        if (channel != null) {
+            sendMsg(channel, "您的账号已被管理员禁用", WsContentType.Disable);
+            offline(channel);
+            channel.close();
+        }
     }
 
     public Integer getOnlineNum() {

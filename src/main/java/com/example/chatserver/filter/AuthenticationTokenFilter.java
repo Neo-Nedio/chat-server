@@ -1,5 +1,5 @@
 package com.example.chatserver.filter;
-
+import com.example.chatserver.constant.UserStatus;
 import com.example.chatserver.utils.JwtUtil;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.utils.UrlPermitUtil;
@@ -14,8 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -50,17 +48,21 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter { //确保�
         if (!urlPermitUtil.isPermitUrl(url)) {
             try {
                 Claims claims = JwtUtil.parseToken(token);
-                setUserInfo(claims, url, httpServletRequest, httpServletResponse);
+                if (!setUserInfo(claims, url, httpServletRequest, httpServletResponse)) {
+                    return;//不继续放行到controller,返回在setUserInfo已处理
+                }
             } catch (Exception e) {
-                tokenInvalid(httpServletResponse,false);
-                return;
+                writeResponse(httpServletResponse, ResultUtil.TokenInvalid());
+                return; //不继续放行到controller
             }
         } else {
             //不验证时查看token是否为空，不为空存入用户信息
             if (StringUtils.isNotBlank(token)) {
                 try {
                     Claims claims = JwtUtil.parseToken(token);
-                    setUserInfo(claims, url, httpServletRequest, httpServletResponse);
+                    if (!setUserInfo(claims, url, httpServletRequest, httpServletResponse)) {
+                        return;//不继续放行到controller,返回在setUserInfo已处理
+                    }
                 } catch (Exception e) {
                 }
             }
@@ -68,17 +70,13 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter { //确保�
         //放行
         filterChain.doFilter(httpServletRequest, httpServletResponse);
     }
-
-    public void tokenInvalid(HttpServletResponse httpServletResponse,boolean isForbidden) {
+    // 统一写回JSON响应，HTTP状态码始终为200，由body中的code区分业务状态
+    private void writeResponse(HttpServletResponse httpServletResponse, Object result) {
         try {
-            // Token 无效，返回 403
             httpServletResponse.setContentType("application/json;charset=UTF-8");
-            httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            httpServletResponse.setStatus(HttpServletResponse.SC_OK);
             PrintWriter out = httpServletResponse.getWriter();
-
-            if(isForbidden) out.write(ResultUtil.Forbidden().toJSONString(0));
-            else out.write(ResultUtil.TokenInvalid().toJSONString(0));
-
+            out.write(result.toString());
             out.flush();
             out.close();
         } catch (Exception e) {
@@ -86,17 +84,25 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter { //确保�
         }
     }
 
-    public void setUserInfo(Claims claims, String url,
-                            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    // 设置用户信息，返回false表示请求被拦截（前端已写回响应），不应继续放行
+    public boolean setUserInfo(Claims claims, String url,
+                               HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         // 设置用户信息
         Map<String, Object> map = new HashMap<>();
-        claims.entrySet().stream().forEach(e -> map.put(e.getKey(), e.getValue()));
+        claims.entrySet().forEach(e -> map.put(e.getKey(), e.getValue()));
         //验证角色是否有权限
         String role = (String) map.get("role");
         if (!urlPermitUtil.isRoleUrl(role, url)) {
-            tokenInvalid(httpServletResponse,false);
-            return;
+            writeResponse(httpServletResponse, ResultUtil.Forbidden());
+            return false;
+        }
+        //验证是否被禁用
+        String status = (String) map.get("status");
+        if (status.equals(UserStatus.Disable)) {
+            writeResponse(httpServletResponse, ResultUtil.TokenInvalid());
+            return false;
         }
         httpServletRequest.setAttribute("userinfo", map);
+        return true;
     }
 }

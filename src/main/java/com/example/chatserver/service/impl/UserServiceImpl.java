@@ -121,6 +121,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (null == user) {
             return ResultUtil.Fail("用户名或密码错误~");
         }
+        if(user.getStatus().equals(UserStatus.Disable)){
+            return ResultUtil.Fail("您的账号已被管理员禁用，请联系管理员处理");
+        }
         if (!SecurityUtil.verifyPassword(loginVo.getPassword(), user.getPassword())) {
             return ResultUtil.Fail("用户名或密码错误~");
         }
@@ -147,6 +150,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userinfo.set("sex", user.getSex());
         userinfo.set("phone", user.getPhone());
         userinfo.set("email", user.getEmail());
+        userinfo.set("status",user.getStatus());
         //生成用户token
         userinfo.set("token", JwtUtil.createToken(userinfo));
 
@@ -348,10 +352,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BaseException("不能禁用自己~");
         }
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
-        //todo 禁用后不允许上线
         updateWrapper.set(User::getStatus, UserStatus.Disable)
                 .eq(User::getId, disableUserVo.getUserId());
-        return update(updateWrapper);
+        //先 update 数据库，成功后再 sendDisableToUser。确保数据状态和通知行为一致。
+        boolean success = update(updateWrapper);
+        if (success) {
+            webSocketService.sendDisableToUser(disableUserVo.getUserId());
+        }
+        return success;
     }
 
     @Override

@@ -8,4 +8,6 @@ public class WsContentType {
     public static String Notify = "notify";
     //视频/音频
     public static String Video = "video";
+    //禁用
+    public static String Disable = "disable";
 }
