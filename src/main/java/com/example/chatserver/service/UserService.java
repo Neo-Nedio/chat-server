@@ -51,7 +51,7 @@ public interface UserService extends IService<User> {
 
     boolean updateUser(UpdateUserVo updateUserVo);
 
-    boolean restPassword(ResetPasswordVo resetPasswordVo);
+    String restPassword(ResetPasswordVo resetPasswordVo);
 
     boolean setAdmin(String userid, SetAdminVo setAdminVo);
 

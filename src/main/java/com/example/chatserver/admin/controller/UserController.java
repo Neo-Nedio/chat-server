@@ -5,14 +5,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.chatserver.admin.vo.user.*;
 import com.example.chatserver.annotation.UrlResource;
 import com.example.chatserver.annotation.Userid;
+import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.ResultUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -23,6 +21,13 @@ public class UserController {
 
     @Resource
     UserService userService;
+
+    @GetMapping("isAdmin")
+    public JSONObject isAdmin(@Userid String UserId) {
+        User user = userService.getById(UserId);
+        boolean result = user.getRole().equals(UserRole.Admin);
+        return ResultUtil.ResultByFlag(result);
+    }
 
     @PostMapping("/page")
     @UrlResource("admin")
@@ -70,8 +75,8 @@ public class UserController {
     @PostMapping("/reset/password")
     @UrlResource("admin")
     public JSONObject restPassword(@RequestBody ResetPasswordVo resetPasswordVo) {
-        boolean result = userService.restPassword(resetPasswordVo);
-        return ResultUtil.ResultByFlag(result);
+        String result = userService.restPassword(resetPasswordVo);
+        return ResultUtil.Succeed(result);
     }
 
     @PostMapping("/set/admin")

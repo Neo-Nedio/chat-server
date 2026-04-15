@@ -398,12 +398,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public boolean restPassword(ResetPasswordVo resetPasswordVo) {
+    public String restPassword(ResetPasswordVo resetPasswordVo) {
         User user = getById(resetPasswordVo.getUserId());
         if (null == user) {
             throw new BaseException("用户不存在~");
         }
-        String password = RandomUtil.randomString(8);
+        String password = RandomUtil.randomString(4);
         String passwordHash = SecurityUtil.hashPassword(password);
         user.setPassword(passwordHash);
         //密码发送邮件
@@ -419,7 +419,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 log.error(e.getMessage());
             }
         }
-        return true;
+        return password;
     }
 
     @Override
