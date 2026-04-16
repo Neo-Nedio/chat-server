@@ -2,16 +2,20 @@ package com.example.chatserver.admin.controller;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.example.chatserver.admin.vo.notify.DeleteNotifyVo;
 import com.example.chatserver.annotation.UrlResource;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.SystemNotifyDto;
+import com.example.chatserver.entity.Notify;
+import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.NotifyService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.ResultUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,6 +50,20 @@ public class NotifyController {
     @PostMapping("/system/delete")
     @UrlResource("admin")
     public JSONObject deleteNotify(@RequestBody DeleteNotifyVo deleteNotifyVo) {
+        Notify notify = notifyService.getById(deleteNotifyVo.getNotifyId());
+        if (notify == null) {
+            return ResultUtil.Fail("通知不存在");
+        }
+        if (StringUtils.isNotBlank(notify.getContent())) {
+            // 解析 JSON 获取 fileName
+            JSONObject contentJson = JSONUtil.parseObj(notify.getContent());
+            String fileName = contentJson.getStr("img");
+
+            if (StringUtils.isNotBlank(fileName)) {
+                minioUtil.remove(fileName);  // 删除文件
+            }
+        }
+
         boolean result = notifyService.deleteNotify(deleteNotifyVo);
         return ResultUtil.ResultByFlag(result);
     }

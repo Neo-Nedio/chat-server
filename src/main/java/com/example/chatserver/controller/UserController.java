@@ -173,6 +173,13 @@ public class UserController {
                              @RequestHeader("name") String name,
                              @RequestHeader("type") String type,
                              @RequestHeader("size") long size) throws IOException {
+        User user = userService.getById(userId);
+        if (user == null) {
+            return ResultUtil.Fail("用户不存在");
+        }
+        if(StringUtils.isNotBlank(user.getPortrait())){
+            minioUtil.remove(user.getPortrait());
+        }
         //用时间戳让文件名不一样，从而url不一样，这样前端就不会因为url一样用原缓存
         String fileName = userId + "-portrait" + System.currentTimeMillis() + name.substring(name.lastIndexOf("."));
         minioUtil.upload(request.getInputStream(), fileName, type, size);
