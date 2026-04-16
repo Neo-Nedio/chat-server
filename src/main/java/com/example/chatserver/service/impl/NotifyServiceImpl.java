@@ -13,10 +13,12 @@ import com.example.chatserver.dto.FriendNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.entity.Friend;
 import com.example.chatserver.entity.Notify;
+import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.NotifyMapper;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.NotifyService;
+import com.example.chatserver.service.UserService;
 import com.example.chatserver.vo.notify.FriendApplyNotifyVo;
 import com.example.chatserver.vo.notify.ReadNotifyVo;
 import com.example.chatserver.websocket.WebSocketService;
@@ -24,6 +26,7 @@ import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -32,6 +35,10 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
     @Lazy
     @Resource
     FriendService friendService;
+
+    @Lazy
+    @Resource
+    UserService userService;
 
     @Resource
     NotifyMapper notifyMapper;
@@ -98,6 +105,30 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
     }
 
     @Override
+    public SystemNotifyDto SystemNotifyLatest(String userId) {
+        List<SystemNotifyDto> list = notifyMapper.SystemListNotify();
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        SystemNotifyDto latestNotify = list.get(0);
+        User user = userService.getById(userId);
+        // notifyReadTime 为 null 表示从未读过，直接返回通知
+        if (user.getNotifyReadTime() != null
+                && !user.getNotifyReadTime().before(latestNotify.getCreateTime())) {
+            return null;
+        }
+        return latestNotify;
+    }
+
+    @Override
+    public boolean SystemNotifyRead(String userId) {
+        User user = new User();
+        user.setId(userId);
+        user.setNotifyReadTime(new Date());
+        return userService.updateById(user);
+    }
+
+    @Override
     public boolean deleteNotify(DeleteNotifyVo deleteNotifyVo) {
         return removeById(deleteNotifyVo.getNotifyId());
     }
@@ -114,6 +145,13 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
         notify.setToId("all");
         notify.setFromId("system");
         notify.setContent(JSONUtil.toJsonStr(content));
+
+        //发送系统通知给所有用户
+        SystemNotifyDto dto = new SystemNotifyDto();
+        dto.setContent(content);  // SystemNotifyContent 对象
+        dto.setCreateTime(new Date());
+        webSocketService.sendSystemNotifyAll(dto);
+
         return save(notify);
     }
 }

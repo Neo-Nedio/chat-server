@@ -76,6 +76,24 @@ public class NotifyController {
     }
 
     /**
+     * 最新系统通知
+     */
+    @GetMapping("/system/latest")
+    public JSONObject SystemNotifyLatest(@Userid String userId) {
+        SystemNotifyDto result = notifyService.SystemNotifyLatest(userId);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 系统通知已读
+     */
+    @GetMapping("/system/read")
+    public JSONObject SystemNotifyRead(@Userid String userId) {
+        boolean result = notifyService.SystemNotifyRead(userId);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
      * 通知图片获取
      */
     @GetMapping("/get/img")

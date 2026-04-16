@@ -10,4 +10,6 @@ public class WsContentType {
     public static String Video = "video";
     //禁用
     public static String Disable = "disable";
+    //系统通知
+    public static String SystemNotify = "system_notify";
 }

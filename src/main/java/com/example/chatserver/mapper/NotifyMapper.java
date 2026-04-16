@@ -33,7 +33,7 @@ public interface NotifyMapper extends BaseMapper<Notify> {
             "AND `type` = #{type} ")
     Integer unreadByType(String userId, String type);
 
-    @Select("SELECT * FROM `notify`" +
+    @Select("SELECT * FROM `notify` " +
             "WHERE `type` = 'system' " +
             "ORDER BY `create_time` DESC")
     @ResultMap("SystemNotifyDtoResultMap")

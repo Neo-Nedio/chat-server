@@ -151,6 +151,13 @@ public class WebSocketService {
         });
     }
 
+    //发送系统通知给全体用户
+    public void sendSystemNotifyAll(Object notify) {
+        Online_Channel.forEach((channel, ext) -> {
+            sendMsg(channel, notify, WsContentType.SystemNotify);
+        });
+    }
+
     //禁用用户
     public void sendDisableToUser(String userId) {
         Channel channel = Online_User.get(userId);

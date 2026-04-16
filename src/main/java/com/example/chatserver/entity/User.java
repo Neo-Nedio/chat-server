@@ -111,6 +111,12 @@ public class User implements Serializable {
     private String role;
 
     /**
+     * 系统通知已读时间
+     */
+    @TableField("notify_read_time")
+    private Date notifyReadTime;
+
+    /**
      * 在线设备
      */
     @TableField("online_equipment")
