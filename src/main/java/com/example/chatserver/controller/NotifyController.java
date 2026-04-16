@@ -1,18 +1,26 @@
 package com.example.chatserver.controller;
 
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONObject;
+import com.example.chatserver.annotation.UrlResource;
 import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.FriendNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
+import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.NotifyService;
+import com.example.chatserver.utils.MinioUtil;
+import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.notify.FriendApplyNotifyVo;
 import com.example.chatserver.vo.notify.ReadNotifyVo;
 import jakarta.annotation.Resource;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -23,6 +31,12 @@ public class NotifyController {
 
     @Resource
     NotifyService notifyService;
+
+    @Resource
+    MinioUtil minioUtil;
+
+    @Resource
+    RedisUtils redisUtils;
 
     /**
      * 好友通知列表
@@ -59,6 +73,19 @@ public class NotifyController {
     public JSONObject SystemListNotify(@Userid String userId) {
         List<SystemNotifyDto> result = notifyService.SystemListNotify(userId);
         return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 通知图片获取
+     */
+    @GetMapping("/get/img")
+    public JSONObject getImg(@NotNull(message = "图片名字不能为空~") @RequestParam("fileName") String fileName) {
+        String url = (String) redisUtils.get(fileName);
+        if (StringUtils.isBlank(url)) {
+            url = minioUtil.preview(fileName);
+            redisUtils.set(fileName, url, 7 * 24 * 60 * 60);
+        }
+        return ResultUtil.Succeed(url);
     }
 }
 

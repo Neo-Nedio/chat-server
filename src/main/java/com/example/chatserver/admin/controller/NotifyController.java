@@ -58,13 +58,13 @@ public class NotifyController {
     public JSONObject createNotify(@NotNull(message = "图片不能为空~") @RequestParam("file") MultipartFile file,
                                    @NotNull(message = "标题不能为空~") @RequestParam("title") String title,
                                    @NotNull(message = "内容不能为空~") @RequestParam("text") String text) {
-        String url;
+        String fileName = "notify/" + IdUtil.randomUUID();
         try {
-            url = minioUtil.upload(file.getInputStream(), "notify/" + IdUtil.randomUUID(), file.getContentType(), file.getSize());
+            minioUtil.upload(file.getInputStream(), fileName, file.getContentType(), file.getSize());
         } catch (Exception e) {
             throw new BaseException("图片上传失败~");
         }
-        boolean result = notifyService.createNotify(url, title, text);
+        boolean result = notifyService.createNotify(fileName, title, text);
         return ResultUtil.ResultByFlag(result);
     }
 }

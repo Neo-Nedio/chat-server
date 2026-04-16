@@ -103,9 +103,9 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
     }
 
     @Override
-    public boolean createNotify(String url, String title, String text) {
+    public boolean createNotify(String fileName, String title, String text) {
         SystemNotifyDto.SystemNotifyContent content = new SystemNotifyDto.SystemNotifyContent();
-        content.setImg(url);
+        content.setImg(fileName);
         content.setText(text);
         content.setTitle(title);
         Notify notify = new Notify();

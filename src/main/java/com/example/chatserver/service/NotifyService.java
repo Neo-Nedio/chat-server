@@ -28,5 +28,5 @@ public interface NotifyService extends IService<Notify> {
 
     boolean deleteNotify(DeleteNotifyVo deleteNotifyVo);
 
-    boolean createNotify(String url, String title, String text);
+    boolean createNotify(String fileName, String title, String text);
 }
