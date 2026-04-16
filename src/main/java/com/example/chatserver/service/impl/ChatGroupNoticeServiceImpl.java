@@ -80,7 +80,8 @@ public class ChatGroupNoticeServiceImpl extends ServiceImpl<ChatGroupNoticeMappe
             if (result != null && !result.isEmpty()) {
                 chatGroup.setNotice(result.get(0));
             } else {
-                chatGroup.setNotice(null);
+                //清空noticeContent而不是Notice，直接传null有bug
+                chatGroup.setNotice(chatGroup.getNotice().setNoticeContent(null));
             }
             return chatGroupService.updateById(chatGroup);
         }
