@@ -131,6 +131,24 @@ public class ChatGroupController {
     }
 
     /**
+     * 同意入群申请
+     */
+    @PostMapping("/agree")
+    public JSONObject agreeGroupApply(@Userid String userId, @Valid @RequestBody AgreeGroupApplyVo agreeGroupApplyVo) {
+        boolean result = chatGroupService.agreeGroupApply(userId, agreeGroupApplyVo.getFromId(), agreeGroupApplyVo.getGroupId());
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 拒绝入群申请
+     */
+    @PostMapping("/reject")
+    public JSONObject rejectGroupApply(@Userid String userId, @Valid @RequestBody RejectGroupApplyVo rejectGroupApplyVo) {
+        boolean result = chatGroupService.rejectGroupApply(userId, rejectGroupApplyVo.getFromId(), rejectGroupApplyVo.getGroupId());
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
      * 群详情
      */
     @PostMapping("/details")

@@ -19,6 +19,7 @@ import com.example.chatserver.service.*;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.vo.chatGroup.*;
 import com.example.chatserver.vo.message.SendMsgVo;
+import com.example.chatserver.websocket.WebSocketService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,9 +33,6 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
 
     @Resource
     ChatGroupMemberService chatGroupMemberService;
-
-    @Resource
-    ChatListService chatListService;
 
     @Resource
     MessageService messageService;
@@ -57,6 +55,9 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     @Lazy
     @Resource
     NotifyService notifyService;
+
+    @Resource
+    WebSocketService webSocketService;
 
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
@@ -424,5 +425,123 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
             notifyService.update(notifyUpdate);
         }
         return ok;
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public boolean agreeGroupApply(String userId, String fromId, String groupId) {
+        //校验
+        ChatGroup chatGroup = getById(groupId);
+        if (chatGroup == null) {
+            throw new BaseException("群聊不存在");
+        }
+        if (!userId.equals(chatGroup.getOwnerUserId())) {
+            throw new BaseException("您不是群主，无权处理入群申请");
+        }
+        if (chatGroup.getStatus().equals(GroupStatus.Disable)) {
+            throw new BaseException("该群已解散");
+        }
+
+        //查询该用户向该群发起的、状态为待处理的入群申请
+        LambdaQueryWrapper<Notify> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Notify::getFromId, fromId)
+                .eq(Notify::getToId, groupId)
+                .eq(Notify::getType, NotifyType.Group_Apply)
+                .eq(Notify::getStatus, FriendApplyStatus.Wait);
+        List<Notify> notifyList = notifyService.list(queryWrapper);
+
+        if (notifyList.isEmpty()) {
+            throw new BaseException("没有入群申请");
+        }
+
+        //如果用户已经在群里了，直接更新通知，不重复加入
+        String memberKey = "member:" +  groupId + ":" + fromId;
+        Boolean alreadyMember = (Boolean) redisUtils.get(memberKey);
+        if (alreadyMember == null) {
+            alreadyMember = chatGroupMemberService.isMemberExists(groupId, fromId);
+            redisUtils.set(memberKey, alreadyMember, 30 * 60);
+        }
+        if (!alreadyMember) {
+            //加入群聊
+            ChatGroupMember member = new ChatGroupMember();
+            member.setId(IdUtil.randomUUID());
+            member.setUserId(fromId);
+            member.setChatGroupId(groupId);
+            chatGroupMemberService.save(member);
+
+            //群成员数 +1
+            chatGroup.setMemberNum(chatGroup.getMemberNum() + 1);
+            updateById(chatGroup);
+
+            redisUtils.del("member:" + groupId + ":" + fromId);
+
+            //发送系统消息
+            SendMsgVo sendMsgVo = new SendMsgVo();
+            sendMsgVo.setSource(MsgSource.Group);
+            sendMsgVo.setToUserId(groupId);
+            MsgContent msgContent = new MsgContent();
+            msgContent.setType(MessageContentType.System);
+            User newUser = userService.getById(fromId);
+            SystemMsgDto systemMsgDto = new SystemMsgDto();
+            systemMsgDto.addEmphasizeContent(newUser.getName())
+                    .addContent("加入了该群");
+            msgContent.setContent(JSONUtil.toJsonStr(systemMsgDto.getContents()));
+            msgContent.setFromUserId(fromId);
+            msgContent.setExt(fromId);
+            sendMsgVo.setMsgContent(msgContent);
+            messageService.sendMessage(fromId, UserRole.User, sendMsgVo, MsgType.System);
+        }
+
+        //更新通知状态为同意，未读方设为申请人
+        notifyList.forEach(notify -> {
+            notify.setStatus(FriendApplyStatus.Agree);
+            notify.setUnreadId(fromId);
+            notifyService.updateById(notify);
+        });
+
+        //通过 WebSocket 通知申请人
+        webSocketService.sendNotifyToUser(notifyList.get(0), fromId);
+
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public boolean rejectGroupApply(String userId, String fromId, String groupId) {
+        //校验
+        ChatGroup chatGroup = getById(groupId);
+        if (chatGroup == null) {
+            throw new BaseException("群聊不存在");
+        }
+        if (!userId.equals(chatGroup.getOwnerUserId())) {
+            throw new BaseException("您不是群主，无权处理入群申请");
+        }
+        if (chatGroup.getStatus().equals(GroupStatus.Disable)) {
+            throw new BaseException("该群已解散");
+        }
+
+        //查询该用户向该群发起的、状态为待处理的入群申请
+        LambdaQueryWrapper<Notify> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Notify::getFromId, fromId)
+                .eq(Notify::getToId, groupId)
+                .eq(Notify::getType, NotifyType.Group_Apply)
+                .eq(Notify::getStatus, FriendApplyStatus.Wait);
+        List<Notify> notifyList = notifyService.list(queryWrapper);
+
+        if (notifyList.isEmpty()) {
+            throw new BaseException("没有入群申请");
+        }
+
+        //更新通知状态为拒绝，未读方设为申请人
+        notifyList.forEach(notify -> {
+            notify.setStatus(FriendApplyStatus.Reject);
+            notify.setUnreadId(fromId);
+            notifyService.updateById(notify);
+        });
+
+        //通过 WebSocket 通知申请人
+        webSocketService.sendNotifyToUser(notifyList.get(0), fromId);
+
+        return true;
     }
 }
