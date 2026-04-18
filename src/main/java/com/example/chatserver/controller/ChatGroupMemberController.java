@@ -25,9 +25,6 @@ public class ChatGroupMemberController {
     @Resource
     ChatGroupMemberService chatGroupMemberService;
 
-    @Resource
-    MinioUtil minioUtil;
-
     @PostMapping("/list")
     public JSONObject memberList(@Userid String userId, @RequestBody MemberListVo memberListVo) {
         Map<String, MemberListDto> result = chatGroupMemberService.memberList(userId, memberListVo);
@@ -38,5 +35,11 @@ public class ChatGroupMemberController {
     public JSONObject memberListPage(@Userid String userId, @RequestBody MemberListVo memberListVo) {
         List<MemberListDto> result = chatGroupMemberService.memberListPage(userId, memberListVo);
         return ResultUtil.Succeed(result);
+    }
+
+    @GetMapping("isMember")
+    public JSONObject isMember(@Userid String userId,@RequestParam("groupId") String groupId) {
+        boolean result = chatGroupMemberService.isMemberExists(groupId,userId);
+        return ResultUtil.ResultByFlag(result);
     }
 }
