@@ -188,6 +188,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         unreadInfo.put("chat", msgNum);
         unreadInfo.put("notify", notifyNum);
         unreadInfo.put("friendNotify", notifyService.unreadByType(userId, NotifyType.Friend_Apply));
+        unreadInfo.put("groupNotify", notifyService.unreadByType(userId, NotifyType.Group_Apply));
         unreadInfo.put("systemNotify", notifyService.unreadByType(userId, NotifyType.System));
         return unreadInfo;
     }

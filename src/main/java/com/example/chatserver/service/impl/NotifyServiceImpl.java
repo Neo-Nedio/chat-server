@@ -8,7 +8,7 @@ import com.example.chatserver.admin.vo.notify.DeleteNotifyVo;
 import com.example.chatserver.constant.FriendApplyStatus;
 import com.example.chatserver.constant.NotifyType;
 import com.example.chatserver.constant.UserRole;
-import com.example.chatserver.dto.FriendNotifyDto;
+import com.example.chatserver.dto.ApplyNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.entity.Notify;
 import com.example.chatserver.entity.User;
@@ -29,6 +29,8 @@ import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -137,9 +139,18 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
     }
 
     @Override
-    //好友申请列表
-    public List<FriendNotifyDto> friendListNotify(String userId) {
-        return notifyMapper.friendListNotify(userId, NotifyType.Friend_Apply);
+    //申请列表（好友申请 + 入群申请，按时间倒序）
+    public List<ApplyNotifyDto> applyListNotify(String userId) {
+        List<ApplyNotifyDto> friendList = notifyMapper.friendListNotify(userId, NotifyType.Friend_Apply);
+        List<ApplyNotifyDto> groupList = notifyMapper.groupListNotify(userId, NotifyType.Group_Apply);
+
+        List<ApplyNotifyDto> result = new ArrayList<>(friendList.size() + groupList.size());
+        result.addAll(friendList);
+        result.addAll(groupList);
+
+        //按创建时间倒序，create_time 为 null 的排到最后
+        result.sort(Comparator.comparing(Notify::getCreateTime, Comparator.nullsLast(Comparator.reverseOrder())));
+        return result;
     }
 
     @Override

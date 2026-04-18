@@ -4,7 +4,7 @@ package com.example.chatserver.controller;
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
-import com.example.chatserver.dto.FriendNotifyDto;
+import com.example.chatserver.dto.ApplyNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.service.NotifyService;
 import com.example.chatserver.utils.MinioUtil;
@@ -37,11 +37,11 @@ public class NotifyController {
     RedisUtils redisUtils;
 
     /**
-     * 好友通知列表
+     * 申请通知列表（好友申请 + 入群申请，按时间倒序）
      */
-    @GetMapping("/friend/list")
-    public JSONObject friendListNotify(@Userid String userId) {
-        List<FriendNotifyDto> result = notifyService.friendListNotify(userId);
+    @GetMapping("/list")
+    public JSONObject listNotify(@Userid String userId) {
+        List<ApplyNotifyDto> result = notifyService.applyListNotify(userId);
         return ResultUtil.Succeed(result);
     }
 
