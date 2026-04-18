@@ -6,7 +6,8 @@ package com.example.chatserver.constant;
 public class NotifyType {
     //好友
     public static String Friend_Apply = "friend";
-
+    //群聊
+    public static String Group_Apply = "group";
     //系统
     public static String System = "system";
 }

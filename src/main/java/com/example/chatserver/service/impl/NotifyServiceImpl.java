@@ -2,7 +2,6 @@ package com.example.chatserver.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.admin.vo.notify.DeleteNotifyVo;
@@ -11,15 +10,19 @@ import com.example.chatserver.constant.NotifyType;
 import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.FriendNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
-import com.example.chatserver.entity.Friend;
 import com.example.chatserver.entity.Notify;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.NotifyMapper;
+import com.example.chatserver.service.ChatGroupMemberService;
+import com.example.chatserver.service.ChatGroupService;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.NotifyService;
 import com.example.chatserver.service.UserService;
+import com.example.chatserver.utils.RedisUtils;
+import com.example.chatserver.vo.chatGroup.DissolveChatGroupVo;
 import com.example.chatserver.vo.notify.FriendApplyNotifyVo;
+import com.example.chatserver.vo.notify.GroupApplyNotifyVo;
 import com.example.chatserver.vo.notify.ReadNotifyVo;
 import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
@@ -40,18 +43,37 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
     @Resource
     UserService userService;
 
+    @Lazy
+    @Resource
+    ChatGroupMemberService chatGroupMemberService;
+
+    @Lazy
+    @Resource
+    ChatGroupService chatGroupService;
+
     @Resource
     NotifyMapper notifyMapper;
 
     @Resource
     WebSocketService webSocketService;
 
+    @Resource
+    RedisUtils redisUtils;
+
     @Override
     //发送好友申请
     public boolean friendApplyNotify(String userId,String userRole, FriendApplyNotifyVo friendApplyNotifyVo) {
-        if (friendService.isFriendIgnoreSpecial(userId, friendApplyNotifyVo.getUserId())) {
+        //验证是否是好友
+        String friendKey = "friend:" + userId + ":" + friendApplyNotifyVo.getUserId();
+        Boolean isFriend = (Boolean) redisUtils.get(friendKey);
+        if (isFriend == null) {
+            isFriend = friendService.isFriendIgnoreSpecial(userId, friendApplyNotifyVo.getUserId());
+            redisUtils.set(friendKey, isFriend, 30 * 60);
+        }
+        if (isFriend) {
             throw new BaseException("ta已是您的好友");
         }
+
         //管理员直接添加好友，不发送请求
         if(UserRole.Admin.equals(userRole)){
             friendService.addFriendApply(userId,friendApplyNotifyVo.getUserId());
@@ -67,6 +89,51 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
         notify.setContent(friendApplyNotifyVo.getContent());
         notify.setUnreadId(friendApplyNotifyVo.getUserId());
         webSocketService.sendNotifyToUser(notify, friendApplyNotifyVo.getUserId());
+        return save(notify);
+    }
+
+    @Override
+    public boolean groupApplyNotify(String userId, String userRole, GroupApplyNotifyVo groupApplyNotifyVo) {
+        String memberKey = "member:" + groupApplyNotifyVo.getGroupId() + ":" + userId;
+        Boolean isMember = (Boolean) redisUtils.get(memberKey);
+        if (isMember == null) {
+            isMember = chatGroupMemberService.isMemberExists(groupApplyNotifyVo.getGroupId(), userId);
+            redisUtils.set(memberKey, isMember, 30 * 60);
+        }
+        if (isMember) {
+            throw new BaseException("你已经在群聊内");
+        }
+        String dissolvedKey = "group-dissolved:" +  groupApplyNotifyVo.getGroupId();
+        Boolean dissolved = (Boolean) redisUtils.get(dissolvedKey);
+        if (dissolved == null) {
+            DissolveChatGroupVo dissolveChatGroupVo = new DissolveChatGroupVo();
+            dissolveChatGroupVo.setGroupId(groupApplyNotifyVo.getGroupId());
+            dissolved = chatGroupService.isDissolveChatGroup(dissolveChatGroupVo);
+            redisUtils.set(dissolvedKey, dissolved, 30 * 60);
+        }
+        if (dissolved) {
+            throw new BaseException("该群已解散");
+        }
+
+        //管理员直接添加加入群聊，不发送请求
+        if(UserRole.Admin.equals(userRole)){
+            //todo 加入群聊的方法
+            return true;
+        }
+
+        //获取群主id，把入群申请通知发给群主
+        String ownerUserId = chatGroupService.getOwnerUserId(groupApplyNotifyVo.getGroupId());
+
+        Notify notify = new Notify();
+        notify.setId(IdUtil.randomUUID());
+        notify.setFromId(userId);
+        notify.setToId(groupApplyNotifyVo.getGroupId());
+        notify.setType(NotifyType.Group_Apply);
+        notify.setStatus(FriendApplyStatus.Wait);
+        notify.setContent(groupApplyNotifyVo.getContent());
+        notify.setUnreadId(ownerUserId);
+
+        webSocketService.sendNotifyToUser(notify, ownerUserId);
         return save(notify);
     }
 

@@ -6,6 +6,7 @@ import com.example.chatserver.dto.FriendNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
 import com.example.chatserver.entity.Notify;
 import com.example.chatserver.vo.notify.FriendApplyNotifyVo;
+import com.example.chatserver.vo.notify.GroupApplyNotifyVo;
 import com.example.chatserver.vo.notify.ReadNotifyVo;
 
 
@@ -15,6 +16,8 @@ import java.util.List;
 public interface NotifyService extends IService<Notify> {
 
     boolean friendApplyNotify(String userId,String userRole, FriendApplyNotifyVo friendApplyNotifyVo);
+
+    boolean groupApplyNotify(String userId,String userRole, GroupApplyNotifyVo groupApplyNotifyVo);
 
     List<FriendNotifyDto> friendListNotify(String userId);
 

@@ -19,6 +19,7 @@ import com.example.chatserver.service.*;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.vo.chatGroup.*;
 import com.example.chatserver.vo.message.SendMsgVo;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +53,10 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
 
     @Resource
     RedisUtils redisUtils;
+
+    @Lazy
+    @Resource
+    NotifyService notifyService;
 
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
@@ -126,6 +131,18 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     public boolean isOwner(String groupId, String userId) {
         ChatGroup group = getById(groupId);
         return group.getOwnerUserId().equals(userId);
+    }
+
+    @Override
+    public String getOwnerUserId(String groupId) {
+        ChatGroup group = getById(groupId);
+        if (group == null) {
+            throw new BaseException("群聊不存在");
+        }
+        if( group.getStatus().equals(GroupStatus.Disable)){
+            throw new BaseException("群聊已解散");
+        }
+        return group.getOwnerUserId();
     }
 
     @Override
@@ -340,7 +357,18 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         updateGroup.setId(dissolveChatGroupVo.getGroupId());
         updateGroup.setStatus(GroupStatus.Disable);  // 0-已解散
         boolean ok = updateById(updateGroup);
-        if (ok) redisUtils.del("group-dissolved:" + dissolveChatGroupVo.getGroupId());
+
+        if (ok) {
+            redisUtils.del("group-dissolved:" + dissolveChatGroupVo.getGroupId());
+            //群已解散，相关通知不再需要任何人审批，未读方清空
+            LambdaUpdateWrapper<Notify> notifyUpdate = new LambdaUpdateWrapper<>();
+            notifyUpdate.set(Notify::getUnreadId, "")
+                    .set(Notify::getStatus, FriendApplyStatus.Reject) //把待处理的消息在群解释后全改成拒绝
+                    .eq(Notify::getToId, dissolveChatGroupVo.getGroupId())
+                    .eq(Notify::getType, NotifyType.Group_Apply)
+                    .eq(Notify::getStatus, FriendApplyStatus.Wait); //待处理的才修改
+            notifyService.update(notifyUpdate);
+        }
         return ok;
     }
 
@@ -382,6 +410,19 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         //更换群主
         ChatGroup chatGroup = getById(transferChatGroupVo.getGroupId());
         chatGroup.setOwnerUserId(transferChatGroupVo.getUserId());
-        return updateById(chatGroup);
+        boolean ok = updateById(chatGroup);
+
+        if (ok) {
+            //群主已变更，相关待审批通知（未处理）的未读方改为新群主
+            LambdaUpdateWrapper<Notify> notifyUpdate = new LambdaUpdateWrapper<>();
+            notifyUpdate.set(Notify::getUnreadId, transferChatGroupVo.getUserId())
+                    .eq(Notify::getToId, transferChatGroupVo.getGroupId())
+                    .eq(Notify::getType, NotifyType.Group_Apply)
+                    .eq(Notify::getStatus, FriendApplyStatus.Wait) //待处理的才修改，否则处理后UnreadId回变成申请人，他没读就回变成新的群主
+                    .isNotNull(Notify::getUnreadId) //添加 WHERE 条件，不为空
+                    .ne(Notify::getUnreadId, ""); //添加 WHERE 条件，不等于
+            notifyService.update(notifyUpdate);
+        }
+        return ok;
     }
 }

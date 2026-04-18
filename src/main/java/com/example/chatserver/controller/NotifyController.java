@@ -1,26 +1,24 @@
 package com.example.chatserver.controller;
 
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONObject;
-import com.example.chatserver.annotation.UrlResource;
 import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.FriendNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
-import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.NotifyService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.notify.FriendApplyNotifyVo;
+import com.example.chatserver.vo.notify.GroupApplyNotifyVo;
 import com.example.chatserver.vo.notify.ReadNotifyVo;
 import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -52,8 +50,17 @@ public class NotifyController {
      * 好友申请通知
      */
     @PostMapping("/friend/apply")
-    public JSONObject friendApplyNotify(@Userid String userId,@UserRole String userRole,@RequestBody FriendApplyNotifyVo friendApplyNotifyVo) {
+    public JSONObject friendApplyNotify(@Userid String userId,@UserRole String userRole,@Valid @RequestBody FriendApplyNotifyVo friendApplyNotifyVo) {
         boolean result = notifyService.friendApplyNotify(userId,userRole, friendApplyNotifyVo);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 群聊申请通知
+     */
+    @PostMapping("/group/apply")
+    public JSONObject groupApplyNotify(@Userid String userId,@UserRole String userRole,@Valid @RequestBody GroupApplyNotifyVo groupApplyNotifyVo) {
+        boolean result = notifyService.groupApplyNotify(userId,userRole, groupApplyNotifyVo);
         return ResultUtil.Succeed(result);
     }
 
