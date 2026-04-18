@@ -6,6 +6,7 @@ import com.example.chatserver.entity.ChatGroup;
 import com.example.chatserver.vo.chatGroup.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 public interface ChatGroupService extends IService<ChatGroup> {
@@ -32,7 +33,7 @@ public interface ChatGroupService extends IService<ChatGroup> {
 
     boolean dissolveChatGroup(String userId, DissolveChatGroupVo dissolveChatGroupVo);
 
-    boolean isDissolveChatGroup(String userId, DissolveChatGroupVo dissolveChatGroupVo);
+    boolean isDissolveChatGroup(DissolveChatGroupVo dissolveChatGroupVo);
 
     boolean transferChatGroup(String userId, TransferChatGroupVo transferChatGroupVo);
 }

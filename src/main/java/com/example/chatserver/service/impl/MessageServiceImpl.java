@@ -16,16 +16,14 @@ import com.example.chatserver.constant.MsgSource;
 import com.example.chatserver.constant.MsgType;
 import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.Top10MsgDto;
-import com.example.chatserver.entity.ChatList;
-import com.example.chatserver.entity.Message;
-import com.example.chatserver.entity.MessageRetraction;
-import com.example.chatserver.entity.User;
+import com.example.chatserver.entity.*;
 import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.MessageMapper;
 import com.example.chatserver.service.*;
 import com.example.chatserver.utils.FileUtil;
 import com.example.chatserver.utils.MinioUtil;
+import com.example.chatserver.vo.chatGroup.DissolveChatGroupVo;
 import com.example.chatserver.vo.message.MessageRecordVo;
 import com.example.chatserver.vo.message.ReeditMsgVo;
 import com.example.chatserver.vo.message.RetractionMsgVo;
@@ -36,6 +34,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -73,6 +72,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Resource
     UserService userService;
+
+    @Lazy
+    @Resource
+    ChatGroupService chatGroupService;
 
     @Resource
     ChatGroupMemberService chatGroupMemberService;
@@ -171,15 +174,19 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     //给群聊发送消息
     public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo, String type) {
-         //不需要获取，群聊内的头像名字会在打开时去访问最新的user表，而不是这些消息的旧内容
         //获取发送方用户信息
         User user = userService.getById(userId);
         MsgContent msgContent = sendMsgVo.getMsgContent();
         msgContent.setFromUserName(user.getName());
         msgContent.setFromUserPortrait(user.getPortrait());
-        //不在群聊不允许发言
-        if(!chatGroupMemberService.isMemberExists(sendMsgVo.getToUserId(), userId)){
+
+        if (!chatGroupMemberService.isMemberExists(sendMsgVo.getToUserId(), userId)) {
             throw new BaseException("你不在群聊内");
+        }
+        DissolveChatGroupVo dissolveChatGroupVo = new DissolveChatGroupVo();
+        dissolveChatGroupVo.setGroupId(sendMsgVo.getToUserId());
+        if (chatGroupService.isDissolveChatGroup(dissolveChatGroupVo)) {
+            throw new BaseException("该群已解散");
         }
         Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.Group, type);
         //更新聊天列表

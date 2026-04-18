@@ -22,11 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.stream.Collectors;
+import java.util.*;
 
 
 @Service
@@ -301,7 +297,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     public boolean dissolveChatGroup(String userId, DissolveChatGroupVo dissolveChatGroupVo) {
         if (!isOwner(dissolveChatGroupVo.getGroupId(), userId))
             throw new BaseException("您不是群主~");
-
+/*
         // 先查询获取成员列表
         LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ChatGroupMember::getChatGroupId, dissolveChatGroupVo.getGroupId());
@@ -318,7 +314,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
                             .map(ChatGroupMember::getUserId)
                             .collect(Collectors.toList()));
             chatListService.remove(chatListLambdaQueryWrapper);
-        }
+        }*/
 
         //发送群消息
         SendMsgVo sendMsgVo = new SendMsgVo();
@@ -328,15 +324,22 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         msgContent.setType(MessageContentType.Quit);
         msgContent.setFromUserId(userId);
         msgContent.setExt("all"); //全部人被踢出，就是解散群聊
+        //设置系统消息
+        SystemMsgDto systemMsgDto = new SystemMsgDto();
+        systemMsgDto.addEmphasizeContent("该群已解散");
+        msgContent.setContent(JSONUtil.toJsonStr(systemMsgDto.getContents()));
         sendMsgVo.setMsgContent(msgContent);
         messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
 
         //解散群聊
-        return removeById(dissolveChatGroupVo.getGroupId());
+        ChatGroup updateGroup = new ChatGroup();
+        updateGroup.setId(dissolveChatGroupVo.getGroupId());
+        updateGroup.setStatus(GroupStatus.Disable);  // 0-已解散
+        return updateById(updateGroup);
     }
 
     @Override
-    public boolean isDissolveChatGroup(String userId, DissolveChatGroupVo dissolveChatGroupVo) {
+    public boolean isDissolveChatGroup(DissolveChatGroupVo dissolveChatGroupVo) {
         String chatGroupId = dissolveChatGroupVo.getGroupId();
 
         // 判断是否存在已解散的群聊

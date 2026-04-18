@@ -108,7 +108,7 @@ public class ChatGroupController {
      */
     @PostMapping("/isDissolve")
     public JSONObject isDissolveChatGroup(@Userid String userId, @RequestBody DissolveChatGroupVo dissolveChatGroupVo) {
-        boolean result = chatGroupService.isDissolveChatGroup(userId, dissolveChatGroupVo);
+        boolean result = chatGroupService.isDissolveChatGroup( dissolveChatGroupVo);
         return ResultUtil.ResultByFlag(result);
     }
 
