@@ -32,5 +32,7 @@ public interface ChatGroupService extends IService<ChatGroup> {
 
     boolean dissolveChatGroup(String userId, DissolveChatGroupVo dissolveChatGroupVo);
 
+    boolean isDissolveChatGroup(String userId, DissolveChatGroupVo dissolveChatGroupVo);
+
     boolean transferChatGroup(String userId, TransferChatGroupVo transferChatGroupVo);
 }

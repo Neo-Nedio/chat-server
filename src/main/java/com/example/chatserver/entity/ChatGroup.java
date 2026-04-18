@@ -68,6 +68,12 @@ public class ChatGroup implements Serializable {
     private Integer memberNum;
 
     /**
+     * 状态：0-已解散，1-正常
+     */
+    @TableField("status")
+    private Integer status;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)

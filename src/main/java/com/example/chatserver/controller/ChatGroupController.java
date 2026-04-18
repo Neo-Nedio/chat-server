@@ -104,6 +104,15 @@ public class ChatGroupController {
     }
 
     /**
+     * 查看群聊是否解散
+     */
+    @PostMapping("/isDissolve")
+    public JSONObject isDissolveChatGroup(@Userid String userId, @RequestBody DissolveChatGroupVo dissolveChatGroupVo) {
+        boolean result = chatGroupService.isDissolveChatGroup(userId, dissolveChatGroupVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
      * 转让群聊
      */
     @PostMapping("/transfer")

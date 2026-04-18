@@ -7,10 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.config.MinioConfig;
-import com.example.chatserver.constant.MessageContentType;
-import com.example.chatserver.constant.MsgSource;
-import com.example.chatserver.constant.MsgType;
-import com.example.chatserver.constant.UserRole;
+import com.example.chatserver.constant.*;
 import com.example.chatserver.dto.ChatGroupDetailsDto;
 import com.example.chatserver.dto.SystemMsgDto;
 import com.example.chatserver.entity.*;
@@ -338,6 +335,17 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         return removeById(dissolveChatGroupVo.getGroupId());
     }
 
+    @Override
+    public boolean isDissolveChatGroup(String userId, DissolveChatGroupVo dissolveChatGroupVo) {
+        String chatGroupId = dissolveChatGroupVo.getGroupId();
+
+        // 判断是否存在已解散的群聊
+        return chatGroupMapper.exists(
+                new LambdaQueryWrapper<ChatGroup>()
+                        .eq(ChatGroup::getId, chatGroupId)
+                        .eq(ChatGroup::getStatus, GroupStatus.Disable)
+        );
+    }
     @Override
     public boolean transferChatGroup(String userId, TransferChatGroupVo transferChatGroupVo) {
         if (!isOwner(transferChatGroupVo.getGroupId(), userId))
