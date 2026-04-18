@@ -19,6 +19,7 @@ import com.example.chatserver.vo.chatlist.DetailChatListVo;
 import com.example.chatserver.vo.chatlist.TopChatListVo;
 import com.example.chatserver.vo.friend.SearchVo;
 import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -62,7 +63,7 @@ public class ChatListController {
      * 创建聊天会话
      */
     @PostMapping("/create")
-    public JSONObject createChatList(@Userid String userId, @UserRole String role, @RequestBody CreateChatListVo createChatListVo) {
+    public JSONObject createChatList(@Userid String userId, @UserRole String role, @Valid @RequestBody CreateChatListVo createChatListVo) {
         ChatList result = chatListService.createChatList(userId, role, createChatListVo);
         return ResultUtil.Succeed(result);
     }
@@ -71,7 +72,7 @@ public class ChatListController {
      * 删除会话
      */
     @PostMapping("/delete")
-    public JSONObject deleteChatList(@Userid String userId, @RequestBody DeleteChatListVo deleteChatListVo) {
+    public JSONObject deleteChatList(@Userid String userId, @Valid @RequestBody DeleteChatListVo deleteChatListVo) {
         boolean result = chatListService.deleteChatList(userId, deleteChatListVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -81,7 +82,7 @@ public class ChatListController {
      * 设置置顶会话
      */
     @PostMapping("/top")
-    public JSONObject topChatList(@Userid String userId, @RequestBody TopChatListVo topChatListVo) {
+    public JSONObject topChatList(@Userid String userId, @Valid @RequestBody TopChatListVo topChatListVo) {
         boolean result = chatListService.topChatList(userId, topChatListVo);
         return ResultUtil.ResultByFlag(result);
     }

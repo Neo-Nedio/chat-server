@@ -68,7 +68,7 @@ public class NotifyController {
      * 通知已读
      */
     @PostMapping("/read")
-    public JSONObject readNotify(@Userid String userId, @RequestBody ReadNotifyVo readNotifyVo) {
+    public JSONObject readNotify(@Userid String userId, @Valid @RequestBody ReadNotifyVo readNotifyVo) {
         boolean result = notifyService.readNotify(userId, readNotifyVo);
         return ResultUtil.Succeed(result);
     }

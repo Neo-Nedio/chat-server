@@ -13,6 +13,7 @@ import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.utils.SecurityUtil;
 import com.example.chatserver.vo.friend.*;
 import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -88,7 +89,7 @@ public class FriendController {
      * 同意好友请求(好友申请接口在notify)
      */
     @PostMapping("/agree")
-    public JSONObject agreeFriendApply(@Userid String userId, @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
+    public JSONObject agreeFriendApply(@Userid String userId, @Valid @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
         boolean result = friendService.agreeFriendApply(userId, agreeFriendApplyVo);
         return ResultUtil.Succeed(result);
     }
@@ -97,7 +98,7 @@ public class FriendController {
      * 同意好友请求(批量)
      */
     @PostMapping("/agree/id")
-    public JSONObject agreeFriendApplyFromId(@Userid String userId, @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
+    public JSONObject agreeFriendApplyFromId(@Userid String userId, @Valid @RequestBody AgreeFriendApplyVo agreeFriendApplyVo) {
         boolean result = friendService.agreeFriendApply(userId, agreeFriendApplyVo.getFromId());
         return ResultUtil.Succeed(result);
     }
@@ -106,7 +107,7 @@ public class FriendController {
      * 拒绝好友请求
      */
     @PostMapping("/reject")
-    public JSONObject refuseFriendApply(@Userid String userId, @RequestBody RejectFriendApplyVo friendApplyVo) {
+    public JSONObject refuseFriendApply(@Userid String userId, @Valid @RequestBody RejectFriendApplyVo friendApplyVo) {
         boolean result = friendService.rejectFriendApply(userId, friendApplyVo.getFromId());
         return ResultUtil.Succeed(result);
     }
@@ -125,7 +126,7 @@ public class FriendController {
      * 设置好友备注
      */
     @PostMapping("/set/remark")
-    public JSONObject setRemark(@Userid String userId, @RequestBody SetRemarkVo setRemarkVo) {
+    public JSONObject setRemark(@Userid String userId, @Valid @RequestBody SetRemarkVo setRemarkVo) {
         boolean result = friendService.setRemark(userId, setRemarkVo);
         return ResultUtil.Succeed(result);
     }
@@ -134,7 +135,7 @@ public class FriendController {
      * 设置好友分组
      */
     @PostMapping("/set/group")
-    public JSONObject setGroup(@Userid String userId, @RequestBody SetGroupVo setGroupVo) {
+    public JSONObject setGroup(@Userid String userId, @Valid @RequestBody SetGroupVo setGroupVo) {
         boolean result = friendService.setGroup(userId, setGroupVo);
         return ResultUtil.Succeed(result);
     }
@@ -143,7 +144,7 @@ public class FriendController {
      * 删除好友
      */
     @PostMapping("/delete")
-    public JSONObject deleteFriend(@Userid String userId, @RequestBody DeleteFriendVo deleteFriendVo) {
+    public JSONObject deleteFriend(@Userid String userId, @Valid @RequestBody DeleteFriendVo deleteFriendVo) {
         boolean result = friendService.deleteFriend(userId, deleteFriendVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -152,7 +153,7 @@ public class FriendController {
      * 特别关心
      */
     @PostMapping("/carefor")
-    public JSONObject careForFriend(@Userid String userId, @RequestBody CareForFriendVo careForFriendVo) {
+    public JSONObject careForFriend(@Userid String userId, @Valid @RequestBody CareForFriendVo careForFriendVo) {
         boolean result = friendService.careForFriend(userId, careForFriendVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -161,7 +162,7 @@ public class FriendController {
      * 特别关心
      */
     @PostMapping("/uncarefor")
-    public JSONObject unCareForFriend(@Userid String userId, @RequestBody UnCareForFriendVo unCareForFriendVo) {
+    public JSONObject unCareForFriend(@Userid String userId, @Valid @RequestBody UnCareForFriendVo unCareForFriendVo) {
         boolean result = friendService.unCareForFriend(userId, unCareForFriendVo);
         return ResultUtil.ResultByFlag(result);
     }

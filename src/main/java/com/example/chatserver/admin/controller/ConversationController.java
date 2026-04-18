@@ -10,6 +10,7 @@ import com.example.chatserver.dto.ConversationDto;
 import com.example.chatserver.entity.Conversation;
 import com.example.chatserver.service.ConversationService;
 import com.example.chatserver.utils.ResultUtil;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -64,7 +65,7 @@ public class ConversationController {
      */
     @PostMapping("/delete")
     @UrlResource("admin")
-    public JSONObject deleteConversation(@RequestBody DeleteConversationVo deleteConversationVo) {
+    public JSONObject deleteConversation(@Valid @RequestBody DeleteConversationVo deleteConversationVo) {
         boolean result = conversationService.deleteConversation(deleteConversationVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -75,7 +76,7 @@ public class ConversationController {
      */
     @PostMapping("/reset/secret")
     @UrlResource("admin")
-    public JSONObject resetSecret(@RequestBody ResetSecretVo resetSecretVo) {
+    public JSONObject resetSecret(@Valid @RequestBody ResetSecretVo resetSecretVo) {
         boolean result = conversationService.resetSecret(resetSecretVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -85,7 +86,7 @@ public class ConversationController {
      */
     @PostMapping("/disable")
     @UrlResource("admin")
-    public JSONObject disableConversation(@RequestBody DisableConversationVo disableConversationVo) {
+    public JSONObject disableConversation(@Valid @RequestBody DisableConversationVo disableConversationVo) {
         boolean result = conversationService.disableConversation(disableConversationVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -95,7 +96,7 @@ public class ConversationController {
      */
     @PostMapping("/undisable")
     @UrlResource("admin")
-    public JSONObject unDisableConversation(@RequestBody UnDisableConversationVo unDisableConversationVo) {
+    public JSONObject unDisableConversation(@Valid @RequestBody UnDisableConversationVo unDisableConversationVo) {
         boolean result = conversationService.unDisableConversation(unDisableConversationVo);
         return ResultUtil.ResultByFlag(result);
     }

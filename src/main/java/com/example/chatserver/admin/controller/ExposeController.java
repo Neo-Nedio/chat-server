@@ -5,6 +5,7 @@ import com.example.chatserver.annotation.UrlFree;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.service.MessageService;
 import com.example.chatserver.utils.ResultUtil;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +22,7 @@ public class ExposeController {
 
     @UrlFree
     @PostMapping("/send")
-    public Object thirdPartySendMsg(@Userid String userid, @RequestBody ThirdSendMsgVo sendMsgVo) {
+    public Object thirdPartySendMsg(@Userid String userid, @Valid @RequestBody ThirdSendMsgVo sendMsgVo) {
         boolean result = messengerService.thirdPartySendMsg(userid, sendMsgVo);
         return ResultUtil.ResultByFlag(result);
     }

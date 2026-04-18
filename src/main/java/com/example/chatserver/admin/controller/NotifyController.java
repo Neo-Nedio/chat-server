@@ -13,6 +13,7 @@ import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.NotifyService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.ResultUtil;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +50,7 @@ public class NotifyController {
      */
     @PostMapping("/system/delete")
     @UrlResource("admin")
-    public JSONObject deleteNotify(@RequestBody DeleteNotifyVo deleteNotifyVo) {
+    public JSONObject deleteNotify(@Valid @RequestBody DeleteNotifyVo deleteNotifyVo) {
         Notify notify = notifyService.getById(deleteNotifyVo.getNotifyId());
         if (notify == null) {
             return ResultUtil.Fail("通知不存在");

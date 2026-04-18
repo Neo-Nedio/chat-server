@@ -74,7 +74,7 @@ public class UserController {
      * 用户查询
      */
     @PostMapping("/search")
-    public JSONObject searchUser(@RequestBody SearchUserVo searchUserVo) {
+    public JSONObject searchUser(@Valid @RequestBody SearchUserVo searchUserVo) {
         List<UserDto> result = userService.searchUser(searchUserVo);
         return ResultUtil.Succeed(result);
     }
@@ -93,7 +93,7 @@ public class UserController {
      */
     @PostMapping("/email/verify")
     @UrlFree
-    public JSONObject emailVerify(@RequestBody EmailVerifyVo emailVerifyVo) {
+    public JSONObject emailVerify(@Valid @RequestBody EmailVerifyVo emailVerifyVo) {
         verificationCodeService.emailVerificationCode(emailVerifyVo.getEmail());
         return ResultUtil.Succeed();
     }
@@ -103,7 +103,7 @@ public class UserController {
      */
     @PostMapping("/email/verify/by/account")
     @UrlFree
-    public JSONObject emailVerifyByAccount(@RequestBody EmailVerifyByAccountVo emailVerifyByAccountVo) {
+    public JSONObject emailVerifyByAccount(@Valid @RequestBody EmailVerifyByAccountVo emailVerifyByAccountVo) {
         userService.emailVerifyByAccount(emailVerifyByAccountVo.getAccount());
         return ResultUtil.Succeed();
     }
@@ -114,7 +114,7 @@ public class UserController {
      */
     @UrlFree
     @PostMapping("/forget")
-    public JSONObject forget(@RequestBody ForgetVo forgetVo) {
+    public JSONObject forget(@Valid @RequestBody ForgetVo forgetVo) {
         String decryptedPassword = SecurityUtil.decryptPassword(forgetVo.getPassword());
         forgetVo.setPassword(decryptedPassword);
         boolean result = userService.forget(forgetVo);
@@ -159,7 +159,7 @@ public class UserController {
      * 修改当前用户信息
      */
     @PostMapping("/update")
-    public JSONObject update(@Userid String userId, @RequestBody UpdateVo updateVo) {
+    public JSONObject update(@Userid String userId, @Valid @RequestBody UpdateVo updateVo) {
         boolean result = userService.updateUserInfo(userId, updateVo);
         return ResultUtil.ResultByFlag(result);
     }

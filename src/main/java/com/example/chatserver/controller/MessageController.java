@@ -19,6 +19,7 @@ import com.example.chatserver.vo.message.SendMsgVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.InputStreamResource;
@@ -51,7 +52,7 @@ public class MessageController {
      * 发送消息
      */
     @PostMapping("/send")
-    public JSONObject sendMessage(@Userid String userId, @UserRole String role, @RequestBody SendMsgVo sendMsgVo) {
+    public JSONObject sendMessage(@Userid String userId, @UserRole String role, @Valid @RequestBody SendMsgVo sendMsgVo) {
         Message result = messageService.sendMessage(userId, role, sendMsgVo, MsgType.User);
         return ResultUtil.Succeed(result);
     }

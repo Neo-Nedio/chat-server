@@ -11,6 +11,7 @@ import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.chatGroup.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,7 +53,7 @@ public class ChatGroupController {
      * 创建聊天群
      */
     @PostMapping("/create")
-    public JSONObject createChatGroup(@Userid String userId, @RequestBody CreateChatGroupVo createChatGroupVo) {
+    public JSONObject createChatGroup(@Userid String userId, @Valid @RequestBody CreateChatGroupVo createChatGroupVo) {
         boolean result = chatGroupService.createChatGroup(userId, createChatGroupVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -61,7 +62,7 @@ public class ChatGroupController {
      * 更新群信息(个人)
      */
     @PostMapping("/update")
-    public JSONObject updateChatGroup(@Userid String userId, @RequestBody UpdateChatGroupVo updateChatGroupVo) {
+    public JSONObject updateChatGroup(@Userid String userId, @Valid @RequestBody UpdateChatGroupVo updateChatGroupVo) {
         boolean result = chatGroupService.updateChatGroup(userId, updateChatGroupVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -70,7 +71,7 @@ public class ChatGroupController {
      * 更新群信息(群名称)
      */
     @PostMapping("/update/name")
-    public JSONObject updateChatGroupName(@Userid String userId, @RequestBody UpdateChatGroupNameVo updateChatGroupNameVo) {
+    public JSONObject updateChatGroupName(@Userid String userId, @Valid @RequestBody UpdateChatGroupNameVo updateChatGroupNameVo) {
         boolean result = chatGroupService.updateChatGroupName(userId, updateChatGroupNameVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -79,7 +80,7 @@ public class ChatGroupController {
      * 成员邀请
      */
     @PostMapping("/invite")
-    public JSONObject inviteMember(@Userid String userId, @RequestBody InviteMemberVo inviteMemberVo) {
+    public JSONObject inviteMember(@Userid String userId, @Valid @RequestBody InviteMemberVo inviteMemberVo) {
         boolean result = chatGroupService.inviteMember(userId, inviteMemberVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -88,7 +89,7 @@ public class ChatGroupController {
      * 退出群聊
      */
     @PostMapping("/quit")
-    public JSONObject quitChatGroup(@Userid String userId, @RequestBody QuitChatGroupVo quitChatGroupVo) {
+    public JSONObject quitChatGroup(@Userid String userId, @Valid @RequestBody QuitChatGroupVo quitChatGroupVo) {
         boolean result = chatGroupService.quitChatGroup(userId, quitChatGroupVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -97,7 +98,7 @@ public class ChatGroupController {
      * 踢出群聊
      */
     @PostMapping("/kick")
-    public JSONObject kickChatGroup(@Userid String userId, @RequestBody KickChatGroupVo kickChatGroupVo) {
+    public JSONObject kickChatGroup(@Userid String userId, @Valid @RequestBody KickChatGroupVo kickChatGroupVo) {
         boolean result = chatGroupService.kickChatGroup(userId, kickChatGroupVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -106,7 +107,7 @@ public class ChatGroupController {
      * 解散群聊
      */
     @PostMapping("/dissolve")
-    public JSONObject dissolveChatGroup(@Userid String userId, @RequestBody DissolveChatGroupVo dissolveChatGroupVo) {
+    public JSONObject dissolveChatGroup(@Userid String userId, @Valid @RequestBody DissolveChatGroupVo dissolveChatGroupVo) {
         boolean result = chatGroupService.dissolveChatGroup(userId, dissolveChatGroupVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -115,7 +116,7 @@ public class ChatGroupController {
      * 查看群聊是否解散
      */
     @PostMapping("/isDissolve")
-    public JSONObject isDissolveChatGroup(@Userid String userId, @RequestBody DissolveChatGroupVo dissolveChatGroupVo) {
+    public JSONObject isDissolveChatGroup(@Userid String userId, @Valid @RequestBody DissolveChatGroupVo dissolveChatGroupVo) {
         boolean result = chatGroupService.isDissolveChatGroup( dissolveChatGroupVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -124,7 +125,7 @@ public class ChatGroupController {
      * 转让群聊
      */
     @PostMapping("/transfer")
-    public JSONObject transferChatGroup(@Userid String userId, @RequestBody TransferChatGroupVo transferChatGroupVo) {
+    public JSONObject transferChatGroup(@Userid String userId, @Valid @RequestBody TransferChatGroupVo transferChatGroupVo) {
         boolean result = chatGroupService.transferChatGroup(userId, transferChatGroupVo);
         return ResultUtil.ResultByFlag(result);
     }

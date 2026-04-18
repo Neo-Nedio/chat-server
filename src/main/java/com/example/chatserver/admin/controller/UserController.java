@@ -9,6 +9,7 @@ import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.ResultUtil;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,21 +40,21 @@ public class UserController {
 
     @PostMapping("/create")
     @UrlResource("admin")
-    public JSONObject createUser(@RequestBody CreateUserVo createUserVo) {
+    public JSONObject createUser(@Valid @RequestBody CreateUserVo createUserVo) {
         boolean result = userService.createUser(createUserVo);
         return ResultUtil.ResultByFlag(result);
     }
 
     @PostMapping("/update")
     @UrlResource("admin")
-    public JSONObject updateUser(@RequestBody UpdateUserVo updateUserVo) {
+    public JSONObject updateUser(@Valid @RequestBody UpdateUserVo updateUserVo) {
         boolean result = userService.updateUser(updateUserVo);
         return ResultUtil.ResultByFlag(result);
     }
 
     @PostMapping("/disable")
     @UrlResource("admin")
-    public JSONObject disableUser(@Userid String userid, @RequestBody DisableUserVo disableUserVo) {
+    public JSONObject disableUser(@Userid String userid, @Valid @RequestBody DisableUserVo disableUserVo) {
         boolean result = userService.disableUser(userid, disableUserVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -67,7 +68,7 @@ public class UserController {
 
     @PostMapping("/delete")
     @UrlResource("admin")
-    public JSONObject deleteUser(@Userid String userid, @RequestBody DeleteUserVo deleteUserVo) {
+    public JSONObject deleteUser(@Userid String userid, @Valid @RequestBody DeleteUserVo deleteUserVo) {
         boolean result = userService.deleteUser(userid, deleteUserVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -81,14 +82,14 @@ public class UserController {
 
     @PostMapping("/set/admin")
     @UrlResource("admin")
-    public JSONObject setAdmin(@Userid String userid, @RequestBody SetAdminVo setAdminVo) {
+    public JSONObject setAdmin(@Userid String userid, @Valid @RequestBody SetAdminVo setAdminVo) {
         boolean result = userService.setAdmin(userid, setAdminVo);
         return ResultUtil.ResultByFlag(result);
     }
 
     @PostMapping("/cancel/admin")
     @UrlResource("admin")
-    public JSONObject cancelAdmin(@Userid String userid, @RequestBody CancelAdminVo cancelAdminVo) {
+    public JSONObject cancelAdmin(@Userid String userid, @Valid @RequestBody CancelAdminVo cancelAdminVo) {
         boolean result = userService.cancelAdmin(userid, cancelAdminVo);
         return ResultUtil.ResultByFlag(result);
     }

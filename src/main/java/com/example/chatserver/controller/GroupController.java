@@ -10,6 +10,7 @@ import com.example.chatserver.vo.group.CreateGroupVo;
 import com.example.chatserver.vo.group.DeleteGroupVo;
 import com.example.chatserver.vo.group.UpdateGroupVo;
 import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,19 +23,19 @@ public class GroupController {
     GroupService groupService;
 
     @PostMapping("/create")
-    public JSONObject createGroup(@Userid String userId, @RequestBody CreateGroupVo createGroupVo) {
+    public JSONObject createGroup(@Userid String userId, @Valid @RequestBody CreateGroupVo createGroupVo) {
         boolean flag = groupService.createGroup(userId, createGroupVo);
         return ResultUtil.ResultByFlag(flag);
     }
 
     @PostMapping("/update")
-    public JSONObject updateGroup(@Userid String userId, @RequestBody UpdateGroupVo updateGroupVo) {
+    public JSONObject updateGroup(@Userid String userId, @Valid @RequestBody UpdateGroupVo updateGroupVo) {
         boolean flag = groupService.updateGroup(userId, updateGroupVo);
         return ResultUtil.ResultByFlag(flag);
     }
 
     @PostMapping("/delete")
-    public JSONObject deleteGroup(@Userid String userId, @RequestBody DeleteGroupVo deleteGroupVo) {
+    public JSONObject deleteGroup(@Userid String userId, @Valid @RequestBody DeleteGroupVo deleteGroupVo) {
         boolean flag = groupService.deleteGroup(userId, deleteGroupVo);
         return ResultUtil.ResultByFlag(flag);
     }

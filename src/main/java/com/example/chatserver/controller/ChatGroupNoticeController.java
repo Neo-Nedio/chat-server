@@ -9,6 +9,7 @@ import com.example.chatserver.vo.chatGroupNotice.CreateNoticeVo;
 import com.example.chatserver.vo.chatGroupNotice.DeleteNoticeVo;
 import com.example.chatserver.vo.chatGroupNotice.NoticeListVo;
 import com.example.chatserver.vo.chatGroupNotice.UpdateNoticeVo;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +30,7 @@ public class ChatGroupNoticeController {
      * 创建群公告
      */
     @PostMapping("/create")
-    public JSONObject createNotice(@Userid String userId, @RequestBody CreateNoticeVo createNoticeVo) {
+    public JSONObject createNotice(@Userid String userId, @Valid @RequestBody CreateNoticeVo createNoticeVo) {
         boolean result = chatGroupNoticeService.createNotice(userId, createNoticeVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -38,7 +39,7 @@ public class ChatGroupNoticeController {
      * 群公告列表
      */
     @PostMapping("/list")
-    public JSONObject noticeList(@Userid String userId, @RequestBody NoticeListVo noticeListVo) {
+    public JSONObject noticeList(@Userid String userId, @Valid @RequestBody NoticeListVo noticeListVo) {
         List<ChatGroupNotice> result = chatGroupNoticeService.noticeList(userId, noticeListVo);
         return ResultUtil.Succeed(result);
     }
@@ -47,7 +48,7 @@ public class ChatGroupNoticeController {
      * 删除群公告
      */
     @PostMapping("/delete")
-    public JSONObject deleteNotice(@Userid String userId, @RequestBody DeleteNoticeVo deleteNoticeVo) {
+    public JSONObject deleteNotice(@Userid String userId, @Valid @RequestBody DeleteNoticeVo deleteNoticeVo) {
         boolean result = chatGroupNoticeService.deleteNotice(userId, deleteNoticeVo);
         return ResultUtil.ResultByFlag(result);
     }
@@ -57,7 +58,7 @@ public class ChatGroupNoticeController {
      * 编辑群公告
      */
     @PostMapping("/update")
-    public JSONObject updateNotice(@Userid String userId, @RequestBody UpdateNoticeVo updateNoticeVo) {
+    public JSONObject updateNotice(@Userid String userId, @Valid @RequestBody UpdateNoticeVo updateNoticeVo) {
         boolean result = chatGroupNoticeService.updateNotice(userId, updateNoticeVo);
         return ResultUtil.ResultByFlag(result);
     }
