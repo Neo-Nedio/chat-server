@@ -108,6 +108,11 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     }
 
     @Override
+    public List<ChatGroup> searchGroup(String search) {
+        return chatGroupMapper.searchGroup(search);
+    }
+
+    @Override
     public List<ChatGroup> chatGroupList(String userId) {
         return chatGroupMapper.getList(userId);
     }

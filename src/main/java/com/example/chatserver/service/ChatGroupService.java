@@ -6,12 +6,13 @@ import com.example.chatserver.entity.ChatGroup;
 import com.example.chatserver.vo.chatGroup.*;
 
 import java.util.List;
-import java.util.Map;
 
 
 public interface ChatGroupService extends IService<ChatGroup> {
 
     boolean createChatGroup(String userId, CreateChatGroupVo createChatGroupVo);
+
+    List<ChatGroup> searchGroup(String search);
 
     List<ChatGroup> chatGroupList(String userId);
 

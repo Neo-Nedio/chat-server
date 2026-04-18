@@ -32,6 +32,15 @@ public class ChatGroupController {
 
 
     /**
+     * 搜索聊天群
+     */
+    @GetMapping("/search")
+    public JSONObject searchGroup( @RequestParam("search") String search) {
+        List<ChatGroup> result = chatGroupService.searchGroup(search);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
      * 聊天群列表
      */
     @GetMapping("/list")
