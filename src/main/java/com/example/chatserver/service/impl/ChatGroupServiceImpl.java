@@ -454,43 +454,8 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
             throw new BaseException("没有入群申请");
         }
 
-        //如果用户已经在群里了，直接更新通知，不重复加入
-        String memberKey = "member:" +  groupId + ":" + fromId;
-        Boolean alreadyMember = (Boolean) redisUtils.get(memberKey);
-        if (alreadyMember == null) {
-            alreadyMember = chatGroupMemberService.isMemberExists(groupId, fromId);
-            redisUtils.set(memberKey, alreadyMember, 30 * 60);
-        }
-        if (!alreadyMember) {
-            //加入群聊
-            ChatGroupMember member = new ChatGroupMember();
-            member.setId(IdUtil.randomUUID());
-            member.setUserId(fromId);
-            member.setChatGroupId(groupId);
-            chatGroupMemberService.save(member);
-
-            //群成员数 +1
-            chatGroup.setMemberNum(chatGroup.getMemberNum() + 1);
-            updateById(chatGroup);
-
-            redisUtils.del("member:" + groupId + ":" + fromId);
-
-            //发送系统消息
-            SendMsgVo sendMsgVo = new SendMsgVo();
-            sendMsgVo.setSource(MsgSource.Group);
-            sendMsgVo.setToUserId(groupId);
-            MsgContent msgContent = new MsgContent();
-            msgContent.setType(MessageContentType.System);
-            User newUser = userService.getById(fromId);
-            SystemMsgDto systemMsgDto = new SystemMsgDto();
-            systemMsgDto.addEmphasizeContent(newUser.getName())
-                    .addContent("加入了该群");
-            msgContent.setContent(JSONUtil.toJsonStr(systemMsgDto.getContents()));
-            msgContent.setFromUserId(fromId);
-            msgContent.setExt(fromId);
-            sendMsgVo.setMsgContent(msgContent);
-            messageService.sendMessage(fromId, UserRole.User, sendMsgVo, MsgType.System);
-        }
+        //加入群聊（已是成员则内部跳过）
+        joinGroup(groupId, fromId);
 
         //更新通知状态为同意，未读方设为申请人
         notifyList.forEach(notify -> {
@@ -541,6 +506,60 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
 
         //通过 WebSocket 通知申请人
         webSocketService.sendNotifyToUser(notifyList.get(0), fromId);
+
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public boolean joinGroup(String groupId, String fromId) {
+        ChatGroup chatGroup = getById(groupId);
+        if (chatGroup == null) {
+            throw new BaseException("群聊不存在");
+        }
+        if (chatGroup.getStatus().equals(GroupStatus.Disable)) {
+            throw new BaseException("该群已解散");
+        }
+
+        //如果用户已经在群里了，直接返回，不重复加入
+        String memberKey = "member:" + groupId + ":" + fromId;
+        Boolean alreadyMember = (Boolean) redisUtils.get(memberKey);
+        if (alreadyMember == null) {
+            alreadyMember = chatGroupMemberService.isMemberExists(groupId, fromId);
+            redisUtils.set(memberKey, alreadyMember, 30 * 60);
+        }
+        if (alreadyMember) {
+            return false;
+        }
+
+        //加入群聊
+        ChatGroupMember member = new ChatGroupMember();
+        member.setId(IdUtil.randomUUID());
+        member.setUserId(fromId);
+        member.setChatGroupId(groupId);
+        chatGroupMemberService.save(member);
+
+        //群成员数 +1
+        chatGroup.setMemberNum(chatGroup.getMemberNum() + 1);
+        updateById(chatGroup);
+
+        redisUtils.del(memberKey);
+
+        //发送系统消息
+        SendMsgVo sendMsgVo = new SendMsgVo();
+        sendMsgVo.setSource(MsgSource.Group);
+        sendMsgVo.setToUserId(groupId);
+        MsgContent msgContent = new MsgContent();
+        msgContent.setType(MessageContentType.System);
+        User newUser = userService.getById(fromId);
+        SystemMsgDto systemMsgDto = new SystemMsgDto();
+        systemMsgDto.addEmphasizeContent(newUser.getName())
+                .addContent("加入了该群");
+        msgContent.setContent(JSONUtil.toJsonStr(systemMsgDto.getContents()));
+        msgContent.setFromUserId(fromId);
+        msgContent.setExt(fromId);
+        sendMsgVo.setMsgContent(msgContent);
+        messageService.sendMessage(fromId, UserRole.User, sendMsgVo, MsgType.System);
 
         return true;
     }

@@ -43,4 +43,6 @@ public interface ChatGroupService extends IService<ChatGroup> {
     boolean agreeGroupApply(String userId, String fromId, String groupId);
 
     boolean rejectGroupApply(String userId, String fromId, String groupId);
+
+    boolean joinGroup(String groupId, String fromId);
 }

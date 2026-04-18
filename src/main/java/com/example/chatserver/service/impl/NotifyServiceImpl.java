@@ -115,10 +115,9 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
             throw new BaseException("该群已解散");
         }
 
-        //管理员直接添加加入群聊，不发送请求
+        //管理员直接加入群聊，不发送申请、不产生通知
         if(UserRole.Admin.equals(userRole)){
-            //todo 加入群聊的方法
-            return true;
+            return chatGroupService.joinGroup(groupApplyNotifyVo.getGroupId(), userId);
         }
 
         //获取群主id，把入群申请通知发给群主
