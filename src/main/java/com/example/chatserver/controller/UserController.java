@@ -1,15 +1,11 @@
 package com.example.chatserver.controller;
 
 import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.chatserver.annotation.UrlFree;
 import com.example.chatserver.annotation.UserRole;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.UserDto;
-import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.entity.User;
-import com.example.chatserver.entity.ext.MsgContent;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.FriendService;
 import com.example.chatserver.service.UserService;
@@ -31,7 +27,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.print.Printable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;

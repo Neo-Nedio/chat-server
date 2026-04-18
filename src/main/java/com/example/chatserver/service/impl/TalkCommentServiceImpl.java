@@ -1,7 +1,6 @@
 package com.example.chatserver.service.impl;
 
 import cn.hutool.core.util.IdUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.dto.CommentListDto;
 import com.example.chatserver.entity.Talk;

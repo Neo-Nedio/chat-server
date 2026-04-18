@@ -28,12 +28,9 @@ import com.example.chatserver.vo.user.*;
 import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.context.Context;
 

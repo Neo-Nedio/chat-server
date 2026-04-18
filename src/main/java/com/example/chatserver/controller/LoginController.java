@@ -1,6 +1,5 @@
 package com.example.chatserver.controller;
 
-import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.UrlFree;
 import com.example.chatserver.annotation.UserIp;
 import com.example.chatserver.annotation.Userid;

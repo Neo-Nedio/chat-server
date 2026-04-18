@@ -2,19 +2,14 @@ package com.example.chatserver.controller;
 
 
 import cn.hutool.json.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.MemberListDto;
-import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.service.ChatGroupMemberService;
-import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.ChatListMember.MemberListVo;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 

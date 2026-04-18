@@ -1,7 +1,6 @@
 package com.example.chatserver.utils;
 
 import io.jsonwebtoken.*;
-import org.springframework.stereotype.Component;
 
 import java.io.Serial;
 import java.io.Serializable;

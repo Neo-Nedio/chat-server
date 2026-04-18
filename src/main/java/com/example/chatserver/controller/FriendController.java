@@ -2,7 +2,6 @@ package com.example.chatserver.controller;
 
 
 import cn.hutool.json.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.FriendDetailsDto;
 import com.example.chatserver.dto.FriendListDto;
@@ -15,9 +14,7 @@ import com.example.chatserver.vo.friend.*;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 
