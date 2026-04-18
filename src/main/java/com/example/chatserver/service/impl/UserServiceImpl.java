@@ -209,7 +209,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .set(User::getBirthday, updateVo.getBirthday())
                 .set(User::getSignature, updateVo.getSignature())
                 .eq(User::getId, userId);
-        return update(updateWrapper);
+        boolean ok = update(updateWrapper);
+        if (ok) redisUtils.del("user:" + userId);
+        return ok;
     }
 
     @Override
@@ -218,14 +220,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String passwordHash = SecurityUtil.hashPassword(updateVo.getConfirmPassword());
         updateWrapper.set(User::getPassword, passwordHash)
                 .eq(User::getId, userId);
-        return update(updateWrapper);
+        boolean ok = update(updateWrapper);
+        if (ok) redisUtils.del("user:" + userId);
+        return ok;
     }
     @Override
     public boolean updateUserPortrait(String userId, String portrait) {
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(User::getPortrait, portrait)
                 .eq(User::getId, userId);
-        return update(updateWrapper);
+        boolean ok = update(updateWrapper);
+        if (ok) redisUtils.del("user:" + userId);
+        return ok;
     }
 
     @Override
@@ -393,7 +399,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .set(User::getEmail, updateUserVo.getEmail())
                 .set(User::getPhone, updateUserVo.getPhone())
                 .eq(User::getId, updateUserVo.getId());
-        return update(updateWrapper);
+        boolean ok = update(updateWrapper);
+        if (ok) redisUtils.del("user:" + updateUserVo.getId());
+        return ok;
     }
 
     @Override
@@ -484,7 +492,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = getById(userId);
         user.setPortrait(url);
         user.setName(name);
-        return updateById(user);
+        boolean ok = updateById(user);
+        if (ok) redisUtils.del("user:" + userId);
+        return ok;
     }
 
     @Override

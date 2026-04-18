@@ -17,6 +17,7 @@ import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.FriendMapper;
 import com.example.chatserver.service.*;
+import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.vo.friend.*;
 import com.example.chatserver.websocket.WebSocketService;
 import jakarta.annotation.Resource;
@@ -50,6 +51,9 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
 
     @Resource
     WebSocketService webSocketService;
+
+    @Resource
+    RedisUtils redisUtils;
 
 
     @Override
@@ -257,7 +261,9 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
         updateWrapper.set(Friend::getRemark, setRemarkVo.getRemark())
                 .eq(Friend::getFriendId, setRemarkVo.getFriendId())
                 .eq(Friend::getUserId, userId);
-        return update(updateWrapper);
+        boolean ok = update(updateWrapper);
+        if (ok) redisUtils.del("friend-details:" + userId + ":" + setRemarkVo.getFriendId());
+        return ok;
     }
 
     @Override

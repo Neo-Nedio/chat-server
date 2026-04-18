@@ -23,6 +23,7 @@ import com.example.chatserver.mapper.MessageMapper;
 import com.example.chatserver.service.*;
 import com.example.chatserver.utils.FileUtil;
 import com.example.chatserver.utils.MinioUtil;
+import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.vo.chatGroup.DissolveChatGroupVo;
 import com.example.chatserver.vo.message.MessageRecordVo;
 import com.example.chatserver.vo.message.ReeditMsgVo;
@@ -85,6 +86,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Resource
     MinioUtil minioUtil;
+
+    @Resource
+    RedisUtils redisUtils;
 
     @Resource
     RestTemplate restTemplate;
@@ -152,8 +156,19 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
+
+        //获取发送方用户信息（不重要，主要是前端发送通知需要，前端关于用户显示的信息是实时获取）
         MsgContent msgContent = sendMsgVo.getMsgContent();
-        FriendDetailsDto friendDetails = friendService.getFriendDetails(sendMsgVo.getToUserId(), userId);
+        String friendDetailsKey = "friend-details:" + sendMsgVo.getToUserId() + ":" + userId;
+        String friendDetailsJson = (String) redisUtils.get(friendDetailsKey);
+        FriendDetailsDto friendDetails;
+        if (friendDetailsJson != null) {
+            friendDetails = JSONUtil.toBean(friendDetailsJson, FriendDetailsDto.class);
+        } else {
+            friendDetails = friendService.getFriendDetails(sendMsgVo.getToUserId(), userId);
+            redisUtils.set(friendDetailsKey, JSONUtil.toJsonStr(friendDetails), 30 * 60);
+        }
+
         msgContent.setFromUserId(userId);
         msgContent.setFromUserName(StringUtils.isNotBlank(friendDetails.getRemark())
                 ? friendDetails.getRemark() : friendDetails.getName());
@@ -174,8 +189,16 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     //给群聊发送消息
     public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo, String type) {
-        //获取发送方用户信息
-        User user = userService.getById(userId);
+        //获取发送方用户信息（不重要，主要是前端发送通知需要，前端关于用户显示的信息是实时获取）
+        String userKey = "user:" + userId;
+        String userJson = (String) redisUtils.get(userKey);
+        User user;
+        if (userJson != null) {
+            user = JSONUtil.toBean(userJson, User.class);
+        } else {
+            user = userService.getById(userId);
+            redisUtils.set(userKey, JSONUtil.toJsonStr(user), 30 * 60);
+        }
         MsgContent msgContent = sendMsgVo.getMsgContent();
         msgContent.setFromUserName(user.getName());
         msgContent.setFromUserPortrait(user.getPortrait());
