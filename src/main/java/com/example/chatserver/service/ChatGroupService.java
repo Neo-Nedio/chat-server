@@ -12,7 +12,7 @@ public interface ChatGroupService extends IService<ChatGroup> {
 
     boolean createChatGroup(String userId, CreateChatGroupVo createChatGroupVo);
 
-    List<ChatGroup> searchGroup(String search);
+    List<ChatGroup> searchGroup(String userId,String search);
 
     List<ChatGroup> chatGroupList(String userId);
 

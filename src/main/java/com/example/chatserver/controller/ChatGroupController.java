@@ -21,7 +21,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/v1/api/chat-group")
-//todo 搜索群聊功能(名字/群号) ，用于添加群聊 ，并且给群主设计同意功能
 public class ChatGroupController {
 
     @Resource
@@ -35,8 +34,8 @@ public class ChatGroupController {
      * 搜索聊天群
      */
     @GetMapping("/search")
-    public JSONObject searchGroup( @RequestParam("search") String search) {
-        List<ChatGroup> result = chatGroupService.searchGroup(search);
+    public JSONObject searchGroup(@Userid String userId, @RequestParam("search") String search) {
+        List<ChatGroup> result = chatGroupService.searchGroup(userId,search);
         return ResultUtil.Succeed(result);
     }
 

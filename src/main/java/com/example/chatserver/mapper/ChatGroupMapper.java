@@ -11,12 +11,12 @@ import java.util.List;
 
 public interface ChatGroupMapper extends BaseMapper<ChatGroup> {
 
-    @Select("SELECT * FROM chat_group " +
-            "WHERE chat_group_number LIKE CONCAT('%', #{search}, '%') " +
-            "   OR name LIKE CONCAT('%', #{search}, '%') " +
-            "   AND status = 1"
-            )
-    List<ChatGroup> searchGroup(String search);
+    @Select("SELECT cg.*, cgm.`group_remark` AS `group_remark` FROM chat_group cg " +
+            "LEFT JOIN chat_group_member cgm ON cg.id = cgm.chat_group_id AND cgm.user_id = #{userId} " +
+            "WHERE (cg.chat_group_number LIKE CONCAT('%', #{search}, '%') " +
+            "   OR cg.name LIKE CONCAT('%', #{search}, '%')) " +
+            "AND cg.status = 1")
+    List<ChatGroup> searchGroup(String userId,String search);
 
     @Select("SELECT cg.*, cgm.`group_remark` AS `group_remark` FROM `chat_group` AS cg " +
             "LEFT JOIN `chat_group_member` AS cgm ON cg.`id` = cgm.`chat_group_id` AND cgm.`user_id` = #{userId} " +
