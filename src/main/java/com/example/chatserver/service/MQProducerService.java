@@ -1,5 +1,6 @@
 package com.example.chatserver.service;
 
+import com.example.chatserver.dto.EmailTaskDto;
 import com.example.chatserver.entity.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendCallback;
@@ -55,6 +56,25 @@ public class MQProducerService {
         if (!enabled)
             return null;
         return rocketMQTemplate.syncSend(topic + ":group", MessageBuilder.withPayload(msgBody).build());
+    }
+
+    /**
+     * 异步发送邮件
+     */
+    public boolean sendEmail(EmailTaskDto task) {
+        if (!enabled)
+            return false;
+            rocketMQTemplate.asyncSend(topic + ":email", MessageBuilder.withPayload(task).build(), new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("邮件消息投递失败 to={}, subject={}, err={}", task.getTo(), task.getSubject(), throwable.getMessage());
+            }
+        });
+        return true;
     }
 
     /**
