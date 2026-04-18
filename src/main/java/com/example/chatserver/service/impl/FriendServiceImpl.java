@@ -158,7 +158,12 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
             friend.setId(IdUtil.randomUUID());
             friend.setUserId(userId);
             friend.setFriendId(targetId);
-            return save(friend);
+            boolean ok = save(friend);
+            if (ok) {
+                redisUtils.del("friend:" + userId + ":" + targetId);
+                redisUtils.del("friend:" + targetId + ":" + userId);
+            }
+            return ok;
         }
         return true;
     }
@@ -293,7 +298,12 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
                     q.eq(Friend::getFriendId, userId)
                             .eq(Friend::getUserId, deleteFriendVo.getFriendId());
                 });
-        return remove(queryWrapper);
+        boolean ok = remove(queryWrapper);
+        if (ok) {
+            redisUtils.del("friend:" + userId + ":" + deleteFriendVo.getFriendId(),
+                    "friend:" + deleteFriendVo.getFriendId() + ":" + userId);
+        }
+        return ok;
     }
 
     @Override

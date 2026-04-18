@@ -16,6 +16,7 @@ import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.ChatGroupMapper;
 import com.example.chatserver.mapper.ChatGroupNoticeMapper;
 import com.example.chatserver.service.*;
+import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.vo.chatGroup.*;
 import com.example.chatserver.vo.message.SendMsgVo;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,9 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
 
     @Resource
     MinioConfig minioConfig;
+
+    @Resource
+    RedisUtils redisUtils;
 
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
@@ -204,7 +208,13 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
             ChatGroup chatGroup = getById(inviteMemberVo.getGroupId());
             chatGroup.setMemberNum(chatGroup.getMemberNum() + members.size());
             updateById(chatGroup);
-            return chatGroupMemberService.saveBatch(members);
+            boolean ok = chatGroupMemberService.saveBatch(members);
+            if (ok) {
+                for (ChatGroupMember m : members) {
+                    redisUtils.del("member:" + inviteMemberVo.getGroupId() + ":" + m.getUserId());
+                }
+            }
+            return ok;
         }
         return false;
     }
@@ -234,6 +244,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         queryWrapper.eq(ChatGroupMember::getUserId, userId)
                 .eq(ChatGroupMember::getChatGroupId, quitChatGroupVo.getGroupId());
         chatGroupMemberService.remove(queryWrapper);
+        redisUtils.del("member:" + quitChatGroupVo.getGroupId() + ":" + userId);
 
         //群聊更新
         ChatGroup chatGroup = getById(quitChatGroupVo.getGroupId());
@@ -272,6 +283,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         queryWrapper.eq(ChatGroupMember::getChatGroupId, kickChatGroupVo.getGroupId())
                 .eq(ChatGroupMember::getUserId, kickChatGroupVo.getUserId());
         chatGroupMemberService.remove(queryWrapper);
+        redisUtils.del("member:" + kickChatGroupVo.getGroupId() + ":" + kickChatGroupVo.getUserId());
 
         //群成员减一
         ChatGroup chatGroup = getById(kickChatGroupVo.getGroupId());
@@ -322,7 +334,9 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         ChatGroup updateGroup = new ChatGroup();
         updateGroup.setId(dissolveChatGroupVo.getGroupId());
         updateGroup.setStatus(GroupStatus.Disable);  // 0-已解散
-        return updateById(updateGroup);
+        boolean ok = updateById(updateGroup);
+        if (ok) redisUtils.del("group-dissolved:" + dissolveChatGroupVo.getGroupId());
+        return ok;
     }
 
     @Override

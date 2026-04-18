@@ -152,7 +152,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     //给用户发送消息
     public Message sendMessageToUser(String userId, SendMsgVo sendMsgVo, String type) {
         //验证是否是好友
-        boolean isFriend = friendService.isFriendIgnoreSpecial(userId, sendMsgVo.getToUserId());
+        String friendKey = "friend:" + userId + ":" + sendMsgVo.getToUserId();
+        Boolean isFriend = (Boolean) redisUtils.get(friendKey);
+        if (isFriend == null) {
+            isFriend = friendService.isFriendIgnoreSpecial(userId, sendMsgVo.getToUserId());
+            redisUtils.set(friendKey, isFriend, 30 * 60);
+        }
         if (!isFriend) {
             throw new BaseException("双方非好友");
         }
@@ -189,6 +194,27 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     //给群聊发送消息
     public Message sendMessageToGroup(String userId, SendMsgVo sendMsgVo, String type) {
+        String memberKey = "member:" + sendMsgVo.getToUserId() + ":" + userId;
+        Boolean isMember = (Boolean) redisUtils.get(memberKey);
+        if (isMember == null) {
+            isMember = chatGroupMemberService.isMemberExists(sendMsgVo.getToUserId(), userId);
+            redisUtils.set(memberKey, isMember, 30 * 60);
+        }
+        if (!isMember) {
+            throw new BaseException("你不在群聊内");
+        }
+        String dissolvedKey = "group-dissolved:" + sendMsgVo.getToUserId();
+        Boolean dissolved = (Boolean) redisUtils.get(dissolvedKey);
+        if (dissolved == null) {
+            DissolveChatGroupVo dissolveChatGroupVo = new DissolveChatGroupVo();
+            dissolveChatGroupVo.setGroupId(sendMsgVo.getToUserId());
+            dissolved = chatGroupService.isDissolveChatGroup(dissolveChatGroupVo);
+            redisUtils.set(dissolvedKey, dissolved, 30 * 60);
+        }
+        if (dissolved) {
+            throw new BaseException("该群已解散");
+        }
+
         //获取发送方用户信息（不重要，主要是前端发送通知需要，前端关于用户显示的信息是实时获取）
         String userKey = "user:" + userId;
         String userJson = (String) redisUtils.get(userKey);
@@ -203,14 +229,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         msgContent.setFromUserName(user.getName());
         msgContent.setFromUserPortrait(user.getPortrait());
 
-        if (!chatGroupMemberService.isMemberExists(sendMsgVo.getToUserId(), userId)) {
-            throw new BaseException("你不在群聊内");
-        }
-        DissolveChatGroupVo dissolveChatGroupVo = new DissolveChatGroupVo();
-        dissolveChatGroupVo.setGroupId(sendMsgVo.getToUserId());
-        if (chatGroupService.isDissolveChatGroup(dissolveChatGroupVo)) {
-            throw new BaseException("该群已解散");
-        }
+
         Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.Group, type);
         //更新聊天列表
         chatListService.updateChatListGroup(message.getToId(), message.getMsgContent());
