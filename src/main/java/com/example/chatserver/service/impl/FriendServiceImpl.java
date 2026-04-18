@@ -287,7 +287,6 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
                     q.eq(Friend::getFriendId, userId)
                             .eq(Friend::getUserId, deleteFriendVo.getFriendId());
                 });
-        chatListService.removeByUserId(userId, deleteFriendVo.getFriendId());
         return remove(queryWrapper);
     }
 
