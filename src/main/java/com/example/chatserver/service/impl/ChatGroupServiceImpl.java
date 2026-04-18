@@ -212,12 +212,6 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
     public boolean quitChatGroup(String userId, QuitChatGroupVo quitChatGroupVo) {
-        //从群聊中移出
-        LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ChatGroupMember::getUserId, userId)
-                .eq(ChatGroupMember::getChatGroupId, quitChatGroupVo.getGroupId());
-        chatGroupMemberService.remove(queryWrapper);
-
         //发送群消息
         SendMsgVo sendMsgVo = new SendMsgVo();
         sendMsgVo.setSource(MsgSource.Group);
@@ -235,11 +229,11 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         sendMsgVo.setMsgContent(msgContent);
         messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
 
-        //删除会话
-        LambdaQueryWrapper<ChatList> chatListLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        chatListLambdaQueryWrapper.eq(ChatList::getUserId, userId)
-                .eq(ChatList::getFromId, quitChatGroupVo.getGroupId());
-        chatListService.remove(chatListLambdaQueryWrapper);
+        //从群聊中移出
+        LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatGroupMember::getUserId, userId)
+                .eq(ChatGroupMember::getChatGroupId, quitChatGroupVo.getGroupId());
+        chatGroupMemberService.remove(queryWrapper);
 
         //群聊更新
         ChatGroup chatGroup = getById(quitChatGroupVo.getGroupId());
@@ -255,12 +249,6 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         if(userId.equals(kickChatGroupVo.getUserId())){
             throw new BaseException("不能踢出自己~");
         }
-
-        //踢出群成员
-        LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ChatGroupMember::getChatGroupId, kickChatGroupVo.getGroupId())
-                .eq(ChatGroupMember::getUserId, kickChatGroupVo.getUserId());
-        chatGroupMemberService.remove(queryWrapper);
 
         //发送群消息
         SendMsgVo sendMsgVo = new SendMsgVo();
@@ -279,12 +267,11 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
         sendMsgVo.setMsgContent(msgContent);
         messageService.sendMessage(userId, UserRole.User, sendMsgVo, MsgType.System);
 
-        //删除对应成员的会话，防止报错
-        LambdaQueryWrapper<ChatList> chatListLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        chatListLambdaQueryWrapper.eq(ChatList::getUserId, userId)
-                .eq(ChatList::getFromId, kickChatGroupVo.getGroupId());
-
-        chatListService.remove(chatListLambdaQueryWrapper);
+        //踢出群成员
+        LambdaQueryWrapper<ChatGroupMember> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatGroupMember::getChatGroupId, kickChatGroupVo.getGroupId())
+                .eq(ChatGroupMember::getUserId, kickChatGroupVo.getUserId());
+        chatGroupMemberService.remove(queryWrapper);
 
         //群成员减一
         ChatGroup chatGroup = getById(kickChatGroupVo.getGroupId());
