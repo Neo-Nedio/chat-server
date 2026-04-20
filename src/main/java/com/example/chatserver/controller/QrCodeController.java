@@ -37,8 +37,8 @@ public class QrCodeController {
 
     @GetMapping("/code")
     @UrlFree
-    public JSONObject code(@UserIp String userIp, @Userid String userId, @Path("action") String action) {
-        String key = qrCodeService.createQrCode(action, userIp, userId);
+    public JSONObject code(@UserIp String userIp, @Userid String userId, @Path("action") String action,@Path("groupId") String groupId) {
+        String key = qrCodeService.createQrCode(action, userIp, userId, groupId);
         return ResultUtil.Succeed(key);
     }
 

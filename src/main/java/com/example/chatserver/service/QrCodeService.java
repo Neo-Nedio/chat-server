@@ -2,11 +2,13 @@ package com.example.chatserver.service;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
+import com.example.chatserver.dto.ChatGroupDetailsDto;
 import com.example.chatserver.dto.QrCodeResult;
 import com.example.chatserver.dto.UserDto;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.SecurityUtil;
+import com.example.chatserver.vo.chatGroup.DetailsChatGroupVo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -20,7 +22,10 @@ public class QrCodeService {
     @Resource
     UserService userService;
 
-    public String createQrCode(String action, String userIp, String userId) {
+    @Resource
+    ChatGroupService chatGroupService;
+
+    public String createQrCode(String action, String userIp, String userId,String groupId) {
         switch (action) {
             case "login": {
                 QrCodeResult qrCodeResult = new QrCodeResult();
@@ -41,6 +46,23 @@ public class QrCodeService {
                 UserDto user = userService.info(userId);
                 qrCodeResult.setExtend(JSONUtil.parseObj(user));
                 String key = SecurityUtil.aesEncrypt(userId);
+                redisUtils.set(key, JSONUtil.toJsonStr(qrCodeResult), 30 * 24 * 60 * 60);
+                return key;
+            }
+            case "group": {
+                if (groupId == null) {
+                    throw new BaseException("群聊不能为空~");
+                }
+                QrCodeResult qrCodeResult = new QrCodeResult();
+                qrCodeResult.setAction("group");
+                qrCodeResult.setIp(userIp);
+
+                DetailsChatGroupVo detailsChatGroupVo = new DetailsChatGroupVo();
+                detailsChatGroupVo.setChatGroupId(groupId);
+                ChatGroupDetailsDto chatGroup = chatGroupService.detailsChatGroup(userId,detailsChatGroupVo);
+                qrCodeResult.setExtend(JSONUtil.parseObj(chatGroup));
+
+                String key = SecurityUtil.aesEncrypt(groupId);
                 redisUtils.set(key, JSONUtil.toJsonStr(qrCodeResult), 30 * 24 * 60 * 60);
                 return key;
             }

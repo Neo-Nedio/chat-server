@@ -110,7 +110,7 @@ public class FriendController {
     }
 
     /**
-     * 扫码好友请求（立即建立好友关系）
+     * 扫码好友请求（立即建立好友关系） 已废弃
      */
     @PostMapping("/add/qr")
     public JSONObject addFriendByQr(@Userid String userId, @RequestBody AddFriendByQrVo AddFriendByQrVo) {
