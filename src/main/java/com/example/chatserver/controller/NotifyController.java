@@ -74,6 +74,15 @@ public class NotifyController {
     }
 
     /**
+     * 群聊通知已读
+     */
+    @GetMapping("/group/read")
+    public JSONObject groupNotifyRead(@Userid String userId,@RequestParam("groupId") String groupId) {
+        boolean result = notifyService.groupNotifyRead(userId,groupId);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    /**
      * 系统通知列表
      */
     @GetMapping("/system/list")

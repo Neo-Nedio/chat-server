@@ -27,6 +27,8 @@ public interface NotifyService extends IService<Notify> {
 
     boolean readNotify(String userId, ReadNotifyVo readNotifyVo);
 
+    boolean groupNotifyRead(String userId,String groupId);
+
     List<SystemNotifyDto> SystemListNotify(String userId);
 
     SystemNotifyDto SystemNotifyLatest(String userId);

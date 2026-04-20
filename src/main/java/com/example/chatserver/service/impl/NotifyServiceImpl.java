@@ -10,6 +10,7 @@ import com.example.chatserver.constant.NotifyType;
 import com.example.chatserver.constant.UserRole;
 import com.example.chatserver.dto.ApplyNotifyDto;
 import com.example.chatserver.dto.SystemNotifyDto;
+import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.entity.Notify;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
@@ -174,6 +175,16 @@ public class NotifyServiceImpl extends ServiceImpl<NotifyMapper, Notify> impleme
                 .eq(Notify::getUnreadId, userId)
                 .eq(Notify::getType, readNotifyVo.getNotifyType());
         return update(updateWrapper);
+    }
+
+    @Override
+    public boolean groupNotifyRead(String userId, String groupId) {
+        LambdaUpdateWrapper<ChatGroupMember> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.set(ChatGroupMember::getLastReadNoticeTime, new Date())
+                .eq(ChatGroupMember::getUserId, userId)
+                .eq(ChatGroupMember::getChatGroupId, groupId);
+
+        return chatGroupMemberService.update(wrapper);
     }
 
     @Override

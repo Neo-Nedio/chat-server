@@ -49,6 +49,12 @@ public class ChatGroupMember implements Serializable {
     private String groupName;
 
     /**
+     * 上次群通知已读时间
+     */
+    @TableField("last_read_notice_time")
+    private Date lastReadNoticeTime;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)
