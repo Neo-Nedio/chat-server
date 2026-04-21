@@ -55,6 +55,12 @@ public class ChatGroupMember implements Serializable {
     private Date lastReadNoticeTime;
 
     /**
+     * 禁言截止时间，NULL表示未禁言
+     */
+    @TableField("ban_end_time")
+    private Date banEndTime;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)

@@ -6,7 +6,9 @@ import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.dto.MemberListDto;
 import com.example.chatserver.service.ChatGroupMemberService;
 import com.example.chatserver.utils.ResultUtil;
+import com.example.chatserver.vo.ChatListMember.BanMemberVo;
 import com.example.chatserver.vo.ChatListMember.MemberListVo;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -35,6 +37,19 @@ public class ChatGroupMemberController {
     @GetMapping("isMember")
     public JSONObject isMember(@Userid String userId,@RequestParam("groupId") String groupId) {
         boolean result = chatGroupMemberService.isMemberExists(groupId,userId);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    @PostMapping("ban")
+    public JSONObject ban(
+            @Userid String userId, @Valid @RequestBody BanMemberVo banMemberVo) {
+        boolean result = chatGroupMemberService.ban(userId,banMemberVo);
+        return ResultUtil.ResultByFlag(result);
+    }
+
+    @PostMapping("is/ban")
+    public JSONObject isBan(@Valid @RequestBody BanMemberVo banMemberVo) {
+        boolean result = chatGroupMemberService.isBan(banMemberVo);
         return ResultUtil.ResultByFlag(result);
     }
 }

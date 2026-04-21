@@ -2,6 +2,8 @@ package com.example.chatserver.dto;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class MemberListDto {
     private String chatGroupId;
@@ -11,6 +13,8 @@ public class MemberListDto {
     private String friendId;
     private String groupName;
     private String portrait;
+    private Date lastReadNoticeTime;
+    private Date banEndTime;
     private String create_time;
     private String update_time;
 }

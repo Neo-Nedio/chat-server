@@ -24,6 +24,7 @@ import com.example.chatserver.service.*;
 import com.example.chatserver.utils.FileUtil;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.RedisUtils;
+import com.example.chatserver.vo.ChatListMember.BanMemberVo;
 import com.example.chatserver.vo.chatGroup.DissolveChatGroupVo;
 import com.example.chatserver.vo.message.MessageRecordVo;
 import com.example.chatserver.vo.message.ReeditMsgVo;
@@ -213,6 +214,19 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         }
         if (dissolved) {
             throw new BaseException("该群已解散");
+        }
+        // 检查是否被禁言
+        String banKey = "group:ban:" + sendMsgVo.getToUserId() + ":" + userId;
+        Boolean isBanned = (Boolean) redisUtils.get(banKey);
+        if (isBanned == null) {
+            BanMemberVo banMemberVo = new BanMemberVo();
+            banMemberVo.setGroupId(sendMsgVo.getToUserId());
+            banMemberVo.setTargetId(userId);
+            isBanned = chatGroupMemberService.isBan(banMemberVo);
+            redisUtils.set(banKey, isBanned, 30 * 60);
+        }
+        if (isBanned) {
+            throw new BaseException("你已被禁言");
         }
 
         //获取发送方用户信息（不重要，主要是前端发送通知需要，前端关于用户显示的信息是实时获取）
