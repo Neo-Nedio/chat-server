@@ -4,9 +4,7 @@ import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.service.EmojiService;
 import com.example.chatserver.utils.ResultUtil;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -26,5 +24,11 @@ public class EmojiController {
         return ResultUtil.Succeed(emojiService.list(userId));
     }
 
-
+    /**
+     * 添加表情列表
+     */
+    @PostMapping("/add")
+    public JSONObject add(@Userid String userId, @RequestParam("emoji") String emoji) {
+        return ResultUtil.ResultByFlag(emojiService.add(userId,emoji));
+    }
 }

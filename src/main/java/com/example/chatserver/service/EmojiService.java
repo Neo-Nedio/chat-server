@@ -8,4 +8,6 @@ import java.util.List;
 public interface EmojiService extends IService<emoji> {
 
     List<emoji> list(String userId);
+
+    boolean add(String userId,String emoji);
 }

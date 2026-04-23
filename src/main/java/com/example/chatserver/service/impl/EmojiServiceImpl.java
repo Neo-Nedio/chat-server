@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class EmojiServiceImpl extends ServiceImpl<EmojiMapper, emoji> implements EmojiService {
@@ -22,5 +23,19 @@ public class EmojiServiceImpl extends ServiceImpl<EmojiMapper, emoji> implements
         queryWrapper.eq(emoji::getUserId, userId)
                 .orderByDesc(emoji::getCreateTime);;
         return emojiMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public boolean add(String userId, String emoji) {
+        if (emoji == null || emoji.isEmpty()) {
+            return false;
+        }
+
+        emoji entity = new emoji();
+        entity.setId(UUID.randomUUID().toString());
+        entity.setUserId(userId);
+        entity.setEmoji(emoji);
+
+        return emojiMapper.insert(entity) > 0;
     }
 }
