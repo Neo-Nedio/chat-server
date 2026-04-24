@@ -45,6 +45,14 @@ public class EmojiController {
         return ResultUtil.ResultByFlag(emojiService.add(userId,emoji));
     }
 
+    /**
+     * 删除表情列表
+     */
+    @PostMapping("/delete")
+    public JSONObject delete(@Userid String userId, @RequestParam("emoji") String emoji) {
+        return ResultUtil.ResultByFlag(emojiService.delete(userId,emoji));
+    }
+
     @PostMapping(value = "upload")
     public JSONObject uploadFrom(@Userid String userId,
                                  @RequestParam("name") String name,

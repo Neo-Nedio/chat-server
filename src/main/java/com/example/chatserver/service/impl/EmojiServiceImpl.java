@@ -38,4 +38,18 @@ public class EmojiServiceImpl extends ServiceImpl<EmojiMapper, emoji> implements
 
         return emojiMapper.insert(entity) > 0;
     }
+
+    @Override
+    public boolean delete(String userId, String Emoji) {
+        if (Emoji == null || Emoji.isEmpty()) {
+            return false;
+        }
+
+        // 使用 LambdaQueryWrapper 构建删除条件
+        LambdaQueryWrapper<emoji> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(emoji::getUserId, userId)
+                .eq(emoji::getEmoji, Emoji);
+
+        return emojiMapper.delete(wrapper) > 0;
+    }
 }

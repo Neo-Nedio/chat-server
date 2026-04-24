@@ -10,4 +10,6 @@ public interface EmojiService extends IService<emoji> {
     List<emoji> list(String userId);
 
     boolean add(String userId,String emoji);
+
+    boolean delete(String userId,String emoji);
 }
