@@ -544,13 +544,21 @@ public class RedisUtils {
     /**
      * 启动时清空所有缓存
      */
-    @PostConstruct
+    @PostConstruct // 在 Bean 初始化完成后自动执行
     public void clearAll() {
         redisTemplate.execute((RedisCallback<Void>) c -> {
-            try (Cursor<byte[]> cursor = c.scan(ScanOptions.scanOptions().match("*").count(1000).build())) {
+            try (Cursor<byte[]> cursor = c.scan(ScanOptions.scanOptions()
+                    .match("*")      // 匹配所有 key
+                    .count(1000)     // 每次扫描 1000 个 key
+                    .build())) {
                 List<byte[]> keys = new ArrayList<>();
-                while (cursor.hasNext()) keys.add(cursor.next());
-                if (!keys.isEmpty()) c.del(keys.toArray(new byte[0][]));
+                while (cursor.hasNext()) {
+                    keys.add(cursor.next());
+                }
+                // 批量删除所有 key
+                if (!keys.isEmpty()) {
+                    c.del(keys.toArray(new byte[0][]));
+                }
             }
             return null;
         });

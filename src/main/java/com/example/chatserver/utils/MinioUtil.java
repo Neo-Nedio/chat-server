@@ -24,7 +24,6 @@ import java.util.List;
 
 @Component
 @Slf4j
-//todo 学习minio
 public class MinioUtil {
     @Resource
     private MinioConfig minioConfig;
@@ -184,6 +183,7 @@ public class MinioUtil {
         // 5. 返回对象路径
         return objectName;
     }
+
     //上传 MultipartFile
     public String upload(MultipartFile file, String fileName) {
         String originalFilename = file.getOriginalFilename();
@@ -191,8 +191,12 @@ public class MinioUtil {
             throw new RuntimeException();
         }
         try {
-            PutObjectArgs objectArgs = PutObjectArgs.builder().bucket(minioConfig.getBucketName()).object(fileName)
-                    .stream(file.getInputStream(), file.getSize(), -1).contentType(file.getContentType()).build();
+            PutObjectArgs objectArgs = PutObjectArgs.builder()
+                    .bucket(minioConfig.getBucketName())
+                    .object(fileName)
+                    .stream(file.getInputStream(), file.getSize(), -1)
+                    .contentType(file.getContentType())
+                    .build();
             //文件名称相同会覆盖
             minioClient.putObject(objectArgs);
         } catch (Exception e) {
@@ -201,11 +205,15 @@ public class MinioUtil {
         }
         return minioConfig.getEndpoint() + "/" + fileName;
     }
+
     //上传 InputStream
     public String upload(InputStream in, String fileName, String type, long size) {
         try {
-            PutObjectArgs objectArgs = PutObjectArgs.builder().bucket(minioConfig.getBucketName()).object(fileName)
-                    .stream(in, size, -1).contentType(type).build();
+            PutObjectArgs objectArgs = PutObjectArgs.builder()
+                    .bucket(minioConfig.getBucketName())
+                    .object(fileName)
+                    .stream(in, size, -1)
+                    .contentType(type).build();
             //文件名称相同会覆盖
             minioClient.putObject(objectArgs);
         } catch (Exception e) {
@@ -214,10 +222,14 @@ public class MinioUtil {
         }
         return minioConfig.getEndpoint() + "/" + minioConfig.getBucketName() + "/" + fileName;
     }
+
     public String uploadFile(InputStream in, String fileName, long size) {
         try {
-            PutObjectArgs objectArgs = PutObjectArgs.builder().bucket(minioConfig.getFileBucketName()).object(fileName)
-                    .stream(in, size, -1).build();
+            PutObjectArgs objectArgs = PutObjectArgs.builder()
+                    .bucket(minioConfig.getFileBucketName())
+                    .object(fileName)
+                    .stream(in, size, -1)
+                    .build();
             minioClient.putObject(objectArgs);
         } catch (Exception e) {
             log.error("文件上传失败", e);
@@ -240,7 +252,10 @@ public class MinioUtil {
         // 查看文件地址
         try {
             GetPresignedObjectUrlArgs build = new GetPresignedObjectUrlArgs().builder()
-                    .bucket(minioConfig.getBucketName()).object(fileName).expiry(expiry).method(Method.GET).build();
+                    .bucket(minioConfig.getBucketName())
+                    .object(fileName).expiry(expiry)
+                    .method(Method.GET)
+                    .build();
             return minioClient.getPresignedObjectUrl(build);
         } catch (Exception e) {
             log.error("生成预览链接失败, fileName: {}", fileName, e);
@@ -255,7 +270,11 @@ public class MinioUtil {
         int expiry = 7 * 24 * 60 * 60; //临时访问链接的过期时间，用于控制生成的 URL 的有效时长
         // 查看文件地址
         GetPresignedObjectUrlArgs build = new GetPresignedObjectUrlArgs().builder()
-                .bucket(minioConfig.getFileBucketName()).object(fileName).expiry(expiry).method(Method.GET).build();
+                .bucket(minioConfig.getFileBucketName())
+                .object(fileName)
+                .expiry(expiry)
+                .method(Method.GET)
+                .build();
         try {
             return minioClient.getPresignedObjectUrl(build);
         } catch (Exception e) {
@@ -268,8 +287,10 @@ public class MinioUtil {
      * 下载
      */
     public void download(String fileName, HttpServletResponse res) {
-        GetObjectArgs objectArgs = GetObjectArgs.builder().bucket(minioConfig.getBucketName())
-                .object(fileName).build();
+        GetObjectArgs objectArgs = GetObjectArgs.builder()
+                .bucket(minioConfig.getBucketName())
+                .object(fileName)
+                .build();
         //读取文件到内存
         try (GetObjectResponse response = minioClient.getObject(objectArgs)) {
             byte[] buf = new byte[1024]; // 1KB 缓冲区
@@ -329,7 +350,11 @@ public class MinioUtil {
      */
     @SneakyThrows(Exception.class)
     public InputStream getObject(String objectName) {
-        return minioClient.getObject(GetObjectArgs.builder().bucket(minioConfig.getFileBucketName()).object(objectName).build());
+        return minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(minioConfig.getFileBucketName())
+                        .object(objectName)
+                        .build());
     }
 
     /**

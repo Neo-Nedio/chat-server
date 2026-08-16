@@ -79,7 +79,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (code == null || !code.equals(registerVo.getCode())) {
             throw new BaseException("验证码错误或者已失效~");
         }
-        redisUtils.del(registerVo.getEmail());
+
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getAccount, registerVo.getAccount());
         if (count(queryWrapper) > 0) {
@@ -91,6 +91,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (count(queryWrapper) > 0) {
             throw new BaseException("邮箱已存在~");
         }
+
+        redisUtils.del(registerVo.getEmail());
 
         User user = new User();
         user.setId(IdUtil.randomUUID());

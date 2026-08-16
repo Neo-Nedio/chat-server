@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 
 
-@RestControllerAdvice
+/*全局拦截所有 Controller 抛出的异常
+自动将返回值转为 JSON（相当于 @ResponseBody）
+相当于 AOP 的"环绕通知"*/
+@RestControllerAdvice// = @ControllerAdvice + @ResponseBody
 @Slf4j
 public class GlobalExceptionHandler {
 

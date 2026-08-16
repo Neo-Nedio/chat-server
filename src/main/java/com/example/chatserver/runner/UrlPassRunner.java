@@ -33,7 +33,7 @@ public class UrlPassRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        //获取所有 Controller 映射
+        //Spring MVC 的核心组件，管理所有 @RequestMapping 映射
         Map<RequestMappingInfo, HandlerMethod> methodMap = requestMappingHandlerMapping.getHandlerMethods();
 
         List<String> urlList = new ArrayList<>();
@@ -52,7 +52,6 @@ public class UrlPassRunner implements ApplicationRunner {
                         urlList.add(url.replaceAll("\\{[^\\}]+\\}", "**"));
                     }
                 }
-                // 免验证url
                 if (annotation.annotationType().equals(UrlResource.class)) {
                     UrlResource urlResource = (UrlResource) annotation;
                     //获取 @UrlResource 注解的 value 属性值，这个值代表允许访问该接口的角色

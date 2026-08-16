@@ -15,7 +15,6 @@ import javax.annotation.Resource;
 
 @Slf4j
 @Component
-//todo 学习mq
 public class MQProducerService {
 
     @Value("${rocketmq.producer.send-message-timeout}")
