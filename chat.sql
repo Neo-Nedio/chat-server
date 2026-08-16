@@ -265,3 +265,31 @@ create table user_set
 )
     comment '用户设置表' row_format = DYNAMIC;
 
+create table ai_model
+(
+    id          varchar(64)  not null
+        primary key,
+    user_id     varchar(64)  not null comment '归属用户id',
+    model_name  varchar(255) not null comment '显示名（用户自定义）',
+    base_url    varchar(512) not null comment 'OpenAI兼容接口地址',
+    api_key     varchar(255) not null comment '模型ApiKey',
+    model       varchar(255) not null comment '模型标识',
+    create_time timestamp(3) not null comment '创建时间',
+    update_time timestamp(3) not null comment '更新时间',
+    key idx_user_id (user_id)
+)
+    comment '用户AI模型配置表' row_format = DYNAMIC;
+
+create table ai_chat_record
+(
+    id          varchar(64) not null
+        primary key,
+    user_id     varchar(64) not null comment '归属用户id',
+    model_id    varchar(64) not null comment '使用的模型配置id（仅记录，查询不按模型过滤）',
+    role        varchar(32) not null comment '角色：user/assistant',
+    content     text        null comment '消息文本',
+    create_time timestamp(3) not null comment '创建时间',
+    key idx_user_id (user_id)
+)
+    comment 'AI聊天记录表' row_format = DYNAMIC;
+

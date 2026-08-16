@@ -42,6 +42,9 @@ voice:
   model: /model/faster-whisper-small/
   transitionApi: http://whisper:8000/v1/audio/transcriptions
 
+ai:
+  short-memory-size: 10 #短期记忆条数（取会话最近 N 条消息作为上下文）
+
 rocketmq:
   enabled: true
   name-server: ${ROCKET_NAME_SERVER:rmqnamesrv:9876}
