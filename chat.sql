@@ -1,0 +1,267 @@
+create table chat_group
+(
+    id                varchar(64)          not null
+        primary key,
+    user_id           varchar(64)          not null comment '创建用户id',
+    owner_user_id     varchar(64)          not null comment '群主id',
+    portrait          text                 null comment '群头像',
+    name              varchar(64)          null comment '群名名称',
+    notice            text                 null comment '群公告',
+    member_num        int        default 0 null comment '成员数',
+    status            tinyint(1) default 1 not null comment '状态：0-已解散，1-正常',
+    create_time       timestamp(3)         not null comment '创建时间',
+    update_time       timestamp(3)         not null comment '更新时间',
+    chat_group_number varchar(64)          not null comment '群号'
+)
+    comment '聊天群表' row_format = DYNAMIC;
+
+create table chat_group_member
+(
+    id                    varchar(64)  not null
+        primary key,
+    chat_group_id         varchar(64)  not null comment '聊天群id',
+    user_id               varchar(64)  not null comment '成员id',
+    group_remark          varchar(64)  null comment '群备注',
+    group_name            varchar(64)  null comment '群昵称',
+    create_time           timestamp(3) not null comment '创建时间',
+    update_time           timestamp(3) not null comment '更新时间',
+    last_read_notice_time timestamp(3) null comment '上次群通知已读时间',
+    ban_end_time          timestamp(3) null comment '禁言截止时间，NULL表示未禁言'
+)
+    comment '聊天群成员表' row_format = DYNAMIC;
+
+create table chat_group_notice
+(
+    id             varchar(64)  not null
+        primary key,
+    chat_group_id  varchar(64)  not null comment '聊天群id',
+    user_id        varchar(64)  not null comment '成员id',
+    notice_content text         null comment '公告内容',
+    create_time    timestamp(3) not null comment '创建时间',
+    update_time    timestamp(3) not null comment '更新时间'
+)
+    comment '聊天群公告表' row_format = DYNAMIC;
+
+create table chat_list
+(
+    id               varchar(64)      not null
+        primary key,
+    user_id          varchar(64)      not null comment '用户id',
+    from_id          varchar(64)      not null comment '会话目标id',
+    is_top           bit default b'0' null comment '是否置顶',
+    unread_num       int default 0    null comment '未读消息数量',
+    last_msg_content text             null comment '最后消息内容',
+    type             varchar(64)      null comment '类型',
+    status           varchar(500)     null comment '状态',
+    create_time      timestamp(3)     not null comment '创建时间',
+    update_time      timestamp(3)     not null comment '更新时间'
+)
+    comment '聊天列表' row_format = DYNAMIC;
+
+create table conversation
+(
+    id          varchar(64)  not null
+        primary key,
+    user_id     varchar(64)  not null comment '用户id',
+    access_key  varchar(128) not null comment 'access key',
+    secret_key  varchar(128) not null comment 'secret_key',
+    status      varchar(128) not null comment '状态',
+    create_time timestamp(3) not null comment '创建时间',
+    update_time timestamp(3) not null comment '更新时间'
+)
+    comment '会话表' row_format = DYNAMIC;
+
+create table emoji
+(
+    id          varchar(64)  not null comment '主键ID'
+        primary key,
+    user_id     varchar(64)  not null comment '用户id',
+    emoji       text         null comment '表情',
+    create_time timestamp(3) not null comment '创建时间',
+    update_time timestamp(3) not null comment '更新时间'
+)
+    comment '表情包表' row_format = DYNAMIC;
+
+create table friend
+(
+    id          varchar(64)              not null
+        primary key,
+    user_id     varchar(64)              not null comment '用户id',
+    friend_id   varchar(64)              not null comment '好友id',
+    remark      varchar(64)              null comment '备注',
+    group_id    varchar(64) default '0'  null comment '分组id',
+    is_back     bit         default b'0' null comment '是否拉黑',
+    is_concern  bit         default b'0' null comment '是否特别关心',
+    status      varchar(500)             null comment '状态',
+    create_time timestamp(3)             not null comment '创建时间',
+    update_time timestamp(3)             not null comment '更新时间'
+)
+    comment '好友表' row_format = DYNAMIC;
+
+create table `group`
+(
+    id              varchar(64)  not null
+        primary key,
+    user_id         varchar(64)  not null comment '用户id',
+    name            varchar(64)  null comment '分组名称',
+    parent_group_id varchar(64)  null comment '父分组id',
+    create_time     timestamp(3) not null comment '创建时间',
+    update_time     timestamp(3) not null comment '更新时间'
+)
+    comment '分组表' row_format = DYNAMIC;
+
+create table message
+(
+    id                 varchar(64)      not null
+        primary key,
+    from_id            varchar(64)      not null comment '消息发送方id',
+    to_id              varchar(64)      not null comment '消息接受方id',
+    type               varchar(64)      null comment '消息类型',
+    is_show_time       bit default b'0' null comment '是否显示时间',
+    msg_content        text             null comment '消息内容',
+    status             varchar(500)     null comment '消息状态',
+    source             varchar(64)      not null comment '消息源',
+    create_time        timestamp(3)     not null comment '创建时间',
+    update_time        timestamp(3)     not null comment '更新时间',
+    from_forward_msgId varchar(64)      null comment '转发消息的id'
+)
+    comment '消息表' row_format = DYNAMIC;
+
+create table message_retraction
+(
+    id          varchar(64)  not null
+        primary key,
+    msg_id      varchar(64)  not null comment '消息id',
+    msg_content text         null comment '消息内容',
+    create_time timestamp(3) not null comment '创建时间',
+    update_time timestamp(3) not null comment '更新时间'
+)
+    comment '消息撤回内容表' row_format = DYNAMIC;
+
+create table notify
+(
+    id          varchar(64)  not null
+        primary key,
+    from_id     varchar(64)  not null comment '发送方',
+    to_id       varchar(64)  not null comment '目标方',
+    type        varchar(64)  null comment '类型',
+    status      varchar(64)  null comment '状态',
+    content     text         null comment '通知内容',
+    unread_id   varchar(128) null comment '未读方',
+    create_time timestamp(3) not null comment '创建时间',
+    update_time timestamp(3) not null comment '更新时间'
+)
+    comment '通知' row_format = DYNAMIC;
+
+create table statistic
+(
+    id          varchar(64)   not null
+        primary key,
+    date        date          not null comment '日期',
+    login_num   int default 0 null comment '登录数量',
+    online_num  int default 0 null comment '在线数量',
+    create_time timestamp(3)  not null comment '创建时间',
+    update_time timestamp(3)  not null comment '更新时间'
+)
+    comment '统计表' row_format = DYNAMIC;
+
+create table talk
+(
+    id             varchar(64)   not null
+        primary key,
+    user_id        varchar(64)   not null comment '用户id',
+    content        text          null comment '说说内容',
+    like_num       int default 0 null comment '点赞数量',
+    comment_num    int default 0 null comment '评论数量',
+    latest_comment text          null comment '最近的评论内容',
+    status         varchar(64)   null comment '状态',
+    create_time    timestamp(3)  not null comment '创建时间',
+    update_time    timestamp(3)  not null comment '更新时间'
+)
+    comment '说说' row_format = DYNAMIC;
+
+create table talk_comment
+(
+    id          varchar(64)  not null
+        primary key,
+    talk_id     varchar(64)  not null comment '说说id',
+    user_id     varchar(64)  not null comment '用户id',
+    content     text         null comment '评论内容',
+    status      varchar(64)  null comment '状态',
+    create_time timestamp(3) not null comment '创建时间',
+    update_time timestamp(3) not null comment '更新时间'
+)
+    comment '说说评论' row_format = DYNAMIC;
+
+create table talk_like
+(
+    id          varchar(64)  not null
+        primary key,
+    talk_id     varchar(64)  not null comment '说说id',
+    user_id     varchar(64)  not null comment '用户id',
+    status      varchar(64)  null comment '状态',
+    create_time timestamp(3) not null comment '创建时间',
+    update_time timestamp(3) not null comment '更新时间'
+)
+    comment '说说点赞' row_format = DYNAMIC;
+
+create table talk_permission
+(
+    id          varchar(64)               not null
+        primary key,
+    talk_id     varchar(64)               not null comment '说说id',
+    permission  varchar(64) default 'all' null comment '权限:用户id,all',
+    status      varchar(64)               null comment '状态',
+    create_time timestamp(3)              not null comment '创建时间',
+    update_time timestamp(3)              not null comment '更新时间'
+)
+    comment '说说查看权限' row_format = DYNAMIC;
+
+create table user
+(
+    id               varchar(64)      not null
+        primary key,
+    account          varchar(64)      not null comment '用户账号',
+    name             varchar(200)     not null comment '用户名',
+    portrait         text             null comment '头像',
+    password         varchar(200)     not null comment '密码',
+    sex              varchar(64)      null comment '性别',
+    birthday         timestamp(3)     null comment '生日',
+    signature        text             null comment '签名',
+    phone            varchar(64)      null comment '手机号',
+    email            varchar(200)     null comment '邮箱',
+    last_opt_time    timestamp(3)     null comment '最后操作时间',
+    role             varchar(64)      null comment '用户角色',
+    status           varchar(500)     null comment '用户状态',
+    is_online        bit default b'0' null comment '是否在线',
+    create_time      timestamp(3)     not null comment '创建时间',
+    update_time      timestamp(3)     not null comment '更新时间',
+    online_equipment varchar(20)      null comment '在线设备',
+    chat_background  varchar(255)     null comment '聊天背景',
+    notify_read_time datetime         null comment '系统通知已读时间'
+)
+    comment '用户表' row_format = DYNAMIC;
+
+create table user_operated
+(
+    id          varchar(64)  not null
+        primary key,
+    user_id     varchar(64)  not null comment '用户id',
+    type        varchar(64)  null comment '操作类型',
+    content     text         null comment '操作内容',
+    create_time timestamp(3) not null comment '创建时间',
+    update_time timestamp(3) not null comment '更新时间'
+)
+    comment '用户操作表' row_format = DYNAMIC;
+
+create table user_set
+(
+    id          varchar(64)  not null
+        primary key,
+    user_id     varchar(64)  not null comment '用户id',
+    sets        text         null comment '用户设置',
+    create_time timestamp(3) not null comment '创建时间',
+    update_time timestamp(3) not null comment '更新时间'
+)
+    comment '用户设置表' row_format = DYNAMIC;
+
