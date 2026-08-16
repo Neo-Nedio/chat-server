@@ -293,3 +293,62 @@ create table ai_chat_record
 )
     comment 'AI聊天记录表' row_format = DYNAMIC;
 
+create table space
+(
+    id          varchar(64)       not null
+        primary key,
+    user_id     varchar(64)       not null comment '用户id（一人一空间）',
+    quota_bytes bigint default 0  not null comment '空间总容量（字节），0表示不限制',
+    used_bytes  bigint default 0  not null comment '已使用容量（字节）',
+    file_count  bigint default 0  not null comment '文件数量',
+    create_time timestamp(3)      not null comment '创建时间',
+    update_time timestamp(3)      not null comment '更新时间',
+    constraint uk_space_user unique (user_id)
+)
+    comment '云盘空间表' row_format = DYNAMIC;
+
+create table space_file
+(
+    id            varchar(64)      not null
+        primary key,
+    space_id      varchar(64)      not null comment '空间id',
+    physical_id   varchar(64)      not null comment '物理文件id',
+    file_name     varchar(255)     not null comment '文件名称',
+    file_category varchar(32)      not null comment '文件分类：image/video/document/audio/archive',
+    file_size     bigint default 0 not null comment '文件大小（字节）',
+    deleted       tinyint(1) default 0 not null comment '逻辑删除：0-正常，1-已删除（回收站中）',
+    create_time   timestamp(3)     not null comment '上传时间',
+    update_time   timestamp(3)     not null comment '更新时间',
+    key idx_space_file_space (space_id),
+    key idx_space_file_category (space_id, file_category)
+)
+    comment '云盘文件表（个人云盘，文件平铺无目录）' row_format = DYNAMIC;
+
+create table space_recycle
+(
+    id            varchar(64)  not null
+        primary key,
+    user_id       varchar(64)  not null comment '所属用户id',
+    space_id      varchar(64)  not null comment '空间id',
+    space_file_id varchar(64)  not null comment '文件id',
+    expire_at     timestamp(3) null comment '过期时间，到期可彻底删除',
+    create_time   timestamp(3) not null comment '入回收站时间',
+    update_time   timestamp(3) not null comment '更新时间',
+    constraint uk_space_recycle_file unique (space_file_id),
+    key idx_space_recycle_user (user_id, space_id)
+)
+    comment '云盘回收站表' row_format = DYNAMIC;
+
+create table physical_file
+(
+    id           varchar(64)         not null
+        primary key,
+    file_hash    varchar(64)         not null comment '文件hash',
+    file_size    bigint              not null comment '文件大小（字节）',
+    storage_path text                not null comment '存储路径（MinIO对象名）',
+    ref_count    int     default 0   not null comment '引用计数',
+    create_time  timestamp(3)        not null comment '创建时间',
+    update_time  timestamp(3)        not null comment '更新时间',
+    constraint uk_physical_file_hash unique (file_hash)
+)
+    comment '云盘物理文件表' row_format = DYNAMIC;

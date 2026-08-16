@@ -358,6 +358,22 @@ public class MinioUtil {
     }
 
     /**
+     * 删除文件桶中的对象
+     */
+    public boolean removeFile(String fileName) {
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder()
+                    .bucket(minioConfig.getFileBucketName())
+                    .object(fileName)
+                    .build());
+        } catch (Exception e) {
+            log.error("删除文件失败, fileName: {}", fileName, e);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 查看文件对象
      */
     public List<Item> listObjects() {
