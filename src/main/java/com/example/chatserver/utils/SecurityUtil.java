@@ -2,7 +2,9 @@ package com.example.chatserver.utils;
 
 import com.example.chatserver.exception.BaseException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -14,13 +16,14 @@ import java.util.Base64;
 
 //安全工具类，提供密码加密验证和 RSA 解密功能
 @Slf4j
+@Component
 public final class SecurityUtil {
 
     //RSA 密钥对（公钥+私钥）
     private static final KeyPair keyPair;
     //Spring Security 提供的密码编码器
     private static final BCryptPasswordEncoder passwordEncoder;
-    private static final String AesKey = "chatChatChatChat";
+    private static String aesKey;
 
     static {
         try {
@@ -71,7 +74,25 @@ public final class SecurityUtil {
     private static SecretKeySpec getSecretAesKeySpec() {
         // AesKey 是一个静态字符串密钥
         // "AES" 表示算法名称
-        return new SecretKeySpec(AesKey.getBytes(), "AES");
+        return new SecretKeySpec(requiredAesKey().getBytes(StandardCharsets.UTF_8), "AES");
+    }
+
+    @Value("${security.aes-key}")
+    void setAesKey(String value) {
+        aesKey = value;
+    }
+
+    private static String requiredAesKey() {
+        String value = aesKey;
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException("security.aes-key has not been initialized");
+        }
+
+        int length = value.getBytes(StandardCharsets.UTF_8).length;
+        if (length != 16 && length != 24 && length != 32) {
+            throw new IllegalStateException("security.aes-key must be 16, 24, or 32 UTF-8 bytes");
+        }
+        return value;
     }
 
     /**

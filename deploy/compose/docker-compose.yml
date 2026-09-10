@@ -1,6 +1,6 @@
 version: '3.8'
 networks:
-  rocketmq:
+  chat:
     driver: bridge
 services:
   mysql:
@@ -15,6 +15,10 @@ services:
       - "3306:3306"
     volumes:
       - /chat/mysql:/var/lib/mysql
+      - ../../chat.sql:/docker-entrypoint-initdb.d/chat.sql.template:ro
+      - ./init-db.sh:/docker-entrypoint-initdb.d/01-init-chat.sh:ro
+    networks:
+      - chat
 
   redis:
     image: redis:7.0
@@ -23,6 +27,8 @@ services:
       - "6379:6379"
     volumes:
       - /chat/redis:/data
+    networks:
+      - chat
 
   whisper:
     image: fedirz/faster-whisper-server:latest-cpu
@@ -31,6 +37,8 @@ services:
       - "8000:8000"
     volumes:
       - /chat/whisper/model:/model
+    networks:
+      - chat
 
   minio:
     image: minio/minio
@@ -44,6 +52,8 @@ services:
     volumes:
       - /chat/minio:/data
     command: server /data --console-address ":9001"
+    networks:
+      - chat
 
   namesrv:
     image: apache/rocketmq:5.3.0
@@ -51,7 +61,7 @@ services:
     ports:
       - 9876:9876
     networks:
-      - rocketmq
+      - chat
     command: sh mqnamesrv
     environment:
       - JAVA_OPT_EXT=-server -Xms128m -Xmx128m
@@ -70,7 +80,7 @@ services:
     volumes:
       - ./broker.conf:/home/rocketmq/broker.conf
     networks:
-      - rocketmq
+      - chat
     command: sh mqbroker -c /home/rocketmq/broker.conf
 
   chat:
@@ -90,7 +100,7 @@ services:
       - "9100:9100"
       - "9200:9200"
     networks:
-      - rocketmq
+      - chat
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
@@ -102,3 +112,5 @@ services:
       MAIL_HOST: ${MAIL_HOST}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      AES_KEY: ${AES_KEY}
