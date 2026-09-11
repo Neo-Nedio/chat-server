@@ -8,6 +8,7 @@ import com.example.chatserver.dto.voip.LiveKitRoomUserDto;
 import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.ChatGroupMemberService;
+import com.example.chatserver.service.ChatGroupService;
 import com.example.chatserver.service.LiveKitTokenService;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.service.VoipService;
@@ -27,6 +28,8 @@ import java.util.stream.Collectors;
 public class VoipServiceImpl implements VoipService {
     @Resource
     ChatGroupMemberService chatGroupMemberService;
+    @Resource
+    ChatGroupService chatGroupService;
     @Resource
     UserService userService;
     @Resource
@@ -68,9 +71,6 @@ public class VoipServiceImpl implements VoipService {
                 targets
         );
 
-        // 给全体群成员广播通话状态变更
-        sendChange(userId, vo.getGroupId(), sessionId, vo.getCallType(), memberIds);
-
         // 组装返回结果
         CallInviteDto result = new CallInviteDto();
         result.setSessionId(sessionId);
@@ -82,27 +82,19 @@ public class VoipServiceImpl implements VoipService {
 
     @Override
     public void hangupGroup(String userId, GroupCallHangupVo vo) {
-        // 校验发起人是不是群成员
-        checkMember(vo.getGroupId(), userId);
+        // 只有群主可以结束整场群通话
+        if (!chatGroupService.isOwner(vo.getGroupId(), userId)) {
+            throw new BaseException("只有群主可以结束群通话");
+        }
 
-        // 查出该群全部成员，作为过滤白名单
+        // 群主结束整场通话，通知全体群成员（包括群主自己）退出 LiveKit
         List<String> memberIds = memberIds(vo.getGroupId());
-
-        // 过滤出有效的通知成员：去 null、去空格、排除自己、必须是群成员、去重
-        List<String> targets = vo.getUserIds().stream().filter(Objects::nonNull).map(String::trim)
-                .filter(id -> !id.isBlank() && !id.equals(userId) && memberIds.contains(id)).distinct().toList();
-
-        // 没有有效通知成员就报错
-        if (targets.isEmpty()) throw new BaseException("没有有效的通知成员");
-
-        // 根据群 ID 生成群通话会话 ID
         String sessionId = CallSessionUtil.groupSession(vo.getGroupId());
 
-        // 给指定成员推送挂断信令
-        sendToTargets(newSignal(CallAction.Hangup, userId, vo.getGroupId(), sessionId, targets, null), targets);
-
-        // 给全体群成员广播通话状态变更
-        sendChange(userId, vo.getGroupId(), sessionId, null, memberIds);
+        sendToTargets(
+                newSignal(CallAction.Hangup, userId, vo.getGroupId(), sessionId, memberIds, null),
+                memberIds
+        );
     }
 
     @Override public String getLiveKitHost() {
@@ -155,13 +147,5 @@ public class VoipServiceImpl implements VoipService {
      */
     private void sendToTargets(CallSignalDto signal, List<String> targets) {
         targets.forEach(id -> webSocketService.sendCallToUser(signal, id));
-    }
-
-    /**
-     * 广播通话状态变更
-     * 本质就是构造一个 Change 信令，然后推给指定成员列表
-     */
-    private void sendChange(String from, String group, String session, String type, List<String> members) {
-        sendToTargets(newSignal(CallAction.Change, from, group, session, members, type), members);
     }
 }

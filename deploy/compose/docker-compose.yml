@@ -86,7 +86,7 @@ services:
   livekit:
     image: livekit/livekit-server:latest
     container_name: livekit
-    command: ["--config", "/etc/livekit.yaml", "--keys", "${LIVEKIT_API_KEY}:${LIVEKIT_API_SECRET}", "--node-ip", "${LIVEKIT_PUBLIC_IP}"]
+    command: ["--config", "/etc/livekit.yaml", "--keys", "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}", "--node-ip", "${LIVEKIT_PUBLIC_IP}"]
     ports:
       - "7880:7880/tcp"
       - "7881:7881/tcp"
