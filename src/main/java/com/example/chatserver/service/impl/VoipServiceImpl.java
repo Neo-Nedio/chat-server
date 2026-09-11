@@ -49,11 +49,9 @@ public class VoipServiceImpl implements VoipService {
         List<String> memberIds = memberIds(vo.getGroupId());
 
         // 过滤出有效的被邀请人：去 null、去空格、排除自己、必须是群成员、去重
-        List<String> targets = vo.getUserIds().stream().filter(Objects::nonNull).map(String::trim)
+        List<String> targets = (vo.getUserIds() == null ? List.<String>of() : vo.getUserIds()).stream()
+                .filter(Objects::nonNull).map(String::trim)
                 .filter(id -> !id.isBlank() && !id.equals(userId) && memberIds.contains(id)).distinct().toList();
-
-        // 没有有效被邀请人就报错
-        if (targets.isEmpty()) throw new BaseException("没有有效的受邀成员");
 
         // 根据群 ID 生成群通话会话 ID
         String sessionId = CallSessionUtil.groupSession(vo.getGroupId());
