@@ -8,6 +8,8 @@ public class WsContentType {
     public static String Notify = "notify";
     //视频/音频
     public static String Video = "video";
+    //多人通话
+    public static String Call = "call";
     //禁用
     public static String Disable = "disable";
     //系统通知

@@ -152,6 +152,13 @@ public class WebSocketService {
         }
     }
 
+    public void sendCallToUser(Object message, String userId) {
+        Channel channel = Online_User.get(userId);
+        if (channel != null && channel.isActive()) {
+            sendMsg(channel, message, WsContentType.Call);
+        }
+    }
+
     //发送通知给全体用户
     public void sendNotifyAll(Object msg) {
         Online_Channel.forEach((channel, ext) -> {
