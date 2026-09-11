@@ -2,6 +2,8 @@ port: 7880
 
 rtc:
   tcp_port: 7881
+  # LiveKit 位于公网服务器/NAT 后时，向客户端公布公网候选地址
+  use_external_ip: true
   port_range_start: 50000
   port_range_end: 50100
 log_level: info

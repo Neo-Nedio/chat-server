@@ -20,6 +20,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +70,7 @@ public class LiveKitTokenServiceImpl implements LiveKitTokenService {
                 .setIssuedAt(Date.from(now))                                             // 签发时间
                 .setExpiration(Date.from(now.plusSeconds(liveKitConfig.getTokenTtlMinutes() * 60L))) // 过期时间 = 现在 + TTL 分钟
                 .addClaims(claims)                                                       // 加入 video 权限声明
-                .signWith(SignatureAlgorithm.HS256, liveKitConfig.getApiSecret())        // 用 apiSecret 做 HS256 签名
+                .signWith(SignatureAlgorithm.HS256, liveKitConfig.getApiSecret().getBytes(StandardCharsets.UTF_8))
                 .compact();                                                              // 生成最终 token 字符串
     }
 
@@ -104,13 +105,16 @@ public class LiveKitTokenServiceImpl implements LiveKitTokenService {
         // 构造 admin 权限声明：允许管理房间
         Map<String, Object> video = new HashMap<>();
         video.put("roomAdmin", true);
+        // 管理权限必须绑定到目标房间，否则 RoomService 会返回 401 permissions denied
+        video.put("room", sessionId);
 
         // 签一个临时 token，5 分钟有效，用于调用 LiveKit 服务端接口
         String token = Jwts.builder()
                 .setIssuer(liveKitConfig.getApiKey())
+                .setSubject("livekit-server")
                 .setExpiration(Date.from(Instant.now().plusSeconds(300)))   // 5 分钟过期
                 .claim("video", video)                                       // admin 权限
-                .signWith(SignatureAlgorithm.HS256, liveKitConfig.getApiSecret())
+                .signWith(SignatureAlgorithm.HS256, liveKitConfig.getApiSecret().getBytes(StandardCharsets.UTF_8))
                 .compact();
 
         // 拼接 LiveKit 的 HTTP 接口地址：把 ws/wss 换成 http/https
