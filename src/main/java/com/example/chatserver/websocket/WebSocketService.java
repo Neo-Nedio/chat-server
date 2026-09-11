@@ -63,8 +63,14 @@ public class WebSocketService {
                 return;
             }
 
-            Online_User.put(userId, channel);
+            // 同一账号只保留最新连接；旧设备收到通知后被关闭。
+            // 用put，将替换和删除同时进行，不会出错
+            Channel previousChannel = Online_User.put(userId, channel);
             Online_Channel.put(channel, userId);
+            if (previousChannel != null && previousChannel != channel) {
+                sendMsg(previousChannel, "您的账号已在其他设备登录，当前设备已下线", WsContentType.Disable);
+                previousChannel.close();
+            }
             userService.online(userId);
         } catch (Exception e) {
             sendMsg(channel, ResultUtil.Fail("连接错误"), WsContentType.Msg);
@@ -74,11 +80,13 @@ public class WebSocketService {
 
     //用户离线
     public void offline(Channel channel) {
-        String userId = Online_Channel.get(channel);  // 通过channel找userId
+        String userId = Online_Channel.remove(channel);  // 通过channel找userId
         if (StrUtil.isNotBlank(userId)) { //移除
-            Online_User.remove(userId);
-            Online_Channel.remove(channel);
-            userService.offline(userId);
+            // 旧连接关闭时，不能清除已经替换进来的新连接，也不能把用户标记为离线。
+            // 只有 Map 里存的确实是这条 channel 才删成功
+            if (Online_User.remove(userId, channel)) {
+                userService.offline(userId);
+            }
         }
     }
 
