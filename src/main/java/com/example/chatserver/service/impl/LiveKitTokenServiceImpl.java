@@ -46,6 +46,11 @@ public class LiveKitTokenServiceImpl implements LiveKitTokenService {
 
     @Override
     public String createToken(String userId, String sessionId) {
+        return createToken(userId, sessionId, true);
+    }
+
+    @Override
+    public String createToken(String userId, String sessionId, boolean canPublish) {
         // 校验 LiveKit 配置是否完整（apiKey、apiSecret 等）
         liveKitConfig.validate();
 
@@ -56,7 +61,7 @@ public class LiveKitTokenServiceImpl implements LiveKitTokenService {
         Map<String, Object> video = new HashMap<>();
         video.put("roomJoin", true);      // 允许加入房间
         video.put("room", sessionId);     // 房间名，用会话 ID
-        video.put("canPublish", true);    // 允许推流（发自己的音视频）
+        video.put("canPublish", canPublish); // 主播允许推流，观众只允许订阅
         video.put("canSubscribe", true);  // 允许订阅（拉别人的音视频）
 
         // 把 video 权限塞进 claims

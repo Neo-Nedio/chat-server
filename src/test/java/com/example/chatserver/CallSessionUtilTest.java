@@ -20,4 +20,12 @@ class CallSessionUtilTest {
         assertThrows(BaseException.class, () -> CallSessionUtil.parseGroupId("group_g_1001"));
         assertThrows(BaseException.class, () -> CallSessionUtil.parseGroupId("user_u1001"));
     }
+
+    @Test
+    void createsAndParsesLiveSession() {
+        assertEquals("live_u1001", CallSessionUtil.liveSession("u1001"));
+        assertEquals("u1001", CallSessionUtil.parseLiveUserId("live_u1001"));
+        assertThrows(BaseException.class, () -> CallSessionUtil.liveSession("u_1001"));
+        assertThrows(BaseException.class, () -> CallSessionUtil.parseLiveUserId("group_u1001"));
+    }
 }

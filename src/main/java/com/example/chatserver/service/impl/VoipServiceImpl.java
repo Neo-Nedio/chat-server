@@ -5,6 +5,7 @@ import com.example.chatserver.constant.CallType;
 import com.example.chatserver.dto.voip.CallInviteDto;
 import com.example.chatserver.dto.voip.CallSignalDto;
 import com.example.chatserver.dto.voip.LiveKitRoomUserDto;
+import com.example.chatserver.dto.voip.LiveResultDto;
 import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.ChatGroupMemberService;
@@ -110,6 +111,27 @@ public class VoipServiceImpl implements VoipService {
     public List<LiveKitRoomUserDto> getRoomUsers(String userId, LiveKitTokenVo vo) {
         String groupId = CallSessionUtil.parseGroupId(vo.getSessionId()); checkMember(groupId, userId);
         return liveKitTokenService.listParticipants(vo.getSessionId());
+    }
+
+    @Override
+    public LiveResultDto startLive(String userId) {
+        String sessionId = CallSessionUtil.liveSession(userId);
+        LiveResultDto result = new LiveResultDto();
+        result.setSessionId(sessionId);
+        result.setToken(liveKitTokenService.createToken(userId, sessionId, true));
+        result.setSceneType("live");
+        return result;
+    }
+
+    @Override
+    public LiveResultDto getLiveToken(String userId, LiveKitTokenVo vo) {
+        String sessionId = vo.getSessionId();
+        CallSessionUtil.parseLiveUserId(sessionId);
+        LiveResultDto result = new LiveResultDto();
+        result.setSessionId(sessionId);
+        result.setToken(liveKitTokenService.createToken(userId, sessionId, false));
+        result.setSceneType("live");
+        return result;
     }
 
     private void checkMember(String groupId, String userId) {
