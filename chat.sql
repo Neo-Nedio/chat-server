@@ -242,6 +242,18 @@ create table user
 )
     comment '用户表' row_format = DYNAMIC;
 
+create table live_room
+(
+    id                varchar(64)  not null primary key,
+    user_id           varchar(64)  not null comment '主播用户id',
+    title             varchar(255) not null default '这个人太懒，还没有给直播间起标题' comment '直播间标题',
+    background        varchar(255) null comment '直播间背景图片',
+    create_time       timestamp(3) not null comment '创建时间',
+    update_time       timestamp(3) not null comment '更新时间',
+    unique key uk_live_room_user_id (user_id)
+)
+    comment '直播间信息表' row_format = DYNAMIC;
+
 create table user_operated
 (
     id          varchar(64)  not null
