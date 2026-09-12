@@ -3,6 +3,7 @@ package com.example.chatserver.service;
 import com.example.chatserver.dto.voip.CallInviteDto;
 import com.example.chatserver.dto.voip.LiveKitRoomUserDto;
 import com.example.chatserver.dto.voip.LiveResultDto;
+import com.example.chatserver.dto.voip.LiveRoomDto;
 import com.example.chatserver.vo.voip.GroupCallHangupVo;
 import com.example.chatserver.vo.voip.GroupCallInviteVo;
 import com.example.chatserver.vo.voip.LiveKitTokenVo;
@@ -23,4 +24,6 @@ public interface VoipService {
     LiveResultDto startLive(String userId);
 
     LiveResultDto getLiveToken(String userId, LiveKitTokenVo vo);
+
+    List<LiveRoomDto> getLiveRooms();
 }

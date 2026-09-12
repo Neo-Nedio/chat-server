@@ -12,4 +12,6 @@ public interface LiveKitTokenService {
     String createToken(String userId, String sessionId, boolean canPublish);
 
     List<LiveKitRoomUserDto> listParticipants(String sessionId);
+
+    List<String> listActiveLiveRooms();
 }

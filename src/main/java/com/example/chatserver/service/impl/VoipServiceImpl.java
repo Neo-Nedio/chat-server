@@ -6,6 +6,7 @@ import com.example.chatserver.dto.voip.CallInviteDto;
 import com.example.chatserver.dto.voip.CallSignalDto;
 import com.example.chatserver.dto.voip.LiveKitRoomUserDto;
 import com.example.chatserver.dto.voip.LiveResultDto;
+import com.example.chatserver.dto.voip.LiveRoomDto;
 import com.example.chatserver.entity.ChatGroupMember;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.ChatGroupMemberService;
@@ -132,6 +133,24 @@ public class VoipServiceImpl implements VoipService {
         result.setToken(liveKitTokenService.createToken(userId, sessionId, false));
         result.setSceneType("live");
         return result;
+    }
+
+    @Override
+    public List<LiveRoomDto> getLiveRooms() {
+        return liveKitTokenService.listActiveLiveRooms().stream().map(sessionId -> {
+            String userId = CallSessionUtil.parseLiveUserId(sessionId);
+            List<LiveKitRoomUserDto> participants = liveKitTokenService.listParticipants(sessionId);
+            boolean hostOnline = participants.stream()
+                    .anyMatch(participant -> userId.equals(participant.getUserId())
+                            && (participant.getState() == null || "ACTIVE".equalsIgnoreCase(participant.getState())));
+            if (!hostOnline) return null;
+
+            LiveRoomDto result = new LiveRoomDto();
+            result.setSessionId(sessionId);
+            result.setUserId(userId);
+            result.setParticipantCount(participants.size());
+            return result;
+        }).filter(java.util.Objects::nonNull).toList();
     }
 
     private void checkMember(String groupId, String userId) {

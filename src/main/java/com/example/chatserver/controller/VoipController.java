@@ -53,4 +53,9 @@ public class VoipController {
     public JSONObject getLiveToken(@Userid String userId, @Valid @RequestBody LiveKitTokenVo vo) {
         return ResultUtil.Succeed(voipService.getLiveToken(userId, vo));
     }
+
+    @GetMapping("/livekit/live/list")
+    public JSONObject liveRooms() {
+        return ResultUtil.Succeed(voipService.getLiveRooms());
+    }
 }

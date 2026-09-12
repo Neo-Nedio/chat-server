@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Service
@@ -99,6 +100,68 @@ public class LiveKitTokenServiceImpl implements LiveKitTokenService {
                 // 两次都失败，抛业务异常
                 throw new BaseException("LiveKit 服务不可用");
             }
+        }
+    }
+
+    /**
+     * 查询当前活跃的直播间列表
+     * 流程：签临时 admin token → 调 LiveKit 的 ListRooms 接口 → 过滤出 live_ 前缀的房间
+     */
+    @Override
+    public List<String> listActiveLiveRooms() {
+        // 校验 LiveKit 配置（host、apiKey、apiSecret）是否完整
+        liveKitConfig.validate();
+
+        try {
+            // 签一个临时 admin token：apiKey 当 issuer，apiSecret 签名，
+            // claim roomList=true 表示有权限列房间，5 分钟过期
+            String token = Jwts.builder()
+                    .setIssuer(liveKitConfig.getApiKey())
+                    .setSubject("livekit-server")
+                    .setExpiration(Date.from(Instant.now().plusSeconds(300)))
+                    .claim("roomList", true)
+                    .signWith(SignatureAlgorithm.HS256,
+                            liveKitConfig.getApiSecret().getBytes(StandardCharsets.UTF_8))
+                    .compact();
+
+            // 拼接口地址：host 的 ws 前缀换成 http，
+            // 加上 LiveKit 列房间的 Twirp 路径
+            String endpoint = liveKitConfig.getHost().replaceFirst("^ws", "http")
+                    + "/twirp/livekit.RoomService/ListRooms";
+
+            // 构造 POST 请求：带 Bearer token，body 空 JSON，超时 10 秒
+            HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Authorization", "Bearer " + token)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString("{}"))
+                    .build();
+
+            // 发送请求，拿响应字符串
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // 状态码不是 2xx 就认为失败
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new IllegalStateException("LiveKit request failed");
+            }
+
+            // 从响应 JSON 里取 rooms 数组
+            JSONArray rooms = JSONUtil.parseObj(response.body()).getJSONArray("rooms");
+            if (rooms == null) return List.of();
+
+            // 遍历 rooms，只保留名字以 live_ 开头、且后面还有内容的房间
+            List<String> result = new ArrayList<>();
+            for (Object item : rooms) {
+                String roomName = ((JSONObject) item).getStr("name");
+                if (roomName != null && roomName.startsWith("live_")
+                        && roomName.length() > "live_".length()) {
+                    result.add(roomName);
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            // 任何异常统一包装成“LiveKit 服务不可用”
+            throw new BaseException("LiveKit 服务不可用");
         }
     }
 
