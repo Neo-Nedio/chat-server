@@ -12,6 +12,7 @@ import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.service.ChatGroupMemberService;
 import com.example.chatserver.service.ChatGroupService;
 import com.example.chatserver.service.LiveKitTokenService;
+import com.example.chatserver.service.LiveRoomService;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.service.VoipService;
 import com.example.chatserver.utils.CallSessionUtil;
@@ -38,6 +39,8 @@ public class VoipServiceImpl implements VoipService {
     WebSocketService webSocketService;
     @Resource
     LiveKitTokenService liveKitTokenService;
+    @Resource
+    LiveRoomService liveRoomService;
 
     @Override
     public CallInviteDto inviteGroup(String userId, GroupCallInviteVo vo) {
@@ -137,7 +140,10 @@ public class VoipServiceImpl implements VoipService {
 
     @Override
     public List<LiveRoomDto> getLiveRooms() {
-        return liveKitTokenService.listActiveLiveRooms().stream().map(sessionId -> {
+        List<String> sessionIds = liveKitTokenService.listActiveLiveRooms();
+        List<LiveRoomDto> roomInfos = liveRoomService.getLiveRooms(sessionIds);
+        return roomInfos.stream().map(roomInfo -> {
+            String sessionId = roomInfo.getSessionId();
             String userId = CallSessionUtil.parseLiveUserId(sessionId);
             List<LiveKitRoomUserDto> participants = liveKitTokenService.listParticipants(sessionId);
             boolean hostOnline = participants.stream()
@@ -145,11 +151,8 @@ public class VoipServiceImpl implements VoipService {
                             && (participant.getState() == null || "ACTIVE".equalsIgnoreCase(participant.getState())));
             if (!hostOnline) return null;
 
-            LiveRoomDto result = new LiveRoomDto();
-            result.setSessionId(sessionId);
-            result.setUserId(userId);
-            result.setParticipantCount(participants.size());
-            return result;
+            roomInfo.setParticipantCount(participants.size());
+            return roomInfo;
         }).filter(java.util.Objects::nonNull).toList();
     }
 

@@ -6,16 +6,22 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.chatserver.entity.LiveRoom;
 import com.example.chatserver.entity.User;
 import com.example.chatserver.dto.voip.LiveRoomInfoDto;
+import com.example.chatserver.dto.voip.LiveRoomDto;
 import com.example.chatserver.exception.BaseException;
 import com.example.chatserver.mapper.LiveRoomMapper;
 import com.example.chatserver.service.LiveRoomService;
 import com.example.chatserver.service.UserService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.vo.live.UpdateLiveRoomTitleVo;
+import com.example.chatserver.utils.CallSessionUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class LiveRoomServiceImpl extends ServiceImpl<LiveRoomMapper, LiveRoom> implements LiveRoomService {
@@ -50,6 +56,32 @@ public class LiveRoomServiceImpl extends ServiceImpl<LiveRoomMapper, LiveRoom> i
     public LiveRoomInfoDto getInfo(String userId) {
         getOrCreate(userId);
         return liveRoomMapper.selectInfo(userId);
+    }
+
+    @Override
+    public List<LiveRoomDto> getLiveRooms(List<String> sessionIds) {
+        if (sessionIds == null || sessionIds.isEmpty()) return List.of();
+
+        List<String> userIds = sessionIds.stream()
+                .map(CallSessionUtil::parseLiveUserId)
+                .distinct()
+                .toList();
+        Map<String, LiveRoomInfoDto> roomMap = liveRoomMapper.selectInfoByUserIds(userIds).stream()
+                .collect(Collectors.toMap(LiveRoomInfoDto::getUserId, Function.identity()));
+
+        return sessionIds.stream().map(sessionId -> {
+            String userId = CallSessionUtil.parseLiveUserId(sessionId);
+            LiveRoomInfoDto info = roomMap.get(userId);
+            if (info == null) return null;
+
+            LiveRoomDto result = new LiveRoomDto();
+            result.setSessionId(sessionId);
+            result.setUserId(userId);
+            result.setTitle(info.getTitle());
+            result.setBackground(info.getBackground());
+            result.setPortrait(info.getPortrait());
+            return result;
+        }).filter(java.util.Objects::nonNull).toList();
     }
 
     @Override

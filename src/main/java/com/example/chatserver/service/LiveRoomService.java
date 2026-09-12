@@ -3,13 +3,17 @@ package com.example.chatserver.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.chatserver.entity.LiveRoom;
 import com.example.chatserver.dto.voip.LiveRoomInfoDto;
+import com.example.chatserver.dto.voip.LiveRoomDto;
 import com.example.chatserver.vo.live.UpdateLiveRoomTitleVo;
 import java.io.InputStream;
+import java.util.List;
 
 public interface LiveRoomService extends IService<LiveRoom> {
     LiveRoom getOrCreate(String userId);
 
     LiveRoomInfoDto getInfo(String userId);
+
+    List<LiveRoomDto> getLiveRooms(List<String> sessionIds);
 
     boolean updateTitle(String userId, UpdateLiveRoomTitleVo vo);
 
