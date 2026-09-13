@@ -3,6 +3,8 @@ package com.example.chatserver.controller;
 import cn.hutool.json.JSONObject;
 import com.example.chatserver.annotation.Userid;
 import com.example.chatserver.service.LiveRoomService;
+import com.example.chatserver.utils.MinioUtil;
+import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
 import com.example.chatserver.vo.live.UpdateLiveRoomTitleVo;
 import jakarta.annotation.Resource;
@@ -17,6 +19,12 @@ import java.io.IOException;
 public class LiveRoomController {
     @Resource
     LiveRoomService liveRoomService;
+
+    @Resource
+    MinioUtil minioUtil;
+
+    @Resource
+    RedisUtils redisUtils;
 
     @GetMapping("/info")
     public JSONObject info(@Userid String userId) {
@@ -36,6 +44,17 @@ public class LiveRoomController {
                                        @RequestHeader("type") String type,
                                        @RequestHeader("size") long size) throws IOException {
         return ResultUtil.Succeed(liveRoomService.uploadBackground(userId, request.getInputStream(), name, type, size));
+    }
+
+    @GetMapping("/get/background")
+    public JSONObject getBackground(@Userid String userId,
+                                    @RequestParam("fileName") String fileName) {
+        String url = (String) redisUtils.get(fileName);
+        if (url == null || url.isBlank()) {
+            url = minioUtil.preview(fileName);
+            redisUtils.set(fileName, url, 7 * 24 * 60 * 60);
+        }
+        return ResultUtil.Succeed(url);
     }
 
 }
