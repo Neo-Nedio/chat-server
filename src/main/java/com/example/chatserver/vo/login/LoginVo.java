@@ -14,4 +14,7 @@ public class LoginVo {
 
     // 登录设备
     private String onlineEquipment;
+
+    // Pushy 设备推送标识
+    private String pushyToken;
 }

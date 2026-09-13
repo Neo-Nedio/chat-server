@@ -123,6 +123,12 @@ public class User implements Serializable {
     private String onlineEquipment;
 
     /**
+     * Pushy 设备推送标识
+     */
+    @TableField("pushy_token")
+    private String pushyToken;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)

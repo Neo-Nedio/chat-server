@@ -237,6 +237,7 @@ create table user
     create_time      timestamp(3)     not null comment '创建时间',
     update_time      timestamp(3)     not null comment '更新时间',
     online_equipment varchar(20)      null comment '在线设备',
+    pushy_token      varchar(128)     null comment 'Pushy设备推送标识',
     chat_background  varchar(255)     null comment '聊天背景',
     notify_read_time datetime         null comment '系统通知已读时间'
 )
