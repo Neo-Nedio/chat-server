@@ -73,3 +73,7 @@ livekit:
   api-key: ${LIVEKIT_API_KEY}
   api-secret: ${LIVEKIT_API_SECRET}
   token-ttl-minutes: ${LIVEKIT_TOKEN_TTL_MINUTES:60}
+
+pushy:
+  api-key: ${PUSHY_API_KEY:}
+  time-to-live: ${PUSHY_TIME_TO_LIVE:2592000}
