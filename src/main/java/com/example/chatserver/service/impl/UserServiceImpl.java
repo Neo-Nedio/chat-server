@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.context.Context;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +71,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     MinioUtil minioUtil;
-
 
     @Override
     public boolean register(RegisterVo registerVo) {
@@ -172,6 +172,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (onlineNum > redisOnlineNum) {
             redisUtils.set(key, onlineNum, 25 * 60 * 60);
         }
+    }
+
+    @Override
+    public List<User> getUsersByIds(Collection<String> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(User::getId, User::getPushyToken)
+                .in(User::getId, userIds);
+        return list(queryWrapper);
     }
 
     @Override

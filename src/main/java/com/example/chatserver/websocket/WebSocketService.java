@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -91,32 +92,42 @@ public class WebSocketService {
     }
 
     //发送消息（私有）
-    private void sendMsg(Channel channel, Object msg, String type) {
+    private boolean sendMsg(Channel channel, Object msg, String type) {
+        if (channel == null || !channel.isActive()) {
+            return false;
+        }
         //writeAndFlush	Netty方法  立即将数据写入网络缓冲区并刷出（发送给客户端）
         //TextWebSocketFrame	Netty的WebSocket文本帧类型  将普通字符串包装成 WebSocket 协议规定的文本帧格式
         WsContent wsContent = new WsContent();
         wsContent.setType(type);
         wsContent.setContent(msg);
-        channel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(wsContent)));
-    }
-
-    //发送给指定用户
-    public void sendMsgToUser(Object msg, String userId) {
-        Channel channel = Online_User.get(userId);
-        if (channel != null) {
-            sendMsg(channel, msg, WsContentType.Msg);
+        try {
+            channel.writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(wsContent)));
+            return true;
+        } catch (RuntimeException e) {
+            return false;
         }
     }
 
+    //发送给指定用户，privateChat 用于区分私聊和群聊/通知类消息
+    public boolean sendMsgToUser(Object msg, String userId, boolean privateChat) {
+        Channel channel = Online_User.get(userId);
+        return sendMsg(channel, msg, WsContentType.Msg);
+    }
+
     //发送给群聊用户
-    public void sendMsgToGroup(Message message, String groupId) {
+    public List<String> sendMsgToGroup(Message message, String groupId) {
+        List<String> failedUserIds = new ArrayList<>();
         List<ChatGroupMember> list = chatGroupMemberService.getGroupMember(groupId);
         for (ChatGroupMember member : list) {
             //将消息发送给群内的所有成员（发送者除外，除非是系统消息）
             if (!message.getFromId().equals(member.getUserId()) || MsgType.System.equals(message.getType())) {
-                sendMsgToUser(message, member.getUserId());
+                if (!sendMsgToUser(message, member.getUserId(), false)) {
+                    failedUserIds.add(member.getUserId());
+                }
             }
         }
+        return failedUserIds;
     }
 
     // 发送给所有在线用户

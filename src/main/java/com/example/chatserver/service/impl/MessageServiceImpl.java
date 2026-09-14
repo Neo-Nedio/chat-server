@@ -86,6 +86,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     MQProducerService mqProducerService;
 
     @Resource
+    PushyService pushyService;
+
+    @Resource
     MinioUtil minioUtil;
 
     @Resource
@@ -182,12 +185,14 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         Message message = sendMessage(userId, sendMsgVo,sendMsgVo.getMsgContent(), MsgSource.User, type);
         //更新聊天列表
         chatListService.updateChatList(message.getToId(), userId, message.getMsgContent(), MsgSource.User);
+        boolean mqSent;
         try {
-            //发送消息
-            mqProducerService.sendMsgToUser(message);
+            mqSent = mqProducerService.sendMsgToUser(message) != null;
         } catch (Exception e) {
-            //发送消息
-            webSocketService.sendMsgToUser(message, message.getToId());
+            mqSent = false;
+        }
+        if (!mqSent) {
+            sendMessageToUserByWebSocketOrPushy(message);
         }
         return message;
 
@@ -247,13 +252,36 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         Message message = sendMessage(userId, sendMsgVo, sendMsgVo.getMsgContent(), MsgSource.Group, type);
         //更新聊天列表
         chatListService.updateChatListGroup(message.getToId(), message.getMsgContent());
+        boolean mqSent;
         try {
-            mqProducerService.sendMsgToGroup(message);
+            mqSent = mqProducerService.sendMsgToGroup(message) != null;
         } catch (Exception e) {
-            //发送消息
-            webSocketService.sendMsgToGroup(message, message.getToId());
+            mqSent = false;
+        }
+        if (!mqSent) {
+            sendMessageToGroupByWebSocketOrPushy(message);
         }
         return message;
+    }
+
+    /**
+     * WebSocket 在线发送失败时，将消息交给 Pushy 做离线推送。
+     */
+    private void sendMessageToUserByWebSocketOrPushy(Message message) {
+        if (!webSocketService.sendMsgToUser(message, message.getToId(), true)) {
+            pushyService.sendToUsers(
+                    userService.getUsersByIds(List.of(message.getToId())),
+                    message
+            );
+        }
+    }
+
+    /**
+     * 群消息先收集所有 WebSocket 发送失败的用户，再一次性查询 Token 并调用 Pushy。
+     */
+    private void sendMessageToGroupByWebSocketOrPushy(Message message) {
+        List<String> failedUserIds = webSocketService.sendMsgToGroup(message, message.getToId());
+        pushyService.sendToUsers(userService.getUsersByIds(failedUserIds), message);
     }
 
     //根据发送目标选择用户还是群聊
@@ -365,9 +393,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
         //发送
         if (message.getSource().equals(MsgSource.User))
-            webSocketService.sendMsgToUser(message, message.getToId());
+            sendMessageToUserByWebSocketOrPushy(message);
         if (message.getSource().equals(MsgSource.Group))
-            webSocketService.sendMsgToGroup(message, retractionMsgVo.getTargetId());
+            sendMessageToGroupByWebSocketOrPushy(message);
         return message;
     }
 

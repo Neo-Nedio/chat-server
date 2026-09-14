@@ -11,6 +11,7 @@ import com.example.chatserver.vo.login.QrCodeLoginVo;
 import com.example.chatserver.vo.user.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -70,4 +71,6 @@ public interface UserService extends IService<User> {
     JSONObject validateQrCodeLogin(QrCodeLoginVo qrCodeLoginVo, String userid);
 
     void emailVerifyByAccount(String account);
+
+    List<User> getUsersByIds(Collection<String> userIds);
 }

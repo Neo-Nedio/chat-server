@@ -1,6 +1,7 @@
 package com.example.chatserver.service;
 
 import cn.hutool.json.JSONObject;
+import com.example.chatserver.entity.User;
 import com.example.chatserver.exception.BaseException;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -114,5 +115,25 @@ public class PushyService {
             log.error("Pushy服务连接失败", e);
             throw new BaseException("Pushy服务连接失败");
         }
+    }
+
+    /**
+     * 从用户列表中提取 Pushy Token，并一次性发送同一份消息。
+     */
+    public JSONObject sendToUsers(Collection<User> users, Object msg) {
+        if (users == null || users.isEmpty()) {
+            return null;
+        }
+        List<String> pushyTokens = users.stream()
+                .filter(user -> user != null && user.getPushyToken() != null
+                        && !user.getPushyToken().isBlank())
+                .map(User::getPushyToken)
+                .map(String::trim)
+                .distinct()
+                .toList();
+        if (pushyTokens.isEmpty()) {
+            return null;
+        }
+        return send(pushyTokens, msg);
     }
 }
