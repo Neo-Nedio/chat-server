@@ -113,13 +113,16 @@ public class LiveKitTokenServiceImpl implements LiveKitTokenService {
         liveKitConfig.validate();
 
         try {
+            Map<String, Object> video = new HashMap<>();
+            video.put("roomList", true);
+
             // 签一个临时 admin token：apiKey 当 issuer，apiSecret 签名，
-            // claim roomList=true 表示有权限列房间，5 分钟过期
+            // roomList 权限放在 video grant 中，5 分钟过期
             String token = Jwts.builder()
                     .setIssuer(liveKitConfig.getApiKey())
                     .setSubject("livekit-server")
                     .setExpiration(Date.from(Instant.now().plusSeconds(300)))
-                    .claim("roomList", true)
+                    .claim("video", video)
                     .signWith(SignatureAlgorithm.HS256,
                             liveKitConfig.getApiSecret().getBytes(StandardCharsets.UTF_8))
                     .compact();
