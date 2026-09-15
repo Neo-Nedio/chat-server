@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class JwtUtil implements Serializable {
@@ -39,6 +40,7 @@ public class JwtUtil implements Serializable {
         Instant expireTime = now.plus(days, ChronoUnit.DAYS);
         return Jwts.builder()
                 .setIssuer("Neo")  // 设置签发人
+                .setId(UUID.randomUUID().toString()) // 每次登录生成唯一令牌，避免快速重登时令牌相同
                 .addClaims(claims)  // 添加自定义数据
                 .setExpiration(Date.from(expireTime))              // 设置过期时间
                 .signWith(SignatureAlgorithm.HS256, secret)        // 使用 HS256 算法签名

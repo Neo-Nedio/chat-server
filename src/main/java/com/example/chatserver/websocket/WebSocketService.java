@@ -109,6 +109,19 @@ public class WebSocketService {
         }
     }
 
+    public void logout(String userId, String token) {
+        Channel channel = Online_User.get(userId);
+        if (channel == null || token == null || !token.equals(NettyUtil.getAttr(channel, NettyUtil.TOKEN))) {
+            return;
+        }
+
+        try {
+            offline(channel);
+        } finally {
+            channel.close();
+        }
+    }
+
     //发送给指定用户，privateChat 用于区分私聊和群聊/通知类消息
     public boolean sendMsgToUser(Object msg, String userId, boolean privateChat) {
         Channel channel = Online_User.get(userId);

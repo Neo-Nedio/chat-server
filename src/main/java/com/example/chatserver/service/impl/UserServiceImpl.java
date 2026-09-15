@@ -306,6 +306,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public void logout(String userId, String token) {
+        webSocketService.logout(userId, token);
+    }
+
+    @Override
     public void online(String userId) {
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(User::getIsOnline, true)

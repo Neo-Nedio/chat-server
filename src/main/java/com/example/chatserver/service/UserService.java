@@ -38,6 +38,8 @@ public interface UserService extends IService<User> {
 
     void offline(String userId);
 
+    void logout(String userId, String token);
+
     void online(String userId);
 
     boolean createUser(CreateUserVo createUserVo);

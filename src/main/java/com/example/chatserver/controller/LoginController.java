@@ -36,6 +36,12 @@ public class LoginController {
         return userService.validateLogin(loginVo,userIp,false);
     }
 
+    @PostMapping("/logout")
+    public Object logout(@Userid String userId, @RequestHeader("x-token") String token) {
+        userService.logout(userId, token);
+        return ResultUtil.Succeed();
+    }
+
     @PostMapping("/qr")
     //移动端扫描二维码
     //userId 为移动端当前账号，将当前账号绑定到客户端二维码
