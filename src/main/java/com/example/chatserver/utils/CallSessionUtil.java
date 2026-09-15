@@ -7,7 +7,7 @@ public class CallSessionUtil {
     private static final String LIVE_PREFIX = "live_";
 
     public static String groupSession(String groupId) {
-        if (groupId == null || groupId.isBlank() || groupId.contains("_")) {
+        if (groupId == null || groupId.isBlank()) {
             throw new BaseException("群聊ID无效");
         }
         return PREFIX + groupId;
@@ -19,14 +19,14 @@ public class CallSessionUtil {
             throw new BaseException("通话房间无效");
         }
         String groupId = sessionId.substring(PREFIX.length());
-        if (groupId.contains("_") || groupId.isBlank()) {
+        if (groupId.isBlank()) {
             throw new BaseException("通话房间无效");
         }
         return groupId;
     }
 
     public static String liveSession(String userId) {
-        if (userId == null || userId.isBlank() || userId.contains("_")) {
+        if (userId == null || userId.isBlank()) {
             throw new BaseException("用户ID无效");
         }
         return LIVE_PREFIX + userId;
@@ -38,7 +38,7 @@ public class CallSessionUtil {
             throw new BaseException("直播房间无效");
         }
         String userId = sessionId.substring(LIVE_PREFIX.length());
-        if (userId.contains("_") || userId.isBlank()) {
+        if (userId.isBlank()) {
             throw new BaseException("直播房间无效");
         }
         return userId;
