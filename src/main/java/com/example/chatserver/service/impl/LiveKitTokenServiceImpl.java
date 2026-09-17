@@ -21,6 +21,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -100,6 +101,49 @@ public class LiveKitTokenServiceImpl implements LiveKitTokenService {
                 // 两次都失败，抛业务异常
                 throw new BaseException("LiveKit 服务不可用");
             }
+        }
+    }
+
+    @Override
+    public void sendData(String sessionId, String data, String topic) {
+        liveKitConfig.validate();
+
+        try {
+            Map<String, Object> video = new HashMap<>();
+            video.put("roomAdmin", true);
+            video.put("room", sessionId);
+
+            String token = Jwts.builder()
+                    .setIssuer(liveKitConfig.getApiKey())
+                    .setSubject("livekit-server")
+                    .setExpiration(Date.from(Instant.now().plusSeconds(300)))
+                    .claim("video", video)
+                    .signWith(SignatureAlgorithm.HS256,
+                            liveKitConfig.getApiSecret().getBytes(StandardCharsets.UTF_8))
+                    .compact();
+
+            String endpoint = liveKitConfig.getHost().replaceFirst("^ws", "http")
+                    + "/twirp/livekit.RoomService/SendData";
+            String body = JSONUtil.createObj()
+                    .set("room", sessionId)
+                    .set("data", Base64.getEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8)))
+                    .set("kind", "RELIABLE") //RELIABLE 表示可靠传输（保证送达，类似 TCP；另一个值是 LOSSY，丢了不重发）
+                    .set("topic", topic) //话题标签，客户端可以按 topic 过滤
+                    .toString();
+
+            HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Authorization", "Bearer " + token)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new IllegalStateException("LiveKit send data request failed");
+            }
+        } catch (Exception e) {
+            throw new BaseException("LiveKit 弹幕推送失败");
         }
     }
 

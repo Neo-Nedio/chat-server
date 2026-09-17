@@ -6,6 +6,8 @@ import com.example.chatserver.service.LiveRoomService;
 import com.example.chatserver.utils.MinioUtil;
 import com.example.chatserver.utils.RedisUtils;
 import com.example.chatserver.utils.ResultUtil;
+import com.example.chatserver.dto.voip.LiveDanmakuDto;
+import com.example.chatserver.vo.live.PublishDanmakuVo;
 import com.example.chatserver.vo.live.UpdateLiveRoomTitleVo;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
@@ -13,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/api/live-room")
@@ -55,6 +58,25 @@ public class LiveRoomController {
             redisUtils.set(fileName, url, 7 * 24 * 60 * 60);
         }
         return ResultUtil.Succeed(url);
+    }
+
+    /**
+     * 获取直播间弹幕历史记录。
+     */
+    @GetMapping("/danmaku/list")
+    public JSONObject danmakuList(@RequestParam("sessionId") String sessionId) {
+        List<LiveDanmakuDto> result = liveRoomService.getDanmakuList(sessionId);
+        return ResultUtil.Succeed(result);
+    }
+
+    /**
+     * 发布弹幕，同时保存到 Redis 并广播到 LiveKit 房间。
+     */
+    @PostMapping("/danmaku/send")
+    public JSONObject sendDanmaku(@Userid String userId,
+                                  @Valid @RequestBody PublishDanmakuVo vo) {
+        LiveDanmakuDto result = liveRoomService.publishDanmaku(userId, vo);
+        return ResultUtil.Succeed(result);
     }
 
 }

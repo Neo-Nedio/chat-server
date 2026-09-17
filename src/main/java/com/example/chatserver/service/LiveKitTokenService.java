@@ -13,5 +13,7 @@ public interface LiveKitTokenService {
 
     List<LiveKitRoomUserDto> listParticipants(String sessionId);
 
+    void sendData(String sessionId, String data, String topic);
+
     List<String> listActiveLiveRooms();
 }
