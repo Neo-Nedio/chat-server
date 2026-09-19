@@ -356,6 +356,7 @@ chat-server/
 
 ## 代码索引
 
+- [API 文档](docs/API.md)
 - [Docker Compose 服务编排](deploy/compose/docker-compose.yml)
 - [数据库初始化脚本](chat.sql)
 - [消息投递业务](src/main/java/com/example/chatserver/service/impl/MessageServiceImpl.java)
